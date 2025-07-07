@@ -12,7 +12,11 @@ import { cn } from '@/lib/utils';
 export function AppHeader() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const userId = searchParams.get('userId');
+  const [userId, setUserId] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    setUserId(searchParams.get('userId'));
+  }, [searchParams]);
 
   const constructUrl = (baseHref: string) => {
     if (!userId) return baseHref;

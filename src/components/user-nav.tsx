@@ -21,7 +21,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export function UserNav() {
   const searchParams = useSearchParams();
-  const userId = searchParams.get('userId') || 'user-5';
   const [user, setUser] = useState<User | undefined>(undefined);
   const [loading, setLoading] = useState(true);
 
@@ -29,6 +28,7 @@ export function UserNav() {
     let isMounted = true;
     const fetchUser = async () => {
         setLoading(true);
+        const userId = searchParams.get('userId') || 'user-5';
         const userData = await getUserById(userId);
         if (isMounted) {
             setUser(userData);
@@ -38,7 +38,7 @@ export function UserNav() {
     fetchUser();
 
     return () => { isMounted = false; };
-  }, [userId]);
+  }, [searchParams]);
 
   if (loading) {
     return (

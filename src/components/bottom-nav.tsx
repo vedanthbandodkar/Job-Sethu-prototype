@@ -5,11 +5,17 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { Home, LayoutDashboard, User, PlusCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
+import * as React from 'react';
 
 export function BottomNavBar() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const userId = searchParams.get('userId');
+  const [userId, setUserId] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    setUserId(searchParams.get('userId'));
+  }, [searchParams]);
+
 
   const constructUrl = (baseHref: string) => {
     if (!userId) return baseHref;
@@ -42,7 +48,7 @@ export function BottomNavBar() {
             )
           }
 
-          const isActive = pathname === item.href;
+          const isActive = pathname === item.href.split('?')[0];
           return (
             <Link
               key={item.href}
