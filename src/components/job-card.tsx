@@ -1,0 +1,57 @@
+import Link from 'next/link';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import type { Job } from '@/lib/types';
+import { MapPin, IndianRupee, AlertTriangle, ArrowRight } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+
+type JobCardProps = {
+  job: Job;
+};
+
+export function JobCard({ job }: JobCardProps) {
+  return (
+    <Card className="flex flex-col h-full overflow-hidden rounded-lg border shadow-sm transition-shadow hover:shadow-lg bg-card">
+      <CardHeader className="relative">
+        {job.sos && (
+            <Badge variant="destructive" className="absolute top-4 right-4 flex items-center gap-1">
+                <AlertTriangle className="h-3 w-3" /> SOS
+            </Badge>
+        )}
+        <CardTitle className="font-headline text-xl pr-12">{job.title}</CardTitle>
+        <CardDescription className="flex items-center text-sm text-muted-foreground pt-1">
+            <MapPin className="mr-1.5 h-4 w-4" /> {job.location}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex-grow">
+        <p className="text-sm text-muted-foreground line-clamp-3">{job.description}</p>
+        <div className="mt-4 flex flex-wrap gap-2">
+            {job.skills.slice(0,3).map((skill) => (
+                <Badge key={skill} variant="secondary">{skill}</Badge>
+            ))}
+            {job.skills.length > 3 && <Badge variant="secondary">+{job.skills.length - 3} more</Badge>}
+        </div>
+      </CardContent>
+      <Separator className="my-0" />
+      <CardFooter className="flex justify-between items-center p-4 bg-muted/20">
+        <div className='flex flex-col'>
+            <div className="flex items-center font-bold text-lg">
+                <IndianRupee className="mr-1 h-5 w-5"/>
+                {job.payment}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Posted {formatDistanceToNow(new Date(job.createdAt), { addSuffix: true })}
+            </p>
+        </div>
+
+        <Button asChild>
+          <Link href={`/jobs/${job.id}`}>
+            View Job <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+}
