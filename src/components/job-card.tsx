@@ -1,3 +1,5 @@
+"use client";
+
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -6,12 +8,19 @@ import { Separator } from '@/components/ui/separator';
 import type { Job } from '@/lib/types';
 import { MapPin, IndianRupee, AlertTriangle, ArrowRight } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { useState, useEffect } from 'react';
 
 type JobCardProps = {
   job: Job;
 };
 
 export function JobCard({ job }: JobCardProps) {
+  const [timeAgo, setTimeAgo] = useState('');
+
+  useEffect(() => {
+    setTimeAgo(formatDistanceToNow(new Date(job.createdAt), { addSuffix: true }));
+  }, [job.createdAt]);
+
   return (
     <Card className="flex flex-col h-full overflow-hidden rounded-lg border shadow-sm transition-shadow hover:shadow-lg bg-card">
       <CardHeader className="relative">
@@ -42,7 +51,7 @@ export function JobCard({ job }: JobCardProps) {
                 {job.payment}
             </div>
             <p className="text-xs text-muted-foreground">
-              Posted {formatDistanceToNow(new Date(job.createdAt), { addSuffix: true })}
+              Posted {timeAgo || '...'}
             </p>
         </div>
 
