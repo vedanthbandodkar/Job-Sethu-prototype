@@ -7,10 +7,10 @@ import { Briefcase, CheckCircle } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
-export default async function DashboardPage({ searchParams }: { searchParams?: { tab?: string } }) {
+export default async function DashboardPage({ searchParams }: { searchParams?: { tab?: string, userId?: string } }) {
   const allJobs = await getJobs();
-  // Mock current user ID
-  const currentUserId = 'user-5';
+  // Use passed userId or default to the mock user
+  const currentUserId = searchParams?.userId || 'user-5';
 
   const myPostings = allJobs.filter(job => job.posterId === currentUserId);
   const myApplications = allJobs.filter(job => job.applicants.includes(currentUserId) || job.workerId === currentUserId);

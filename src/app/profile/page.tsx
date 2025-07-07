@@ -5,12 +5,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { getUserById } from "@/lib/data";
 import { Pencil, MapPin } from "lucide-react";
 
-export default async function ProfilePage() {
-    // Mock getting the current logged-in user
-    const user = await getUserById('user-5');
+export default async function ProfilePage({ searchParams }: { searchParams?: { userId?: string } }) {
+    // Use the passed userId or default to the main mock user
+    const userId = searchParams?.userId || 'user-5';
+    const user = await getUserById(userId);
 
     if (!user) {
-        return <p>User not found.</p>;
+        return <p className="p-8 text-center">User not found.</p>;
     }
 
     return (

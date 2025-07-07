@@ -1,6 +1,6 @@
 'use server'
 
-import { createJobInDb, applyToJobInDb, markJobCompleteInDb, selectApplicantForJobInDb, createUserInDb } from '@/lib/data'
+import { createJobInDb, applyToJobInDb, markJobCompleteInDb, selectApplicantForJobInDb, createUserInDb, updateUserInDb } from '@/lib/data'
 import { revalidatePath } from 'next/cache';
 
 type JobFormValues = {
@@ -55,10 +55,34 @@ type SignupFormValues = {
 
 export async function signupAction(data: SignupFormValues) {
   try {
-    await createUserInDb({ name: data.name, email: data.email });
-    return { success: true };
+    const newUser = await createUserInDb({ name: data.name, email: data.email });
+    return { success: true, userId: newUser.id };
   } catch (error) {
     console.error('Failed to create user:', error);
     return { success: false, message: 'An unexpected error occurred. Please try again.' };
   }
+}
+
+type OnboardingFormValues = {
+    userId: string;
+    name: string;
+    location: string;
+    skills: string;
+}
+
+export async function completeOnboardingAction(data: OnboardingFormValues) {
+    try {
+        await updateUserInDb({
+            userId: data.userId,
+            name: data.name,
+            location: data.location,
+            skills: data.skills.split(',').map(s => s.trim()).filter(Boolean),
+        });
+        revalidatePath('/dashboard');
+        revalidatePath('/profile');
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to update user profile:', error);
+        return { success: false, message: 'An unexpected error occurred.' };
+    }
 }

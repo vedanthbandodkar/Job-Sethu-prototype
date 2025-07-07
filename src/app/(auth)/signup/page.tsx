@@ -61,12 +61,12 @@ export default function SignupPage() {
   const onSubmit = (data: SignupFormValues) => {
     startTransition(async () => {
       const result = await signupAction({ name: data.fullName, email: data.email });
-      if (result.success) {
+      if (result.success && result.userId) {
         toast({
           title: 'Account Created!',
           description: 'Redirecting you to set up your profile.',
         });
-        router.push('/onboarding');
+        router.push(`/onboarding?userId=${result.userId}`);
       } else {
         toast({
           variant: "destructive",

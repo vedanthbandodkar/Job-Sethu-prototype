@@ -355,3 +355,17 @@ export const createUserInDb = async (data: { name: string; email: string; }): Pr
     mockUsers.push(newUser);
     return newUser;
 };
+
+export const updateUserInDb = async (data: { userId: string; name: string; location: string; skills: string[]; }): Promise<User | undefined> => {
+    const userIndex = mockUsers.findIndex(u => u.id === data.userId);
+    if (userIndex !== -1) {
+        mockUsers[userIndex] = {
+            ...mockUsers[userIndex],
+            name: data.name,
+            location: data.location,
+            skills: data.skills,
+        };
+        return mockUsers[userIndex];
+    }
+    return undefined;
+};

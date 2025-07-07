@@ -15,6 +15,11 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useSearchParams, useRouter } from "next/navigation"
+import { useEffect, useTransition } from "react"
+import { completeOnboardingAction } from "@/app/actions"
+import { useToast } from "@/hooks/use-toast"
+import { Loader2 } from "lucide-react"
 
 const onboardingSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -25,6 +30,12 @@ const onboardingSchema = z.object({
 type OnboardingValues = z.infer<typeof onboardingSchema>
 
 export default function OnboardingPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const { toast } = useToast()
+  const [isPending, startTransition] = useTransition()
+  const userId = searchParams.get('userId')
+
   const form = useForm<OnboardingValues>({
     resolver: zodResolver(onboardingSchema),
     defaultValues: {
@@ -34,11 +45,54 @@ export default function OnboardingPage() {
     },
   })
 
+  useEffect(() => {
+    if (!userId) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Access",
+        description: "You must sign up before accessing the onboarding page.",
+      })
+      router.replace('/signup')
+    }
+  }, [userId, router, toast])
+
   function onSubmit(data: OnboardingValues) {
-    console.log("Onboarding data:", data)
-    alert("Welcome! Your profile is set up. Redirecting to dashboard...")
-    // In a real app, you would redirect: router.push('/dashboard')
+    if (!userId) {
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "No user ID found. Please sign up again.",
+        })
+        router.push('/signup');
+        return;
+    }
+
+    startTransition(async () => {
+        const result = await completeOnboardingAction({ ...data, userId });
+        if (result.success) {
+            toast({
+                title: "Profile Complete!",
+                description: "Welcome! Redirecting to your dashboard.",
+            })
+            router.push(`/dashboard?userId=${userId}`);
+        } else {
+            toast({
+                variant: "destructive",
+                title: "Uh oh! Something went wrong.",
+                description: result.message || "There was a problem with your request.",
+            })
+        }
+    })
   }
+  
+  if (!userId) {
+    return (
+        <div className="flex min-h-[calc(100vh-theme(spacing.14))] items-center justify-center p-4">
+            <p>Invalid onboarding session. Redirecting...</p>
+        </div>
+    );
+  }
+
 
   return (
     <div className="flex min-h-[calc(100vh-theme(spacing.14))] items-center justify-center p-4">
@@ -91,7 +145,9 @@ export default function OnboardingPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full" size="lg">Complete Profile</Button>
+              <Button type="submit" className="w-full" size="lg" disabled={isPending}>
+                {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Complete Profile'}
+              </Button>
             </form>
           </Form>
         </CardContent>
