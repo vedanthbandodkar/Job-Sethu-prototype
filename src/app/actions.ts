@@ -21,6 +21,6 @@ export async function createJobAction(data: JobFormValues) {
   revalidatePath('/');
   revalidatePath('/dashboard');
 
-  // Redirect to the dashboard
-  redirect(`/dashboard`);
+  // Redirect to the home page
+  redirect(`/`);
 }
