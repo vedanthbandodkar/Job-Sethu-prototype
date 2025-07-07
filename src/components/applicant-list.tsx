@@ -52,7 +52,7 @@ export function ApplicantList({ applicants, jobId }: ApplicantListProps) {
                             <div className="flex items-center gap-4">
                                 <Avatar>
                                     <AvatarImage src={applicant.avatarUrl} data-ai-hint="person avatar" />
-                                    <AvatarFallback>{applicant.name.charAt(0)}</AvatarFallback>
+                                    <AvatarFallback>{applicant.name?.charAt(0) ?? 'A'}</AvatarFallback>
                                 </Avatar>
                                 <div>
                                     <p className="font-semibold">{applicant.name}</p>
