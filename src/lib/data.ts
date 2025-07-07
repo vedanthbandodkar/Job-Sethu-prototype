@@ -1,6 +1,6 @@
 import type { User, Job, ChatMessage } from './types';
 
-export const mockUsers: User[] = [
+const initialMockUsers: User[] = [
   {
     id: 'user-1',
     name: 'Alice Johnson',
@@ -35,7 +35,7 @@ export const mockUsers: User[] = [
   },
 ];
 
-export let mockJobs: Job[] = [
+const initialMockJobs: Job[] = [
   {
     id: 'job-1',
     title: 'Build a landing page',
@@ -130,9 +130,49 @@ export let mockJobs: Job[] = [
     applicants: ['user-3'],
     createdAt: new Date('2024-07-18T12:00:00Z'),
   },
+  {
+    id: 'job-8',
+    title: 'Pet Sitter for a Weekend',
+    description: 'Looking for a reliable pet sitter for my two cats from Friday evening to Sunday evening. Must be comfortable with cats.',
+    skills: ['Pet Sitting', 'Animal Care'],
+    payment: 3000,
+    sos: false,
+    location: 'Oakland, CA',
+    status: 'open',
+    posterId: 'user-2',
+    applicants: [],
+    createdAt: new Date('2024-07-24T10:00:00Z'),
+  },
+  {
+    id: 'job-9',
+    title: 'Translate Document from English to Spanish',
+    description: 'Need a fluent Spanish speaker to translate a 10-page business document. Accuracy is crucial.',
+    skills: ['Translation', 'Spanish', 'English'],
+    payment: 4500,
+    sos: false,
+    location: 'Remote',
+    status: 'open',
+    posterId: 'user-1',
+    applicants: ['user-3'],
+    createdAt: new Date('2024-07-24T12:00:00Z'),
+  },
+  {
+    id: 'job-10',
+    title: 'Emergency Website Fix',
+    description: 'Our e-commerce website is down, and we need an experienced developer to debug and fix it immediately. Built on Node.js and React.',
+    skills: ['Node.js', 'React', 'Debugging', 'E-commerce'],
+    payment: 12000,
+    sos: true,
+    location: 'Remote',
+    status: 'assigned',
+    posterId: 'user-4',
+    workerId: 'user-1',
+    applicants: ['user-1'],
+    createdAt: new Date('2024-07-25T08:00:00Z'),
+  },
 ];
 
-export const mockMessages: ChatMessage[] = [
+const initialMockMessages: ChatMessage[] = [
     {
         id: 'msg-1',
         jobId: 'job-2',
@@ -155,6 +195,39 @@ export const mockMessages: ChatMessage[] = [
         timestamp: new Date('2024-07-21T15:06:00Z'),
     },
 ];
+
+
+// This is a workaround to persist mock data across hot reloads in development.
+// In a real app, you would use a proper database.
+declare global {
+  var mockJobsStore: Job[];
+  var mockUsersStore: User[];
+  var mockMessagesStore: ChatMessage[];
+}
+
+let mockJobs: Job[];
+let mockUsers: User[];
+let mockMessages: ChatMessage[];
+
+
+if (process.env.NODE_ENV === 'production') {
+  mockJobs = initialMockJobs;
+  mockUsers = initialMockUsers;
+  mockMessages = initialMockMessages;
+} else {
+  if (!global.mockJobsStore) {
+    global.mockJobsStore = initialMockJobs;
+  }
+  if (!global.mockUsersStore) {
+    global.mockUsersStore = initialMockUsers;
+  }
+  if (!global.mockMessagesStore) {
+    global.mockMessagesStore = initialMockMessages;
+  }
+  mockJobs = global.mockJobsStore;
+  mockUsers = global.mockUsersStore;
+  mockMessages = global.mockMessagesStore;
+}
 
 // Mock API functions
 export const getJobById = async (id: string): Promise<Job | undefined> => {
