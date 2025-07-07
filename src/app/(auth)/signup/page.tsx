@@ -1,9 +1,15 @@
+"use client";
+
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
+import { auth } from '@/lib/firebase';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
@@ -17,6 +23,29 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
 }
 
 export default function SignupPage() {
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const handleGoogleSignUp = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      toast({
+        title: 'Sign Up Successful!',
+        description: 'Redirecting you to set up your profile.',
+      });
+      // Redirect to onboarding for new users
+      router.push('/onboarding');
+    } catch (error) {
+      console.error("Google sign up error:", error);
+      toast({
+        variant: 'destructive',
+        title: 'Sign Up Failed',
+        description: 'Could not sign up with Google. Please try again.',
+      });
+    }
+  };
+
   return (
     <Card className="w-full max-w-sm">
       <CardHeader>
@@ -40,7 +69,7 @@ export default function SignupPage() {
           Create account
         </Button>
         <Separator className="my-2" />
-        <Button variant="outline" className="w-full">
+        <Button variant="outline" className="w-full" onClick={handleGoogleSignUp}>
             <GoogleIcon className="mr-2 h-4 w-4" />
             Sign up with Google
         </Button>
