@@ -2,20 +2,29 @@
 
 import type { Job } from "@/lib/types";
 import { Button } from "./ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Check, Send, CheckCheck } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Check, Send, CheckCheck, Loader2 } from "lucide-react";
+import { useTransition } from "react";
+import { applyForJobAction } from "@/app/actions";
 
 type JobActionsProps = {
     job: Job;
     isPoster: boolean;
     isWorker: boolean;
     hasApplied: boolean;
+    currentUserId: string;
 }
 
-export function JobActions({ job, isPoster, isWorker, hasApplied }: JobActionsProps) {
-    
-    // Handlers would call server actions in a real app
-    const handleApply = () => alert("Applied to job!");
+export function JobActions({ job, isPoster, isWorker, hasApplied, currentUserId }: JobActionsProps) {
+    const [isPending, startTransition] = useTransition();
+
+    const handleApply = () => {
+        startTransition(async () => {
+            await applyForJobAction(job.id, currentUserId);
+            alert("Applied to job!");
+        });
+    };
+
     const handleMarkComplete = () => alert("Job marked as complete. Waiting for poster confirmation.");
     const handleConfirmCompletion = () => alert("Job completed and payment processed!");
 
@@ -34,7 +43,18 @@ export function JobActions({ job, isPoster, isWorker, hasApplied }: JobActionsPr
             return <Button className="w-full" size="lg" disabled>Applied</Button>
         }
         if (job.status === 'open') {
-             return <Button onClick={handleApply} className="w-full" size="lg"><Send className="mr-2"/> Apply Now</Button>
+             return (
+                <Button onClick={handleApply} className="w-full" size="lg" disabled={isPending}>
+                    {isPending ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Applying...
+                        </>
+                    ) : (
+                        <><Send className="mr-2"/> Apply Now</>
+                    )}
+                </Button>
+            )
         }
         return <p className="text-center text-sm text-muted-foreground">This job has already been assigned.</p>
     }

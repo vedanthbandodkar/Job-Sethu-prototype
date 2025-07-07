@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
-import { createJobInDb } from '@/lib/data'
+import { createJobInDb, applyToJobInDb } from '@/lib/data'
 
 type JobFormValues = {
   title: string;
@@ -15,7 +15,7 @@ type JobFormValues = {
 
 export async function createJobAction(data: JobFormValues) {
   // Server-side validation can be added here if needed, but the client-side validation is sufficient for this demo app.
-  const newJob = await createJobInDb(data);
+  await createJobInDb(data);
   
   // Revalidate the pages where the new job should appear
   revalidatePath('/');
@@ -23,4 +23,10 @@ export async function createJobAction(data: JobFormValues) {
 
   // Redirect to the home page
   redirect(`/`);
+}
+
+export async function applyForJobAction(jobId: string, userId: string) {
+    await applyToJobInDb(jobId, userId);
+    revalidatePath(`/jobs/${jobId}`);
+    revalidatePath('/dashboard');
 }

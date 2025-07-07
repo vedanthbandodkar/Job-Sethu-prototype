@@ -110,7 +110,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                         </CardHeader>
                     </Card>
                 )}
-                <JobActions job={job} isPoster={isPoster} isWorker={isWorker} hasApplied={hasApplied} />
+                <JobActions job={job} isPoster={isPoster} isWorker={isWorker} hasApplied={hasApplied} currentUserId={currentUserId} />
             </div>
         </div>
       </div>

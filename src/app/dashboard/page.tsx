@@ -7,7 +7,7 @@ import { Briefcase, CheckCircle } from 'lucide-react';
 export default async function DashboardPage() {
   const allJobs = await getJobs();
   // Mock current user ID
-  const currentUserId = 'user-1';
+  const currentUserId = 'user-2';
 
   const myPostings = allJobs.filter(job => job.posterId === currentUserId);
   const myApplications = allJobs.filter(job => job.applicants.includes(currentUserId) || job.workerId === currentUserId);

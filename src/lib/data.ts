@@ -159,3 +159,10 @@ export const createJobInDb = async (data: JobCreationData): Promise<Job> => {
     mockJobs.unshift(newJob);
     return newJob;
 };
+
+export const applyToJobInDb = async (jobId: string, userId: string): Promise<void> => {
+    const job = mockJobs.find(j => j.id === jobId);
+    if (job && !job.applicants.includes(userId)) {
+        job.applicants.push(userId);
+    }
+};
