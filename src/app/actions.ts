@@ -1,6 +1,5 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
 import { createJobInDb, applyToJobInDb, markJobCompleteInDb, selectApplicantForJobInDb } from '@/lib/data'
 
 type JobFormValues = {
@@ -15,10 +14,6 @@ type JobFormValues = {
 export async function createJobAction(data: JobFormValues) {
   try {
     await createJobInDb(data);
-    
-    revalidatePath('/');
-    revalidatePath('/dashboard');
-
     return { success: true };
   } catch (error) {
     console.error('Failed to create job:', error);
@@ -28,17 +23,12 @@ export async function createJobAction(data: JobFormValues) {
 
 export async function applyForJobAction(jobId: string, userId: string) {
     await applyToJobInDb(jobId, userId);
-    revalidatePath(`/jobs/${jobId}`);
-    revalidatePath('/dashboard');
 }
 
 export async function markJobCompleteAction(jobId: string) {
     await markJobCompleteInDb(jobId);
-    revalidatePath(`/jobs/${jobId}`);
-    revalidatePath('/dashboard');
 }
 
 export async function selectApplicantAction(jobId: string, applicantId: string) {
     await selectApplicantForJobInDb(jobId, applicantId);
-    revalidatePath(`/jobs/${jobId}`);
 }

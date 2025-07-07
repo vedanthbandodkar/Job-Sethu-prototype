@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Check, Send, CheckCheck, Loader2 } from "lucide-react";
 import { useTransition } from "react";
 import { applyForJobAction, markJobCompleteAction } from "@/app/actions";
+import { useRouter } from "next/navigation";
 
 type JobActionsProps = {
     job: Job;
@@ -18,11 +19,13 @@ type JobActionsProps = {
 export function JobActions({ job, isPoster, isWorker, hasApplied, currentUserId }: JobActionsProps) {
     const [isApplying, startApplyingTransition] = useTransition();
     const [isCompleting, startCompletingTransition] = useTransition();
+    const router = useRouter();
 
     const handleApply = () => {
         startApplyingTransition(async () => {
             await applyForJobAction(job.id, currentUserId);
             alert("Applied to job!");
+            router.refresh();
         });
     };
 
@@ -30,6 +33,7 @@ export function JobActions({ job, isPoster, isWorker, hasApplied, currentUserId 
         startCompletingTransition(async () => {
             await markJobCompleteAction(job.id);
             alert("job marked completed");
+            router.refresh();
         });
     };
 

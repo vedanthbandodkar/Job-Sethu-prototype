@@ -8,6 +8,7 @@ import Link from "next/link";
 import { Check, Loader2 } from "lucide-react";
 import { useTransition, useState } from "react";
 import { selectApplicantAction } from "@/app/actions";
+import { useRouter } from "next/navigation";
 
 type ApplicantListProps = {
     applicants: User[];
@@ -17,6 +18,7 @@ type ApplicantListProps = {
 export function ApplicantList({ applicants, jobId }: ApplicantListProps) {
     const [isPending, startTransition] = useTransition();
     const [selectedApplicantId, setSelectedApplicantId] = useState<string | null>(null);
+    const router = useRouter();
 
     if (applicants.length === 0) {
         return (
@@ -33,7 +35,7 @@ export function ApplicantList({ applicants, jobId }: ApplicantListProps) {
         setSelectedApplicantId(userId);
         startTransition(async () => {
             await selectApplicantAction(jobId, userId);
-            setSelectedApplicantId(null);
+            router.refresh();
         });
     }
     

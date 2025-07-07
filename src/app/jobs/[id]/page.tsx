@@ -11,6 +11,8 @@ import { ApplicantList } from '@/components/applicant-list';
 import type { User as UserType } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
+export const dynamic = 'force-dynamic';
+
 export default async function JobDetailPage({ params }: { params: { id: string } }) {
   const job = await getJobById(params.id);
   if (!job) {
