@@ -77,7 +77,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                 <ApplicantList applicants={applicants} jobId={job.id} />
             )}
 
-            {canChat && job.id === 'job-2' && ( // Only show chat for the job with mock messages
+            {canChat && (
                 <ChatInterface jobId={job.id} currentUserId={currentUserId} />
             )}
 
