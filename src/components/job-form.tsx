@@ -41,6 +41,11 @@ const jobFormSchema = z.object({
 type JobFormValues = z.infer<typeof jobFormSchema>
 
 const defaultValues: Partial<JobFormValues> = {
+  title: "",
+  description: "",
+  skills: "",
+  location: "",
+  payment: undefined,
   sos: false,
 }
 
@@ -114,7 +119,13 @@ export function JobForm() {
                 <FormItem>
                 <FormLabel>Payment (INR)</FormLabel>
                 <FormControl>
-                    <Input type="number" placeholder="e.g., 5000" {...field} />
+                    <Input 
+                        type="number"
+                        placeholder="e.g., 5000"
+                        {...field}
+                        value={field.value ?? ""}
+                        onChange={(e) => field.onChange(e.target.value === '' ? undefined : +e.target.value)}
+                    />
                 </FormControl>
                 <FormMessage />
                 </FormItem>
