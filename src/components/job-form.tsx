@@ -75,7 +75,7 @@ export function JobForm() {
             });
             // Wait for a moment before redirecting
             setTimeout(() => {
-                router.push('/');
+                router.push('/dashboard?tab=postings');
             }, 1500);
         } else {
             toast({

@@ -6,18 +6,19 @@ import { Briefcase, CheckCircle } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }: { searchParams?: { tab?: string } }) {
   const allJobs = await getJobs();
   // Mock current user ID
   const currentUserId = 'user-2';
 
   const myPostings = allJobs.filter(job => job.posterId === currentUserId);
   const myApplications = allJobs.filter(job => job.applicants.includes(currentUserId) || job.workerId === currentUserId);
+  const defaultTab = searchParams?.tab === 'postings' ? 'postings' : 'applications';
 
   return (
     <div className="container mx-auto py-12">
       <h1 className="font-headline text-4xl font-bold mb-8">My Dashboard</h1>
-      <Tabs defaultValue="applications" className="w-full">
+      <Tabs defaultValue={defaultTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2 md:w-[400px]">
           <TabsTrigger value="applications"><CheckCircle className="mr-2 h-4 w-4" />My Applications</TabsTrigger>
           <TabsTrigger value="postings"><Briefcase className="mr-2 h-4 w-4" />My Postings</TabsTrigger>
