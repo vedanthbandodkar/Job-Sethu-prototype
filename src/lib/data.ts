@@ -33,6 +33,14 @@ const initialMockUsers: User[] = [
     skills: ['Gardening', 'Landscaping'],
     location: 'San Francisco, CA',
   },
+  {
+    id: 'user-5',
+    name: 'Eve Davis',
+    email: 'eve@example.com',
+    avatarUrl: 'https://placehold.co/100x100.png',
+    skills: ['Photography', 'Video Editing'],
+    location: 'Berkeley, CA',
+  },
 ];
 
 const initialMockJobs: Job[] = [
@@ -265,7 +273,7 @@ export const createJobInDb = async (data: JobCreationData): Promise<Job> => {
         sos: data.sos,
         location: data.location,
         status: 'open',
-        posterId: 'user-3', // Mock current user as poster
+        posterId: 'user-5', // Mock current user as poster
         applicants: [],
         createdAt: new Date(),
     };

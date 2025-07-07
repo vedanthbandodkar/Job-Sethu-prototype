@@ -11,14 +11,20 @@ import {
 } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
 import { CreditCard, LogOut, Settings, User } from 'lucide-react';
+import { getUserById } from '@/lib/data';
 
-export function UserNav() {
+export async function UserNav() {
   // Mock user data
-  const user = {
-    name: 'Charlie Brown',
-    email: 'charlie@example.com',
-    avatarUrl: 'https://placehold.co/100x100.png',
-  };
+  const currentUserId = 'user-5';
+  const user = await getUserById(currentUserId);
+
+  if (!user) {
+    return (
+        <Button asChild>
+            <Link href="/login">Login</Link>
+        </Button>
+    )
+  }
 
   return (
     <DropdownMenu>

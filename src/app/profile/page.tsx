@@ -7,7 +7,7 @@ import { Pencil, MapPin } from "lucide-react";
 
 export default async function ProfilePage() {
     // Mock getting the current logged-in user
-    const user = await getUserById('user-3');
+    const user = await getUserById('user-5');
 
     if (!user) {
         return <p>User not found.</p>;
