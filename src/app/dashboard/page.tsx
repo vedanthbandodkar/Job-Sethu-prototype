@@ -1,8 +1,11 @@
+
 import { JobCard } from '@/components/job-card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getJobs } from '@/lib/data';
 import type { Job } from '@/lib/types';
 import { Briefcase, CheckCircle } from 'lucide-react';
+
+export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage({ searchParams }: { searchParams?: { tab?: string } }) {
   const allJobs = await getJobs();

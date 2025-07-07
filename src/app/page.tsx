@@ -1,9 +1,12 @@
+
 import { JobCard } from '@/components/job-card';
 import { getJobs } from '@/lib/data';
 import type { Job } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
+
+export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   const jobs = await getJobs();
