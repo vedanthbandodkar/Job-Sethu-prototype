@@ -16,9 +16,6 @@ export function AppHeader() {
         </Link>
         <div className="flex flex-1 items-center justify-end space-x-2 sm:space-x-4">
           <nav className="hidden items-center space-x-2 md:flex">
-            <Button variant="ghost" asChild>
-              <Link href="/dashboard">Dashboard</Link>
-            </Button>
             <Button asChild>
               <Link href="/jobs/new">Post a Job</Link>
             </Button>
