@@ -8,8 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { auth } from '@/lib/firebase';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
@@ -26,23 +24,14 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleGoogleLogin = async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-      toast({
-        title: 'Login Successful!',
-        description: 'Redirecting you to your dashboard.',
-      });
-      router.push('/dashboard');
-    } catch (error) {
-      console.error("Google login error:", error);
-      toast({
-        variant: 'destructive',
-        title: 'Login Failed',
-        description: 'Could not log in with Google. Please try again.',
-      });
-    }
+  const handleGoogleLogin = () => {
+    // In a real app, this is where you'd call Firebase.
+    // For this prototype, we'll simulate a successful login.
+    toast({
+      title: 'Login Successful!',
+      description: 'Redirecting you to your dashboard.',
+    });
+    router.push('/dashboard');
   };
   
   return (

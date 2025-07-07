@@ -8,8 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { auth } from '@/lib/firebase';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
@@ -26,24 +24,15 @@ export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleGoogleSignUp = async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-      toast({
-        title: 'Sign Up Successful!',
-        description: 'Redirecting you to set up your profile.',
-      });
-      // Redirect to onboarding for new users
-      router.push('/onboarding');
-    } catch (error) {
-      console.error("Google sign up error:", error);
-      toast({
-        variant: 'destructive',
-        title: 'Sign Up Failed',
-        description: 'Could not sign up with Google. Please try again.',
-      });
-    }
+  const handleGoogleSignUp = () => {
+    // In a real app, this would handle Firebase auth.
+    // For this prototype, we'll simulate a successful sign up.
+    toast({
+      title: 'Sign Up Successful!',
+      description: 'Redirecting you to set up your profile.',
+    });
+    // Redirect to onboarding for new users
+    router.push('/onboarding');
   };
 
   return (
