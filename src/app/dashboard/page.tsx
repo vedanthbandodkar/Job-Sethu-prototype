@@ -4,6 +4,8 @@ import { getJobs } from '@/lib/data';
 import type { Job } from '@/lib/types';
 import { Briefcase, CheckCircle } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export default async function DashboardPage() {
   const allJobs = await getJobs();
   // Mock current user ID
