@@ -1,6 +1,5 @@
 'use server'
 
-import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createJobInDb, applyToJobInDb, markJobCompleteInDb } from '@/lib/data'
 
@@ -14,15 +13,18 @@ type JobFormValues = {
 }
 
 export async function createJobAction(data: JobFormValues) {
-  // Server-side validation can be added here if needed, but the client-side validation is sufficient for this demo app.
-  await createJobInDb(data);
-  
-  // Revalidate the pages where the new job should appear
-  revalidatePath('/');
-  revalidatePath('/dashboard');
+  try {
+    await createJobInDb(data);
+    
+    // Revalidate the pages where the new job should appear
+    revalidatePath('/');
+    revalidatePath('/dashboard');
 
-  // Redirect to the home page
-  redirect(`/`);
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to create job:', error);
+    return { success: false, message: 'An unexpected error occurred. Please try again.' };
+  }
 }
 
 export async function applyForJobAction(jobId: string, userId: string) {

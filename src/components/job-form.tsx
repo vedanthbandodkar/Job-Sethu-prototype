@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { useTransition } from "react"
+import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -20,6 +21,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { AlertTriangle, Loader2 } from "lucide-react"
 import { createJobAction } from "@/app/actions"
+import { useToast } from "@/hooks/use-toast"
 
 const jobFormSchema = z.object({
   title: z.string().min(5, {
@@ -53,6 +55,8 @@ const defaultValues: Partial<JobFormValues> = {
 
 export function JobForm() {
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
+  const { toast } = useToast();
 
   const form = useForm<JobFormValues>({
     resolver: zodResolver(jobFormSchema),
@@ -61,8 +65,25 @@ export function JobForm() {
   })
 
   function onSubmit(data: JobFormValues) {
-    startTransition(() => {
-        createJobAction(data);
+    startTransition(async () => {
+        const result = await createJobAction(data);
+        if (result?.success) {
+            form.reset();
+            toast({
+                title: "Job Created!",
+                description: "Your job has been posted successfully.",
+            });
+            // Wait for a moment before redirecting
+            setTimeout(() => {
+                router.push('/');
+            }, 1500);
+        } else {
+            toast({
+                variant: "destructive",
+                title: "Uh oh! Something went wrong.",
+                description: result?.message || "There was a problem with your request.",
+            })
+        }
     });
   }
 
