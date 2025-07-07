@@ -265,7 +265,7 @@ export const createJobInDb = async (data: JobCreationData): Promise<Job> => {
         sos: data.sos,
         location: data.location,
         status: 'open',
-        posterId: 'user-1', // Mock current user as poster
+        posterId: 'user-3', // Mock current user as poster
         applicants: [],
         createdAt: new Date(),
     };

@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 export default async function DashboardPage({ searchParams }: { searchParams?: { tab?: string } }) {
   const allJobs = await getJobs();
   // Mock current user ID
-  const currentUserId = 'user-1';
+  const currentUserId = 'user-3';
 
   const myPostings = allJobs.filter(job => job.posterId === currentUserId);
   const myApplications = allJobs.filter(job => job.applicants.includes(currentUserId) || job.workerId === currentUserId);

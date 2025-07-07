@@ -15,8 +15,8 @@ import { CreditCard, LogOut, Settings, User } from 'lucide-react';
 export function UserNav() {
   // Mock user data
   const user = {
-    name: 'Alice Johnson',
-    email: 'alice@example.com',
+    name: 'Charlie Brown',
+    email: 'charlie@example.com',
     avatarUrl: 'https://placehold.co/100x100.png',
   };
 
