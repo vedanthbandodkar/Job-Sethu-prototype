@@ -4,7 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { useTransition } from "react"
-import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -55,7 +54,6 @@ const defaultValues: Partial<JobFormValues> = {
 
 export function JobForm() {
   const [isPending, startTransition] = useTransition();
-  const router = useRouter();
   const { toast } = useToast();
 
   const form = useForm<JobFormValues>({
@@ -73,10 +71,8 @@ export function JobForm() {
                 title: "Job Created!",
                 description: "Your job has been posted successfully.",
             });
-            // Wait for a moment before redirecting
-            setTimeout(() => {
-                router.push('/dashboard?tab=postings');
-            }, 1500);
+            // Force a hard navigation to bypass client-side caching issues.
+            window.location.assign('/dashboard?tab=postings');
         } else {
             toast({
                 variant: "destructive",
