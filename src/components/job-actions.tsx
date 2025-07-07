@@ -7,6 +7,7 @@ import { Check, Send, CheckCheck, Loader2 } from "lucide-react";
 import { useTransition } from "react";
 import { applyForJobAction, markJobCompleteAction } from "@/app/actions";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 
 type JobActionsProps = {
     job: Job;
@@ -20,11 +21,15 @@ export function JobActions({ job, isPoster, isWorker, hasApplied, currentUserId 
     const [isApplying, startApplyingTransition] = useTransition();
     const [isCompleting, startCompletingTransition] = useTransition();
     const router = useRouter();
+    const { toast } = useToast();
 
     const handleApply = () => {
         startApplyingTransition(async () => {
             await applyForJobAction(job.id, currentUserId);
-            alert("Applied to job!");
+            toast({
+                title: "Successfully Applied!",
+                description: "The job poster has been notified. You can see this job in your dashboard.",
+            });
             router.refresh();
         });
     };
@@ -32,7 +37,10 @@ export function JobActions({ job, isPoster, isWorker, hasApplied, currentUserId 
     const handleMarkComplete = () => {
         startCompletingTransition(async () => {
             await markJobCompleteAction(job.id);
-            alert("job marked completed");
+            toast({
+                title: "Job Completed!",
+                description: "You've marked this job as complete.",
+            });
             router.refresh();
         });
     };
