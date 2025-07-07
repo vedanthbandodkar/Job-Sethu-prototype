@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
+import { useTransition } from "react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -17,7 +18,9 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
-import { AlertTriangle } from "lucide-react"
+import { AlertTriangle, Loader2 } from "lucide-react"
+import { createJobAction } from "@/app/actions"
+import { useToast } from "@/hooks/use-toast"
 
 const jobFormSchema = z.object({
   title: z.string().min(5, {
@@ -50,6 +53,9 @@ const defaultValues: Partial<JobFormValues> = {
 }
 
 export function JobForm() {
+  const [isPending, startTransition] = useTransition();
+  const { toast } = useToast();
+
   const form = useForm<JobFormValues>({
     resolver: zodResolver(jobFormSchema),
     defaultValues,
@@ -57,9 +63,16 @@ export function JobForm() {
   })
 
   function onSubmit(data: JobFormValues) {
-    console.log(data)
-    // Here you would typically call an API to create the job
-    alert("Job created successfully! (Check console for data)")
+    startTransition(() => {
+        createJobAction(data).catch((error) => {
+            console.error(error);
+            toast({
+                title: "Something went wrong",
+                description: "Your job could not be created. Please try again.",
+                variant: "destructive"
+            });
+        });
+    });
   }
 
   return (
@@ -168,7 +181,16 @@ export function JobForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" size="lg">Create Job</Button>
+        <Button type="submit" size="lg" disabled={isPending}>
+          {isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Creating...
+            </>
+          ) : (
+            "Create Job"
+          )}
+        </Button>
       </form>
     </Form>
   )

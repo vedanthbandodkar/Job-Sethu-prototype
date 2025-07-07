@@ -35,7 +35,7 @@ export const mockUsers: User[] = [
   },
 ];
 
-export const mockJobs: Job[] = [
+export let mockJobs: Job[] = [
   {
     id: 'job-1',
     title: 'Build a landing page',
@@ -132,3 +132,30 @@ export const getMessagesForJob = async (jobId: string): Promise<ChatMessage[]> =
 export const getJobs = async (): Promise<Job[]> => {
     return [...mockJobs].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 }
+
+type JobCreationData = {
+    title: string;
+    description: string;
+    skills: string;
+    payment: number;
+    location: string;
+    sos: boolean;
+};
+
+export const createJobInDb = async (data: JobCreationData): Promise<Job> => {
+    const newJob: Job = {
+        id: `job-${Date.now()}`,
+        title: data.title,
+        description: data.description,
+        skills: data.skills.split(',').map(s => s.trim()).filter(s => s),
+        payment: data.payment,
+        sos: data.sos,
+        location: data.location,
+        status: 'open',
+        posterId: 'user-1', // Mock current user as poster
+        applicants: [],
+        createdAt: new Date(),
+    };
+    mockJobs.unshift(newJob);
+    return newJob;
+};
