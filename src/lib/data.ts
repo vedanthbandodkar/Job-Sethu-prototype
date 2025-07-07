@@ -166,3 +166,10 @@ export const applyToJobInDb = async (jobId: string, userId: string): Promise<voi
         job.applicants.push(userId);
     }
 };
+
+export const markJobCompleteInDb = async (jobId: string): Promise<void> => {
+    const job = mockJobs.find(j => j.id === jobId);
+    if (job) {
+        job.status = 'completed';
+    }
+};

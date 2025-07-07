@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
-import { createJobInDb, applyToJobInDb } from '@/lib/data'
+import { createJobInDb, applyToJobInDb, markJobCompleteInDb } from '@/lib/data'
 
 type JobFormValues = {
   title: string;
@@ -27,6 +27,12 @@ export async function createJobAction(data: JobFormValues) {
 
 export async function applyForJobAction(jobId: string, userId: string) {
     await applyToJobInDb(jobId, userId);
+    revalidatePath(`/jobs/${jobId}`);
+    revalidatePath('/dashboard');
+}
+
+export async function markJobCompleteAction(jobId: string) {
+    await markJobCompleteInDb(jobId);
     revalidatePath(`/jobs/${jobId}`);
     revalidatePath('/dashboard');
 }
