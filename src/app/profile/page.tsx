@@ -21,10 +21,10 @@ export default async function ProfilePage({ searchParams }: { searchParams?: { u
                     <div className="flex flex-col md:flex-row items-center gap-8">
                         <Avatar className="h-32 w-32 border-4 border-background shadow-lg">
                             <AvatarImage src={user.avatarUrl} data-ai-hint="person portrait" />
-                            <AvatarFallback className="text-4xl">{user.name.charAt(0)}</AvatarFallback>
+                            <AvatarFallback className="text-4xl">{user.name?.charAt(0) ?? 'U'}</AvatarFallback>
                         </Avatar>
                         <div className="text-center md:text-left">
-                            <CardTitle className="font-headline text-4xl">{user.name}</CardTitle>
+                            <CardTitle className="font-headline text-4xl">{user.name ?? "Unnamed User"}</CardTitle>
                             <CardDescription className="mt-2 text-lg flex items-center justify-center md:justify-start">
                                 <MapPin className="mr-2 h-5 w-5"/>
                                 {user.location}
