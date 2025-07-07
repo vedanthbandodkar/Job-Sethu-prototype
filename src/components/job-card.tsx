@@ -23,16 +23,27 @@ export function JobCard({ job }: JobCardProps) {
 
   return (
     <Card className="flex flex-col h-full overflow-hidden rounded-lg border shadow-sm transition-shadow hover:shadow-lg bg-card">
-      <CardHeader className="relative">
-        {job.sos && (
-            <Badge variant="destructive" className="absolute top-4 right-4 flex items-center gap-1">
-                <AlertTriangle className="h-3 w-3" /> SOS
-            </Badge>
-        )}
-        <CardTitle className="font-headline text-xl pr-12">{job.title}</CardTitle>
-        <CardDescription className="flex items-center text-sm text-muted-foreground pt-1">
-            <MapPin className="mr-1.5 h-4 w-4" /> {job.location}
-        </CardDescription>
+      <CardHeader>
+        <div className="flex justify-between items-start gap-4">
+            <div className="flex-grow">
+                <CardTitle className="font-headline text-xl">{job.title}</CardTitle>
+                <CardDescription className="flex items-center text-sm text-muted-foreground pt-1">
+                    <MapPin className="mr-1.5 h-4 w-4" /> {job.location}
+                </CardDescription>
+            </div>
+            <div className="flex flex-col items-end space-y-1.5 shrink-0">
+                {job.sos && (
+                    <Badge variant="destructive" className="flex items-center gap-1">
+                        <AlertTriangle className="h-3 w-3" /> SOS
+                    </Badge>
+                )}
+                {job.status !== 'open' && (
+                    <Badge variant={job.status === 'completed' ? 'outline' : 'secondary'} className="capitalize">
+                        {job.status}
+                    </Badge>
+                )}
+            </div>
+        </div>
       </CardHeader>
       <CardContent className="flex-grow">
         <p className="text-sm text-muted-foreground line-clamp-3">{job.description}</p>
