@@ -26,7 +26,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
 
 
   // Mock current user
-  const currentUserId = 'user-2'; // Change this to test different views ('user-1', 'user-2', 'user-3', etc.)
+  const currentUserId = 'user-1'; // Change this to test different views ('user-1', 'user-2', 'user-3', etc.)
   const isPoster = job.posterId === currentUserId;
   const isWorker = job.workerId === currentUserId;
   const hasApplied = job.applicants.includes(currentUserId);
