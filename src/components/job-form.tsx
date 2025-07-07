@@ -20,7 +20,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { AlertTriangle, Loader2 } from "lucide-react"
 import { createJobAction } from "@/app/actions"
-import { useToast } from "@/hooks/use-toast"
 
 const jobFormSchema = z.object({
   title: z.string().min(5, {
@@ -54,7 +53,6 @@ const defaultValues: Partial<JobFormValues> = {
 
 export function JobForm() {
   const [isPending, startTransition] = useTransition();
-  const { toast } = useToast();
 
   const form = useForm<JobFormValues>({
     resolver: zodResolver(jobFormSchema),
@@ -64,14 +62,7 @@ export function JobForm() {
 
   function onSubmit(data: JobFormValues) {
     startTransition(() => {
-        createJobAction(data).catch((error) => {
-            console.error(error);
-            toast({
-                title: "Something went wrong",
-                description: "Your job could not be created. Please try again.",
-                variant: "destructive"
-            });
-        });
+        createJobAction(data);
     });
   }
 
