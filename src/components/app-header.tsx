@@ -1,9 +1,11 @@
 "use client";
 
 import Link from 'next/link';
+import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { UserNav } from '@/components/user-nav';
 import { Briefcase } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function AppHeader() {
   return (
@@ -19,7 +21,9 @@ export function AppHeader() {
               <Link href="/jobs/new">Post a Job</Link>
             </Button>
           </nav>
-          <UserNav />
+          <React.Suspense fallback={<Skeleton className="h-9 w-9 rounded-full" />}>
+            <UserNav />
+          </React.Suspense>
         </div>
       </div>
     </header>
