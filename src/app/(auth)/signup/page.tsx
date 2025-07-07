@@ -51,11 +51,13 @@ export default function SignupPage() {
   });
 
   const handleGoogleSignUp = () => {
+    // In a real app, this is where you'd call Firebase.
+    // For this prototype, we'll simulate a successful login.
     toast({
       title: 'Sign Up Successful!',
-      description: 'Redirecting you to set up your profile.',
+      description: 'Redirecting you to your dashboard.',
     });
-    router.push('/onboarding');
+    router.push('/dashboard?userId=user-1'); // Mock user
   };
 
   const onSubmit = (data: SignupFormValues) => {
@@ -64,9 +66,9 @@ export default function SignupPage() {
       if (result.success && result.userId) {
         toast({
           title: 'Account Created!',
-          description: 'Redirecting you to set up your profile.',
+          description: "Welcome! Redirecting to the homepage.",
         });
-        router.push(`/onboarding?userId=${result.userId}`);
+        window.location.assign(`/?userId=${result.userId}`);
       } else {
         toast({
           variant: "destructive",

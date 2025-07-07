@@ -56,7 +56,7 @@ export function ApplicantList({ applicants, jobId }: ApplicantListProps) {
                                 </Avatar>
                                 <div>
                                     <p className="font-semibold">{applicant.name}</p>
-                                    <Link href={`/profile/${applicant.id}`} className="text-sm text-primary hover:underline">View Profile</Link>
+                                    <Link href={`/profile?userId=${applicant.id}`} className="text-sm text-primary hover:underline">View Profile</Link>
                                 </div>
                             </div>
                             <Button size="sm" onClick={() => handleSelectApplicant(applicant.id)} disabled={isPending}>

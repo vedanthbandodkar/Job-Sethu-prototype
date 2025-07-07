@@ -4,9 +4,6 @@ import { UserNav } from '@/components/user-nav';
 import { Briefcase } from 'lucide-react';
 
 export function AppHeader() {
-  // Mock authentication status
-  const isLoggedIn = true;
-
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 max-w-screen-2xl items-center">
@@ -20,13 +17,7 @@ export function AppHeader() {
               <Link href="/jobs/new">Post a Job</Link>
             </Button>
           </nav>
-          {isLoggedIn ? (
-            <UserNav />
-          ) : (
-            <Button asChild>
-              <Link href="/login">Login</Link>
-            </Button>
-          )}
+          <UserNav />
         </div>
       </div>
     </header>

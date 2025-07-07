@@ -68,7 +68,7 @@ export function ChatInterface({ jobId, currentUserId }: { jobId: string, current
                                 {msg.senderId !== currentUserId && (
                                     <Avatar className="h-8 w-8">
                                         <AvatarImage src={msg.sender?.avatarUrl} data-ai-hint="person avatar"/>
-                                        <AvatarFallback>{msg.sender?.name.charAt(0)}</AvatarFallback>
+                                        <AvatarFallback>{msg.sender?.name?.[0] ?? 'U'}</AvatarFallback>
                                     </Avatar>
                                 )}
                                 <div className={cn(
@@ -83,7 +83,7 @@ export function ChatInterface({ jobId, currentUserId }: { jobId: string, current
                                 {msg.senderId === currentUserId && (
                                     <Avatar className="h-8 w-8">
                                         <AvatarImage src={msg.sender?.avatarUrl} data-ai-hint="person avatar"/>
-                                        <AvatarFallback>{msg.sender?.name.charAt(0)}</AvatarFallback>
+                                        <AvatarFallback>{msg.sender?.name?.[0] ?? 'U'}</AvatarFallback>
                                     </Avatar>
                                 )}
                             </div>

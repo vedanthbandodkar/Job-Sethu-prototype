@@ -1,3 +1,5 @@
+"use client";
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,13 +12,39 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
-import { CreditCard, LogOut, Settings, User } from 'lucide-react';
+import { CreditCard, LogOut, Settings, User as UserIcon } from 'lucide-react';
 import { getUserById } from '@/lib/data';
+import { useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import type { User } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
-export async function UserNav() {
-  // Mock user data
-  const currentUserId = 'user-5';
-  const user = await getUserById(currentUserId);
+export function UserNav() {
+  const searchParams = useSearchParams();
+  const userId = searchParams.get('userId') || 'user-5';
+  const [user, setUser] = useState<User | undefined>(undefined);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchUser = async () => {
+        setLoading(true);
+        const userData = await getUserById(userId);
+        if (isMounted) {
+            setUser(userData);
+            setLoading(false);
+        }
+    }
+    fetchUser();
+
+    return () => { isMounted = false; };
+  }, [userId]);
+
+  if (loading) {
+    return (
+        <Skeleton className="h-9 w-9 rounded-full" />
+    )
+  }
 
   if (!user) {
     return (
@@ -46,8 +74,8 @@ export async function UserNav() {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem asChild>
-            <Link href="/profile">
-              <User className="mr-2 h-4 w-4" />
+            <Link href={`/profile?userId=${user.id}`}>
+              <UserIcon className="mr-2 h-4 w-4" />
               <span>Profile</span>
             </Link>
           </DropdownMenuItem>

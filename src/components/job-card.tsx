@@ -12,14 +12,17 @@ import { useState, useEffect } from 'react';
 
 type JobCardProps = {
   job: Job;
+  userId?: string | null;
 };
 
-export function JobCard({ job }: JobCardProps) {
+export function JobCard({ job, userId }: JobCardProps) {
   const [timeAgo, setTimeAgo] = useState('');
 
   useEffect(() => {
     setTimeAgo(formatDistanceToNow(new Date(job.createdAt), { addSuffix: true }));
   }, [job.createdAt]);
+
+  const jobUrl = userId ? `/jobs/${job.id}?userId=${userId}` : `/jobs/${job.id}`;
 
   return (
     <Card className="flex flex-col h-full overflow-hidden rounded-lg border shadow-sm transition-shadow hover:shadow-lg bg-card">
@@ -67,7 +70,7 @@ export function JobCard({ job }: JobCardProps) {
         </div>
 
         <Button asChild>
-          <Link href={`/jobs/${job.id}`}>
+          <Link href={jobUrl}>
             View Job <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
         </Button>

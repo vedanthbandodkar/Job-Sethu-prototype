@@ -13,7 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export const dynamic = 'force-dynamic';
 
-export default async function JobDetailPage({ params }: { params: { id: string } }) {
+export default async function JobDetailPage({ params, searchParams }: { params: { id: string }, searchParams?: { userId?: string } }) {
   const job = await getJobById(params.id);
   if (!job) {
     notFound();
@@ -27,8 +27,8 @@ export default async function JobDetailPage({ params }: { params: { id: string }
   ).then(users => users.filter((u): u is UserType => u !== undefined));
 
 
-  // Mock current user
-  const currentUserId = 'user-5'; // Change this to test different views ('user-1', 'user-2', 'user-3', etc.)
+  // Use passed userId or default to a mock user
+  const currentUserId = searchParams?.userId || 'user-5';
   const isPoster = job.posterId === currentUserId;
   const isWorker = job.workerId === currentUserId;
   const hasApplied = job.applicants.includes(currentUserId);
@@ -90,11 +90,11 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                     <CardHeader className="flex-row items-center space-x-4 pb-4">
                         <Avatar className="h-12 w-12">
                             <AvatarImage src={poster?.avatarUrl} data-ai-hint="person avatar" />
-                            <AvatarFallback>{poster?.name.charAt(0)}</AvatarFallback>
+                            <AvatarFallback>{poster?.name?.[0] ?? 'P'}</AvatarFallback>
                         </Avatar>
                         <div>
                             <p className="text-sm text-muted-foreground">Job Poster</p>
-                            <CardTitle className="font-headline text-lg">{poster?.name}</CardTitle>
+                            <CardTitle className="font-headline text-lg">{poster?.name ?? "Unknown User"}</CardTitle>
                         </div>
                     </CardHeader>
                 </Card>
@@ -103,7 +103,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                         <CardHeader className="flex-row items-center space-x-4 pb-4">
                             <Avatar className="h-12 w-12">
                                 <AvatarImage src={worker?.avatarUrl} data-ai-hint="person avatar" />
-                                <AvatarFallback>{worker?.name.charAt(0)}</AvatarFallback>
+                                <AvatarFallback>{worker.name?.[0] ?? 'W'}</AvatarFallback>
                             </Avatar>
                             <div>
                                 <p className="text-sm text-muted-foreground">Assigned To</p>

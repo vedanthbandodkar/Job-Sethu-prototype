@@ -28,7 +28,7 @@ export default async function DashboardPage({ searchParams }: { searchParams?: {
           {myApplications.length > 0 ? (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {myApplications.map((job: Job) => (
-                <JobCard key={job.id} job={job} />
+                <JobCard key={job.id} job={job} userId={currentUserId} />
               ))}
             </div>
           ) : (
@@ -42,7 +42,7 @@ export default async function DashboardPage({ searchParams }: { searchParams?: {
           {myPostings.length > 0 ? (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {myPostings.map((job: Job) => (
-                <JobCard key={job.id} job={job} />
+                <JobCard key={job.id} job={job} userId={currentUserId} />
               ))}
             </div>
           ) : (

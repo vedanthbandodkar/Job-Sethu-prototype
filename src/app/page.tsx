@@ -8,8 +8,9 @@ import { Search } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
-export default async function Home() {
+export default async function Home({ searchParams }: { searchParams?: { userId?: string }}) {
   const jobs = await getJobs();
+  const userId = searchParams?.userId;
 
   return (
     <div className="container mx-auto px-4 py-8 md:py-12">
@@ -30,7 +31,7 @@ export default async function Home() {
         <h2 className="font-headline text-3xl font-bold mb-6">Recent Jobs</h2>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {jobs.map((job: Job) => (
-            <JobCard key={job.id} job={job} />
+            <JobCard key={job.id} job={job} userId={userId} />
           ))}
         </div>
       </section>
