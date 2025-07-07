@@ -5,7 +5,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import Link from "next/link";
-import { Check } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
+import { useTransition, useState } from "react";
+import { selectApplicantAction } from "@/app/actions";
 
 type ApplicantListProps = {
     applicants: User[];
@@ -13,6 +15,9 @@ type ApplicantListProps = {
 }
 
 export function ApplicantList({ applicants, jobId }: ApplicantListProps) {
+    const [isPending, startTransition] = useTransition();
+    const [selectedApplicantId, setSelectedApplicantId] = useState<string | null>(null);
+
     if (applicants.length === 0) {
         return (
              <Card>
@@ -25,7 +30,11 @@ export function ApplicantList({ applicants, jobId }: ApplicantListProps) {
     }
 
     const handleSelectApplicant = (userId: string) => {
-        alert(`Selected applicant ${userId} for job ${jobId}. You can now chat with them.`);
+        setSelectedApplicantId(userId);
+        startTransition(async () => {
+            await selectApplicantAction(jobId, userId);
+            setSelectedApplicantId(null);
+        });
     }
     
     return (
@@ -48,8 +57,17 @@ export function ApplicantList({ applicants, jobId }: ApplicantListProps) {
                                     <Link href={`/profile/${applicant.id}`} className="text-sm text-primary hover:underline">View Profile</Link>
                                 </div>
                             </div>
-                            <Button size="sm" onClick={() => handleSelectApplicant(applicant.id)}>
-                                <Check className="mr-2 h-4 w-4" /> Select
+                            <Button size="sm" onClick={() => handleSelectApplicant(applicant.id)} disabled={isPending}>
+                                {isPending && selectedApplicantId === applicant.id ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Selecting...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Check className="mr-2 h-4 w-4" /> Select
+                                    </>
+                                )}
                             </Button>
                         </li>
                     ))}

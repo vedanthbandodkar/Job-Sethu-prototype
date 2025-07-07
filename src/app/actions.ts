@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { createJobInDb, applyToJobInDb, markJobCompleteInDb } from '@/lib/data'
+import { createJobInDb, applyToJobInDb, markJobCompleteInDb, selectApplicantForJobInDb } from '@/lib/data'
 
 type JobFormValues = {
   title: string;
@@ -16,7 +16,6 @@ export async function createJobAction(data: JobFormValues) {
   try {
     await createJobInDb(data);
     
-    // Revalidate the pages where the new job should appear
     revalidatePath('/');
     revalidatePath('/dashboard');
 
@@ -37,4 +36,9 @@ export async function markJobCompleteAction(jobId: string) {
     await markJobCompleteInDb(jobId);
     revalidatePath(`/jobs/${jobId}`);
     revalidatePath('/dashboard');
+}
+
+export async function selectApplicantAction(jobId: string, applicantId: string) {
+    await selectApplicantForJobInDb(jobId, applicantId);
+    revalidatePath(`/jobs/${jobId}`);
 }

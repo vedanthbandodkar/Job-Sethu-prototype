@@ -173,3 +173,11 @@ export const markJobCompleteInDb = async (jobId: string): Promise<void> => {
         job.status = 'completed';
     }
 };
+
+export const selectApplicantForJobInDb = async (jobId: string, applicantId: string): Promise<void> => {
+    const job = mockJobs.find(j => j.id === jobId);
+    if (job) {
+        job.workerId = applicantId;
+        job.status = 'assigned';
+    }
+};
