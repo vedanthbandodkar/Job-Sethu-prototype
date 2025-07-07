@@ -2,12 +2,19 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTransition } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Loader2 } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { signupAction } from '@/app/actions';
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
@@ -20,19 +27,54 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
     )
 }
 
+const signupSchema = z.object({
+  fullName: z.string().min(2, "Full name must be at least 2 characters."),
+  email: z.string().email("Please enter a valid email address."),
+  password: z.string().min(6, "Password must be at least 6 characters."),
+});
+
+type SignupFormValues = z.infer<typeof signupSchema>;
+
+
 export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const [isPending, startTransition] = useTransition();
+
+  const form = useForm<SignupFormValues>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      fullName: "",
+      email: "",
+      password: "",
+    },
+  });
 
   const handleGoogleSignUp = () => {
-    // In a real app, this would handle Firebase auth.
-    // For this prototype, we'll simulate a successful sign up.
     toast({
       title: 'Sign Up Successful!',
       description: 'Redirecting you to set up your profile.',
     });
-    // Redirect to onboarding for new users
     router.push('/onboarding');
+  };
+
+  const onSubmit = (data: SignupFormValues) => {
+    startTransition(async () => {
+      const result = await signupAction({ name: data.fullName, email: data.email });
+      if (result.success) {
+        toast({
+          title: 'Account Created!',
+          description: 'Redirecting you to set up your profile.',
+        });
+        router.push('/onboarding');
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Uh oh! Something went wrong.",
+          description: result.message || "There was a problem with your request.",
+        });
+      }
+    });
   };
 
   return (
@@ -42,21 +84,54 @@ export default function SignupPage() {
         <CardDescription>Create an account to start posting and applying for jobs.</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="full-name">Full name</Label>
-          <Input id="full-name" placeholder="Alice Johnson" required />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" placeholder="m@example.com" required />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="password">Password</Label>
-          <Input id="password" type="password" required />
-        </div>
-        <Button type="submit" className="w-full">
-          Create account
-        </Button>
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+                <FormField
+                    control={form.control}
+                    name="fullName"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Full name</FormLabel>
+                        <FormControl>
+                            <Input placeholder="Alice Johnson" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                            <Input type="email" placeholder="m@example.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                            <Input type="password" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <Button type="submit" className="w-full" disabled={isPending}>
+                    {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Create account
+                </Button>
+            </form>
+        </Form>
+
         <Separator className="my-2" />
         <Button variant="outline" className="w-full" onClick={handleGoogleSignUp}>
             <GoogleIcon className="mr-2 h-4 w-4" />

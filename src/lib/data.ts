@@ -178,6 +178,46 @@ const initialMockJobs: Job[] = [
     applicants: ['user-1'],
     createdAt: new Date('2024-07-25T08:00:00Z'),
   },
+  {
+    id: 'job-11',
+    title: 'Social Media Manager',
+    description: 'Looking for a creative social media manager to handle our Instagram and Twitter accounts. Experience with Canva is a plus.',
+    skills: ['Social Media', 'Marketing', 'Canva'],
+    payment: 8000,
+    sos: false,
+    location: 'Remote',
+    status: 'open',
+    posterId: 'user-3',
+    applicants: [],
+    createdAt: new Date('2024-07-25T10:00:00Z'),
+  },
+  {
+    id: 'job-12',
+    title: 'Home Tutoring for Mathematics',
+    description: 'Need a math tutor for a 10th-grade student. Two sessions per week, focusing on algebra and geometry.',
+    skills: ['Tutoring', 'Mathematics'],
+    payment: 2500,
+    sos: false,
+    location: 'Berkeley, CA',
+    status: 'open',
+    posterId: 'user-5',
+    applicants: ['user-1'],
+    createdAt: new Date('2024-07-25T14:00:00Z'),
+  },
+  {
+    id: 'job-13',
+    title: 'Event Photographer',
+    description: 'Photographer needed for a corporate event on Saturday. Must have your own professional equipment. Deliverables include 100 edited photos.',
+    skills: ['Photography', 'Event Photography', 'Photo Editing'],
+    payment: 9000,
+    sos: false,
+    location: 'San Francisco, CA',
+    status: 'completed',
+    posterId: 'user-1',
+    workerId: 'user-5',
+    applicants: ['user-5'],
+    createdAt: new Date('2024-07-15T10:00:00Z'),
+  }
 ];
 
 const initialMockMessages: ChatMessage[] = [
@@ -301,4 +341,17 @@ export const selectApplicantForJobInDb = async (jobId: string, applicantId: stri
         job.workerId = applicantId;
         job.status = 'assigned';
     }
+};
+
+export const createUserInDb = async (data: { name: string; email: string; }): Promise<User> => {
+    const newUser: User = {
+        id: `user-${Date.now()}`,
+        name: data.name,
+        email: data.email,
+        avatarUrl: `https://placehold.co/100x100.png`,
+        skills: [],
+        location: 'Not Specified',
+    };
+    mockUsers.push(newUser);
+    return newUser;
 };
