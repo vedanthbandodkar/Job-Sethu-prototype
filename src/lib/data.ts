@@ -66,6 +66,7 @@ if (process.env.NODE_ENV === 'production') {
             posterId: 'user-1',
             applicants: ['user-3'],
             createdAt: new Date('2025-07-09T00:00:00Z'),
+            imageUrl: 'https://placehold.co/600x400.png',
           },
           {
             id: 'job-2',
@@ -80,6 +81,7 @@ if (process.env.NODE_ENV === 'production') {
             workerId: 'user-2',
             applicants: ['user-2'],
             createdAt: new Date('2025-07-09T00:00:00Z'),
+            imageUrl: 'https://placehold.co/600x400.png',
           },
           {
             id: 'job-3',
@@ -94,6 +96,7 @@ if (process.env.NODE_ENV === 'production') {
             workerId: 'user-1',
             applicants: ['user-1'],
             createdAt: new Date('2025-07-09T00:00:00Z'),
+            imageUrl: 'https://placehold.co/600x400.png',
           },
             {
             id: 'job-4',
@@ -107,6 +110,7 @@ if (process.env.NODE_ENV === 'production') {
             posterId: 'user-1',
             applicants: [],
             createdAt: new Date('2025-07-09T00:00:00Z'),
+            imageUrl: 'https://placehold.co/600x400.png',
           },
           {
             id: 'job-5',
@@ -120,6 +124,7 @@ if (process.env.NODE_ENV === 'production') {
             posterId: 'user-3',
             applicants: ['user-1'],
             createdAt: new Date('2025-07-09T00:00:00Z'),
+            imageUrl: 'https://placehold.co/600x400.png',
           },
           {
             id: 'job-6',
@@ -133,6 +138,7 @@ if (process.env.NODE_ENV === 'production') {
             posterId: 'user-4',
             applicants: [],
             createdAt: new Date('2025-07-09T00:00:00Z'),
+            imageUrl: 'https://placehold.co/600x400.png',
           },
           {
             id: 'job-7',
@@ -147,6 +153,7 @@ if (process.env.NODE_ENV === 'production') {
             workerId: 'user-3',
             applicants: ['user-3'],
             createdAt: new Date('2025-07-09T00:00:00Z'),
+            imageUrl: 'https://placehold.co/600x400.png',
           },
           {
             id: 'job-8',
@@ -160,6 +167,7 @@ if (process.env.NODE_ENV === 'production') {
             posterId: 'user-2',
             applicants: [],
             createdAt: new Date('2025-07-09T00:00:00Z'),
+            imageUrl: 'https://placehold.co/600x400.png',
           },
           {
             id: 'job-9',
@@ -173,6 +181,7 @@ if (process.env.NODE_ENV === 'production') {
             posterId: 'user-5',
             applicants: ['user-1'],
             createdAt: new Date('2025-07-09T00:00:00Z'),
+            imageUrl: 'https://placehold.co/600x400.png',
           },
           {
             id: 'job-10',
@@ -187,6 +196,7 @@ if (process.env.NODE_ENV === 'production') {
             workerId: 'user-5',
             applicants: ['user-5'],
             createdAt: new Date('2025-07-09T00:00:00Z'),
+            imageUrl: 'https://placehold.co/600x400.png',
           },
           {
             id: 'job-11',
@@ -200,6 +210,7 @@ if (process.env.NODE_ENV === 'production') {
             posterId: 'user-3',
             applicants: [],
             createdAt: new Date('2025-07-09T00:00:00Z'),
+            imageUrl: 'https://placehold.co/600x400.png',
           },
           {
             id: 'job-12',
@@ -213,6 +224,7 @@ if (process.env.NODE_ENV === 'production') {
             posterId: 'user-5',
             applicants: ['user-1'],
             createdAt: new Date('2025-07-09T00:00:00Z'),
+            imageUrl: 'https://placehold.co/600x400.png',
           },
           {
             id: 'job-13',
@@ -227,6 +239,7 @@ if (process.env.NODE_ENV === 'production') {
             workerId: 'user-5',
             applicants: ['user-5'],
             createdAt: new Date('2025-07-09T00:00:00Z'),
+            imageUrl: 'https://placehold.co/600x400.png',
           }
     ],
     messages: [
@@ -312,6 +325,7 @@ if (process.env.NODE_ENV === 'production') {
                 posterId: 'user-1',
                 applicants: ['user-3'],
                 createdAt: new Date('2025-07-09T00:00:00Z'),
+                imageUrl: 'https://placehold.co/600x400.png',
               },
               {
                 id: 'job-2',
@@ -326,6 +340,7 @@ if (process.env.NODE_ENV === 'production') {
                 workerId: 'user-2',
                 applicants: ['user-2'],
                 createdAt: new Date('2025-07-09T00:00:00Z'),
+                imageUrl: 'https://placehold.co/600x400.png',
               },
               {
                 id: 'job-3',
@@ -340,6 +355,7 @@ if (process.env.NODE_ENV === 'production') {
                 workerId: 'user-1',
                 applicants: ['user-1'],
                 createdAt: new Date('2025-07-09T00:00:00Z'),
+                imageUrl: 'https://placehold.co/600x400.png',
               },
                 {
                 id: 'job-4',
@@ -353,6 +369,7 @@ if (process.env.NODE_ENV === 'production') {
                 posterId: 'user-1',
                 applicants: [],
                 createdAt: new Date('2025-07-09T00:00:00Z'),
+                imageUrl: 'https://placehold.co/600x400.png',
               },
               {
                 id: 'job-5',
@@ -366,6 +383,7 @@ if (process.env.NODE_ENV === 'production') {
                 posterId: 'user-3',
                 applicants: ['user-1'],
                 createdAt: new Date('2025-07-09T00:00:00Z'),
+                imageUrl: 'https://placehold.co/600x400.png',
               },
               {
                 id: 'job-6',
@@ -379,6 +397,7 @@ if (process.env.NODE_ENV === 'production') {
                 posterId: 'user-4',
                 applicants: [],
                 createdAt: new Date('2025-07-09T00:00:00Z'),
+                imageUrl: 'https://placehold.co/600x400.png',
               },
               {
                 id: 'job-7',
@@ -393,6 +412,7 @@ if (process.env.NODE_ENV === 'production') {
                 workerId: 'user-3',
                 applicants: ['user-3'],
                 createdAt: new Date('2025-07-09T00:00:00Z'),
+                imageUrl: 'https://placehold.co/600x400.png',
               },
               {
                 id: 'job-8',
@@ -406,6 +426,7 @@ if (process.env.NODE_ENV === 'production') {
                 posterId: 'user-2',
                 applicants: [],
                 createdAt: new Date('2025-07-09T00:00:00Z'),
+                imageUrl: 'https://placehold.co/600x400.png',
               },
               {
                 id: 'job-9',
@@ -419,6 +440,7 @@ if (process.env.NODE_ENV === 'production') {
                 posterId: 'user-5',
                 applicants: ['user-1'],
                 createdAt: new Date('2025-07-09T00:00:00Z'),
+                imageUrl: 'https://placehold.co/600x400.png',
               },
               {
                 id: 'job-10',
@@ -433,6 +455,7 @@ if (process.env.NODE_ENV === 'production') {
                 workerId: 'user-5',
                 applicants: ['user-5'],
                 createdAt: new Date('2025-07-09T00:00:00Z'),
+                imageUrl: 'https://placehold.co/600x400.png',
               },
               {
                 id: 'job-11',
@@ -446,6 +469,7 @@ if (process.env.NODE_ENV === 'production') {
                 posterId: 'user-3',
                 applicants: [],
                 createdAt: new Date('2025-07-09T00:00:00Z'),
+                imageUrl: 'https://placehold.co/600x400.png',
               },
               {
                 id: 'job-12',
@@ -459,6 +483,7 @@ if (process.env.NODE_ENV === 'production') {
                 posterId: 'user-5',
                 applicants: ['user-1'],
                 createdAt: new Date('2025-07-09T00:00:00Z'),
+                imageUrl: 'https://placehold.co/600x400.png',
               },
               {
                 id: 'job-13',
@@ -473,6 +498,7 @@ if (process.env.NODE_ENV === 'production') {
                 workerId: 'user-5',
                 applicants: ['user-5'],
                 createdAt: new Date('2025-07-09T00:00:00Z'),
+                imageUrl: 'https://placehold.co/600x400.png',
               }
         ],
         messages: [
@@ -532,7 +558,8 @@ export const getMessagesForJob = async (jobId: string): Promise<ChatMessage[]> =
 export const getJobs = async (query?: string): Promise<Job[]> => {
     let jobs = deepCopy([...mockDataStore.jobs].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
     if (query) {
-        jobs = jobs.filter(job => job.title.toLowerCase().includes(query.toLowerCase()));
+        const lowercasedQuery = query.toLowerCase();
+        jobs = jobs.filter(job => job.title.toLowerCase().includes(lowercasedQuery));
     }
     return jobs;
 }
