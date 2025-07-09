@@ -51,7 +51,7 @@ export function JobCard({ job, userId }: JobCardProps) {
       <div className="relative">
         {job.imageUrl ? (
           <div className="relative h-40 w-full">
-            <Image src={job.imageUrl} alt={job.title} fill className="object-cover" />
+            <Image src={job.imageUrl} alt={job.title} fill className="object-cover" data-ai-hint="job title" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
           </div>
         ) : (

@@ -47,6 +47,7 @@ export default async function JobDetailPage({ params, searchParams }: { params: 
                       alt={job.title}
                       fill
                       className="object-cover"
+                      data-ai-hint="job title"
                     />
                     <div className="absolute inset-0 bg-black/50" />
                   </div>
