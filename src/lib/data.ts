@@ -43,12 +43,6 @@ const initialMockUsers: User[] = [
   },
 ];
 
-const daysAgo = (days: number): Date => {
-    const date = new Date();
-    date.setDate(date.getDate() - days);
-    return date;
-}
-
 const initialMockJobs: Job[] = [
   {
     id: 'job-1',
@@ -61,7 +55,7 @@ const initialMockJobs: Job[] = [
     status: 'open',
     posterId: 'user-1',
     applicants: ['user-3'],
-    createdAt: daysAgo(0),
+    createdAt: new Date('2025-07-09T00:00:00Z'),
   },
   {
     id: 'job-2',
@@ -75,7 +69,7 @@ const initialMockJobs: Job[] = [
     posterId: 'user-3',
     workerId: 'user-2',
     applicants: ['user-2'],
-    createdAt: daysAgo(0),
+    createdAt: new Date('2025-07-09T00:00:00Z'),
   },
   {
     id: 'job-3',
@@ -89,7 +83,7 @@ const initialMockJobs: Job[] = [
     posterId: 'user-4',
     workerId: 'user-1',
     applicants: ['user-1'],
-    createdAt: daysAgo(0),
+    createdAt: new Date('2025-07-09T00:00:00Z'),
   },
     {
     id: 'job-4',
@@ -102,7 +96,7 @@ const initialMockJobs: Job[] = [
     status: 'open',
     posterId: 'user-1',
     applicants: [],
-    createdAt: daysAgo(0),
+    createdAt: new Date('2025-07-09T00:00:00Z'),
   },
   {
     id: 'job-5',
@@ -115,7 +109,7 @@ const initialMockJobs: Job[] = [
     status: 'open',
     posterId: 'user-3',
     applicants: ['user-1'],
-    createdAt: daysAgo(0),
+    createdAt: new Date('2025-07-09T00:00:00Z'),
   },
   {
     id: 'job-6',
@@ -128,7 +122,7 @@ const initialMockJobs: Job[] = [
     status: 'open',
     posterId: 'user-4',
     applicants: [],
-    createdAt: daysAgo(0),
+    createdAt: new Date('2025-07-09T00:00:00Z'),
   },
   {
     id: 'job-7',
@@ -142,7 +136,7 @@ const initialMockJobs: Job[] = [
     posterId: 'user-1',
     workerId: 'user-3',
     applicants: ['user-3'],
-    createdAt: daysAgo(0),
+    createdAt: new Date('2025-07-09T00:00:00Z'),
   },
   {
     id: 'job-8',
@@ -155,7 +149,7 @@ const initialMockJobs: Job[] = [
     status: 'open',
     posterId: 'user-2',
     applicants: [],
-    createdAt: daysAgo(0),
+    createdAt: new Date('2025-07-09T00:00:00Z'),
   },
   {
     id: 'job-9',
@@ -168,7 +162,7 @@ const initialMockJobs: Job[] = [
     status: 'open',
     posterId: 'user-5',
     applicants: ['user-1'],
-    createdAt: daysAgo(0),
+    createdAt: new Date('2025-07-09T00:00:00Z'),
   },
   {
     id: 'job-10',
@@ -182,7 +176,7 @@ const initialMockJobs: Job[] = [
     posterId: 'user-4',
     workerId: 'user-5',
     applicants: ['user-5'],
-    createdAt: daysAgo(0),
+    createdAt: new Date('2025-07-09T00:00:00Z'),
   },
   {
     id: 'job-11',
@@ -195,7 +189,7 @@ const initialMockJobs: Job[] = [
     status: 'open',
     posterId: 'user-3',
     applicants: [],
-    createdAt: daysAgo(0),
+    createdAt: new Date('2025-07-09T00:00:00Z'),
   },
   {
     id: 'job-12',
@@ -208,7 +202,7 @@ const initialMockJobs: Job[] = [
     status: 'open',
     posterId: 'user-5',
     applicants: ['user-1'],
-    createdAt: daysAgo(0),
+    createdAt: new Date('2025-07-09T00:00:00Z'),
   },
   {
     id: 'job-13',
@@ -222,7 +216,7 @@ const initialMockJobs: Job[] = [
     posterId: 'user-1',
     workerId: 'user-5',
     applicants: ['user-5'],
-    createdAt: daysAgo(0),
+    createdAt: new Date('2025-07-09T00:00:00Z'),
   }
 ];
 
