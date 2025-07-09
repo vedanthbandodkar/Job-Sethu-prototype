@@ -5,7 +5,7 @@ const initialMockUsers: User[] = [
     id: 'user-1',
     name: 'Alice Johnson',
     email: 'alice@example.com',
-    avatarUrl: 'https://placehold.co/100x100.png',
+    avatarUrl: 'https://i.pravatar.cc/100?u=user-1',
     skills: ['React', 'Node.js', 'Graphic Design'],
     location: 'San Francisco, CA',
   },
@@ -13,7 +13,7 @@ const initialMockUsers: User[] = [
     id: 'user-2',
     name: 'Bob Williams',
     email: 'bob@example.com',
-    avatarUrl: 'https://placehold.co/100x100.png',
+    avatarUrl: 'https://i.pravatar.cc/100?u=user-2',
     skills: ['Plumbing', 'Electrical Work'],
     location: 'Oakland, CA',
   },
@@ -21,7 +21,7 @@ const initialMockUsers: User[] = [
     id: 'user-3',
     name: 'Charlie Brown',
     email: 'charlie@example.com',
-    avatarUrl: 'https://placehold.co/100x100.png',
+    avatarUrl: 'https://i.pravatar.cc/100?u=user-3',
     skills: ['Content Writing', 'SEO', 'Marketing'],
     location: 'San Jose, CA',
   },
@@ -29,7 +29,7 @@ const initialMockUsers: User[] = [
     id: 'user-4',
     name: 'Diana Prince',
     email: 'diana@example.com',
-    avatarUrl: 'https://placehold.co/100x100.png',
+    avatarUrl: 'https://i.pravatar.cc/100?u=user-4',
     skills: ['Gardening', 'Landscaping'],
     location: 'San Francisco, CA',
   },
@@ -37,7 +37,7 @@ const initialMockUsers: User[] = [
     id: 'user-5',
     name: 'Eve Davis',
     email: 'eve@example.com',
-    avatarUrl: 'https://placehold.co/100x100.png',
+    avatarUrl: 'https://i.pravatar.cc/100?u=user-5',
     skills: ['Photography', 'Video Editing'],
     location: 'Berkeley, CA',
   },
@@ -348,11 +348,12 @@ export const selectApplicantForJobInDb = async (jobId: string, applicantId: stri
 };
 
 export const createUserInDb = async (data: { name: string; email: string; }): Promise<User> => {
+    const newId = `user-${Date.now()}`;
     const newUser: User = {
-        id: `user-${Date.now()}`,
+        id: newId,
         name: data.name,
         email: data.email,
-        avatarUrl: `https://placehold.co/100x100.png`,
+        avatarUrl: `https://i.pravatar.cc/100?u=${newId}`,
         skills: [],
         location: 'Not Specified',
     };
