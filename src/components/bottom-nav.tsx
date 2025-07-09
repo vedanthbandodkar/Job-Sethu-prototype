@@ -11,8 +11,10 @@ export function BottomNavBar() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [userId, setUserId] = React.useState<string | null>(null);
+  const [isMounted, setIsMounted] = React.useState(false);
 
   React.useEffect(() => {
+    setIsMounted(true);
     setUserId(searchParams.get('userId'));
   }, [searchParams]);
 
@@ -30,9 +32,13 @@ export function BottomNavBar() {
     { href: "/jobs/new", label: "Post", icon: PlusCircle, isButton: true },
     { href: constructUrl("/profile"), label: "Profile", icon: User },
   ];
+  
+  if (!isMounted) {
+    return null;
+  }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container grid h-16 grid-cols-4 items-center">
         {navItems.map((item) => {
           if (item.isButton) {
