@@ -56,7 +56,7 @@ export function AppHeader() {
         
         <div className="flex items-center space-x-2 sm:space-x-4">
             <Button asChild className="hidden md:inline-flex">
-                <Link href="/jobs/new">Post a Job</Link>
+                <Link href={constructUrl('/jobs/new')}>Post a Job</Link>
             </Button>
             <React.Suspense fallback={<Skeleton className="h-9 w-9 rounded-full" />}>
                 <UserNav />

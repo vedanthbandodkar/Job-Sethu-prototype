@@ -29,7 +29,7 @@ export function BottomNavBar() {
   const navItems = [
     { href: constructUrl("/"), label: "Home", icon: Home },
     { href: constructUrl("/dashboard"), label: "Dashboard", icon: LayoutDashboard },
-    { href: "/jobs/new", label: "Post", icon: PlusCircle, isButton: true },
+    { href: constructUrl("/jobs/new"), label: "Post", icon: PlusCircle, isButton: true },
     { href: constructUrl("/profile"), label: "Profile", icon: User },
   ];
   
