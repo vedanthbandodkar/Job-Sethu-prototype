@@ -1,5 +1,15 @@
 import type { User, Job, ChatMessage } from './types';
 
+// This is a workaround to persist mock data across hot reloads in development.
+// In a real app, you would use a proper database.
+declare global {
+  var mockDataStore: {
+    users: User[];
+    jobs: Job[];
+    messages: ChatMessage[];
+  }
+}
+
 const initialMockUsers: User[] = [
   {
     id: 'user-1',
@@ -244,64 +254,48 @@ const initialMockMessages: ChatMessage[] = [
     },
 ];
 
-
-// This is a workaround to persist mock data across hot reloads in development.
-// In a real app, you would use a proper database.
-declare global {
-  var mockJobsStore: Job[];
-  var mockUsersStore: User[];
-  var mockMessagesStore: ChatMessage[];
-}
-
-// Function to deep copy data to avoid mutations across requests
 const deepCopy = <T>(data: T): T => JSON.parse(JSON.stringify(data));
 
-let mockJobs: Job[];
-let mockUsers: User[];
-let mockMessages: ChatMessage[];
-
-
-if (process.env.NODE_ENV === 'production') {
-  mockJobs = initialMockJobs;
-  mockUsers = initialMockUsers;
-  mockMessages = initialMockMessages;
-} else {
-  if (!global.mockJobsStore) {
-    global.mockJobsStore = initialMockJobs;
+const getDb = () => {
+  if (process.env.NODE_ENV === 'production') {
+    return {
+      users: initialMockUsers,
+      jobs: initialMockJobs,
+      messages: initialMockMessages,
+    };
   }
-  if (!global.mockUsersStore) {
-    global.mockUsersStore = initialMockUsers;
+  if (!global.mockDataStore) {
+    global.mockDataStore = {
+      users: initialMockUsers,
+      jobs: initialMockJobs,
+      messages: initialMockMessages,
+    };
   }
-  if (!global.mockMessagesStore) {
-    global.mockMessagesStore = initialMockMessages;
-  }
-  mockJobs = global.mockJobsStore;
-  mockUsers = global.mockUsersStore;
-  mockMessages = global.mockMessagesStore;
-}
+  return global.mockDataStore;
+};
 
 // Mock API functions
 export const getJobById = async (id: string): Promise<Job | undefined> => {
-    const job = mockJobs.find(job => job.id === id);
+    const job = getDb().jobs.find(job => job.id === id);
     return job ? deepCopy(job) : undefined;
 }
 
 export const getUsers = async (): Promise<User[]> => {
-    return deepCopy(mockUsers);
+    return deepCopy(getDb().users);
 }
 
 export const getUserById = async (id: string): Promise<User | undefined> => {
-    const user = mockUsers.find(user => user.id === id);
+    const user = getDb().users.find(user => user.id === id);
     return user ? deepCopy(user) : undefined;
 }
 
 export const getMessagesForJob = async (jobId: string): Promise<ChatMessage[]> => {
-    const messages = mockMessages.filter(msg => msg.jobId === jobId).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    const messages = getDb().messages.filter(msg => msg.jobId === jobId).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
     return deepCopy(messages);
 }
 
 export const getJobs = async (): Promise<Job[]> => {
-    const jobs = [...mockJobs].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    const jobs = [...getDb().jobs].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     return deepCopy(jobs);
 }
 
@@ -328,26 +322,29 @@ export const createJobInDb = async (data: JobCreationData): Promise<Job> => {
         applicants: [],
         createdAt: new Date(),
     };
-    mockJobs.unshift(newJob);
+    getDb().jobs.unshift(newJob);
     return deepCopy(newJob);
 };
 
 export const applyToJobInDb = async (jobId: string, userId: string): Promise<void> => {
-    const job = mockJobs.find(j => j.id === jobId);
+    const db = getDb();
+    const job = db.jobs.find(j => j.id === jobId);
     if (job && !job.applicants.includes(userId)) {
         job.applicants.push(userId);
     }
 };
 
 export const markJobCompleteInDb = async (jobId: string): Promise<void> => {
-    const job = mockJobs.find(j => j.id === jobId);
+    const db = getDb();
+    const job = db.jobs.find(j => j.id === jobId);
     if (job) {
         job.status = 'completed';
     }
 };
 
 export const selectApplicantForJobInDb = async (jobId: string, applicantId: string): Promise<void> => {
-    const job = mockJobs.find(j => j.id === jobId);
+    const db = getDb();
+    const job = db.jobs.find(j => j.id === jobId);
     if (job) {
         job.workerId = applicantId;
         job.status = 'assigned';
@@ -355,6 +352,7 @@ export const selectApplicantForJobInDb = async (jobId: string, applicantId: stri
 };
 
 export const createUserInDb = async (data: { name: string; email: string; }): Promise<User> => {
+    const db = getDb();
     const newId = `user-${Date.now()}`;
     const newUser: User = {
         id: newId,
@@ -364,20 +362,21 @@ export const createUserInDb = async (data: { name: string; email: string; }): Pr
         skills: [],
         location: 'Not Specified',
     };
-    mockUsers.push(newUser);
+    db.users.push(newUser);
     return deepCopy(newUser);
 };
 
 export const updateUserInDb = async (data: { userId: string; name: string; location: string; skills: string[]; }): Promise<User | undefined> => {
-    const userIndex = mockUsers.findIndex(u => u.id === data.userId);
+    const db = getDb();
+    const userIndex = db.users.findIndex(u => u.id === data.userId);
     if (userIndex !== -1) {
-        mockUsers[userIndex] = {
-            ...mockUsers[userIndex],
+        db.users[userIndex] = {
+            ...db.users[userIndex],
             name: data.name,
             location: data.location,
             skills: data.skills,
         };
-        return deepCopy(mockUsers[userIndex]);
+        return deepCopy(db.users[userIndex]);
     }
     return undefined;
 };
