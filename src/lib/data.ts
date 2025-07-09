@@ -253,6 +253,9 @@ declare global {
   var mockMessagesStore: ChatMessage[];
 }
 
+// Function to deep copy data to avoid mutations across requests
+const deepCopy = <T>(data: T): T => JSON.parse(JSON.stringify(data));
+
 let mockJobs: Job[];
 let mockUsers: User[];
 let mockMessages: ChatMessage[];
@@ -279,23 +282,27 @@ if (process.env.NODE_ENV === 'production') {
 
 // Mock API functions
 export const getJobById = async (id: string): Promise<Job | undefined> => {
-    return mockJobs.find(job => job.id === id);
+    const job = mockJobs.find(job => job.id === id);
+    return job ? deepCopy(job) : undefined;
 }
 
 export const getUsers = async (): Promise<User[]> => {
-    return [...mockUsers];
+    return deepCopy(mockUsers);
 }
 
 export const getUserById = async (id: string): Promise<User | undefined> => {
-    return mockUsers.find(user => user.id === id);
+    const user = mockUsers.find(user => user.id === id);
+    return user ? deepCopy(user) : undefined;
 }
 
 export const getMessagesForJob = async (jobId: string): Promise<ChatMessage[]> => {
-    return mockMessages.filter(msg => msg.jobId === jobId).sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+    const messages = mockMessages.filter(msg => msg.jobId === jobId).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    return deepCopy(messages);
 }
 
 export const getJobs = async (): Promise<Job[]> => {
-    return [...mockJobs].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    const jobs = [...mockJobs].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return deepCopy(jobs);
 }
 
 type JobCreationData = {
@@ -322,7 +329,7 @@ export const createJobInDb = async (data: JobCreationData): Promise<Job> => {
         createdAt: new Date(),
     };
     mockJobs.unshift(newJob);
-    return newJob;
+    return deepCopy(newJob);
 };
 
 export const applyToJobInDb = async (jobId: string, userId: string): Promise<void> => {
@@ -358,7 +365,7 @@ export const createUserInDb = async (data: { name: string; email: string; }): Pr
         location: 'Not Specified',
     };
     mockUsers.push(newUser);
-    return newUser;
+    return deepCopy(newUser);
 };
 
 export const updateUserInDb = async (data: { userId: string; name: string; location: string; skills: string[]; }): Promise<User | undefined> => {
@@ -370,7 +377,7 @@ export const updateUserInDb = async (data: { userId: string; name: string; locat
             location: data.location,
             skills: data.skills,
         };
-        return mockUsers[userIndex];
+        return deepCopy(mockUsers[userIndex]);
     }
     return undefined;
 };
