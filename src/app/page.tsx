@@ -28,7 +28,7 @@ export default async function Home({ searchParams }: { searchParams?: { userId?:
               className="flex-grow text-base" 
               defaultValue={query}
             />
-            {searchParams?.userId && <input type="hidden" name="userId" value={searchParams.userId} />}
+            {userId && <input type="hidden" name="userId" value={userId} />}
             <Button type="submit" size="lg">
                 <Search className="mr-2 h-5 w-5" /> Search
             </Button>

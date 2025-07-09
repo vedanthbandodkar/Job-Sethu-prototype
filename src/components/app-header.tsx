@@ -17,16 +17,14 @@ export function AppHeader() {
 
   const constructUrl = (baseHref: string) => {
     if (!userId) return baseHref;
-    
-    // Create a new URLSearchParams object from the current search params
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams();
     params.set('userId', userId);
-    
-    // Do not add userId to the home page to keep the URL clean
-    if (baseHref === '/') {
-        return '/';
-    }
 
+    // If navigating to dashboard, preserve the 'tab' param if it exists
+    if (baseHref === '/dashboard' && searchParams.has('tab')) {
+      params.set('tab', searchParams.get('tab')!);
+    }
+    
     return `${baseHref}?${params.toString()}`;
   };
 

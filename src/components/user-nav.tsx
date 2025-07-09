@@ -62,7 +62,15 @@ export function UserNav() {
   const constructUrl = (baseHref: string, newUserId: string) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set('userId', newUserId);
-    return `${baseHref}?${params.toString()}`;
+    // When switching profiles, we go to the base path with the new user ID
+    // but preserve essential params like 'tab' for the dashboard.
+    const cleanParams = new URLSearchParams();
+    cleanParams.set('userId', newUserId);
+    if (searchParams.has('tab')) {
+      cleanParams.set('tab', searchParams.get('tab')!);
+    }
+
+    return `${baseHref}?${cleanParams.toString()}`;
   }
 
 
