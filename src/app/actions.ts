@@ -1,5 +1,6 @@
 'use server'
 
+import { generateJobImage } from '@/ai/flows/generate-job-image-flow';
 import { createJobInDb, applyToJobInDb, markJobCompleteInDb, selectApplicantForJobInDb, createUserInDb, updateUserInDb, cancelJobInDb } from '@/lib/data'
 import { revalidatePath } from 'next/cache';
 
@@ -14,7 +15,9 @@ type JobFormValues = {
 
 export async function createJobAction(data: JobFormValues) {
   try {
-    const result = await createJobInDb(data);
+    const imageUrl = await generateJobImage(data.title);
+
+    const result = await createJobInDb({ ...data, imageUrl });
     if (result) {
         revalidatePath('/');
         revalidatePath('/dashboard');

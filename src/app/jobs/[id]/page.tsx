@@ -10,6 +10,7 @@ import { ChatInterface } from '@/components/chat-interface';
 import { ApplicantList } from '@/components/applicant-list';
 import type { User as UserType } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import Image from 'next/image';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,7 +40,18 @@ export default async function JobDetailPage({ params, searchParams }: { params: 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         <div className="lg:col-span-2 space-y-8">
             <Card className="overflow-hidden">
-                <CardHeader>
+                {job.imageUrl && (
+                  <div className="relative h-48 w-full">
+                    <Image
+                      src={job.imageUrl}
+                      alt={job.title}
+                      fill
+                      className="object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/50" />
+                  </div>
+                )}
+                <CardHeader className={job.imageUrl ? "relative" : ""}>
                     <div className="flex justify-between items-start">
                         <div>
                             {job.sos && (

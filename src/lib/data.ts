@@ -512,7 +512,8 @@ const deepCopy = <T>(data: T): T => {
 
 // Mock API functions
 export const getJobById = async (id: string): Promise<Job | undefined> => {
-    return deepCopy(mockDataStore.jobs.find(job => job.id === id));
+    const job = mockDataStore.jobs.find(job => job.id === id)
+    return deepCopy(job);
 }
 
 export const getUsers = async (): Promise<User[]> => {
@@ -520,7 +521,8 @@ export const getUsers = async (): Promise<User[]> => {
 }
 
 export const getUserById = async (id: string): Promise<User | undefined> => {
-    return deepCopy(mockDataStore.users.find(user => user.id === id));
+    const user = mockDataStore.users.find(user => user.id === id);
+    return deepCopy(user);
 }
 
 export const getMessagesForJob = async (jobId: string): Promise<ChatMessage[]> => {
@@ -542,6 +544,7 @@ type JobCreationData = {
     payment: number;
     location: string;
     sos: boolean;
+    imageUrl?: string;
 };
 
 export const createJobInDb = async (data: JobCreationData): Promise<Job> => {
@@ -557,6 +560,7 @@ export const createJobInDb = async (data: JobCreationData): Promise<Job> => {
         posterId: 'user-5', // Mock current user as poster
         applicants: [],
         createdAt: new Date(),
+        imageUrl: data.imageUrl,
     };
     mockDataStore.jobs.unshift(newJob);
     return deepCopy(newJob);

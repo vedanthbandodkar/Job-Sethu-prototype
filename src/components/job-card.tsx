@@ -13,6 +13,7 @@ import { useState, useEffect, useTransition } from 'react';
 import { usePathname } from 'next/navigation';
 import { cancelJobAction } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
+import Image from 'next/image';
 
 type JobCardProps = {
   job: Job;
@@ -47,29 +48,39 @@ export function JobCard({ job, userId }: JobCardProps) {
 
   return (
     <Card className="flex flex-col h-full overflow-hidden rounded-lg border shadow-sm transition-shadow hover:shadow-lg bg-card">
-      <CardHeader>
-        <div className="flex justify-between items-start gap-4">
-            <div className="flex-grow">
-                <CardTitle className="font-headline text-xl">{job.title}</CardTitle>
-                <CardDescription className="flex items-center text-sm text-muted-foreground pt-1">
-                    <MapPin className="mr-1.5 h-4 w-4" /> {job.location}
-                </CardDescription>
-            </div>
-            <div className="flex flex-col items-end space-y-1.5 shrink-0">
-                {job.sos && (
-                    <Badge variant="destructive" className="flex items-center gap-1">
-                        <AlertTriangle className="h-3 w-3" /> SOS
-                    </Badge>
-                )}
-                {job.status !== 'open' && (
-                    <Badge variant={job.status === 'completed' || job.status === 'canceled' ? 'outline' : 'secondary'} className="capitalize">
-                        {job.status}
-                    </Badge>
-                )}
-            </div>
-        </div>
-      </CardHeader>
-      <CardContent className="flex-grow">
+      <div className="relative">
+        {job.imageUrl ? (
+          <div className="relative h-40 w-full">
+            <Image src={job.imageUrl} alt={job.title} fill className="object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+          </div>
+        ) : (
+          <div className="h-4 bg-muted" />
+        )}
+        <CardHeader className={job.imageUrl ? 'absolute bottom-0 text-white' : ''}>
+          <div className="flex justify-between items-start gap-4">
+              <div className="flex-grow">
+                  <CardTitle className="font-headline text-xl">{job.title}</CardTitle>
+                  <CardDescription className={`flex items-center text-sm pt-1 ${job.imageUrl ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
+                      <MapPin className="mr-1.5 h-4 w-4" /> {job.location}
+                  </CardDescription>
+              </div>
+              <div className="flex flex-col items-end space-y-1.5 shrink-0">
+                  {job.sos && (
+                      <Badge variant="destructive" className="flex items-center gap-1">
+                          <AlertTriangle className="h-3 w-3" /> SOS
+                      </Badge>
+                  )}
+                  {job.status !== 'open' && (
+                      <Badge variant={job.status === 'completed' || job.status === 'canceled' ? 'outline' : 'secondary'} className="capitalize bg-white/20 text-white border-none">
+                          {job.status}
+                      </Badge>
+                  )}
+              </div>
+          </div>
+        </CardHeader>
+      </div>
+      <CardContent className="flex-grow pt-6">
         <p className="text-sm text-muted-foreground line-clamp-3">{job.description}</p>
         <div className="mt-4 flex flex-wrap gap-2">
             {job.skills.slice(0,3).map((skill) => (

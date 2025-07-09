@@ -20,6 +20,7 @@ export type Job = {
   workerId?: string;
   applicants: string[];
   createdAt: Date;
+  imageUrl?: string;
 };
 
 export type ChatMessage = {
