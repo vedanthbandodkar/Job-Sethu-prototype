@@ -24,6 +24,7 @@ export function BottomNavBar() {
       params.set('userId', userId);
     }
     
+    // Preserve the 'tab' param only for the dashboard link
     if (baseHref === '/dashboard' && searchParams.has('tab')) {
       params.set('tab', searchParams.get('tab')!);
     }
@@ -40,6 +41,7 @@ export function BottomNavBar() {
   ];
   
   if (!isMounted) {
+    // Return a placeholder or null to avoid rendering on the server and causing hydration mismatches.
     return null;
   }
 
@@ -51,7 +53,7 @@ export function BottomNavBar() {
           if (item.isButton) {
             return (
               <div key={item.href} className="flex justify-center">
-                 <Button asChild size="lg" className="h-12 w-12 rounded-full shadow-lg">
+                 <Button asChild size="lg" className="h-12 w-12 rounded-full shadow-lg bg-primary hover:bg-primary/90">
                     <Link href={finalHref}>
                         <item.icon className="h-6 w-6"/>
                         <span className="sr-only">{item.label}</span>
