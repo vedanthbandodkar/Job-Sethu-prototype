@@ -19,15 +19,17 @@ export function BottomNavBar() {
   }, []);
 
   const constructUrl = (baseHref: string) => {
-    if (!userId) return baseHref;
     const params = new URLSearchParams();
-    params.set('userId', userId);
-
+    if (userId) {
+      params.set('userId', userId);
+    }
+    
     if (baseHref === '/dashboard' && searchParams.has('tab')) {
       params.set('tab', searchParams.get('tab')!);
     }
-
-    return `${baseHref}?${params.toString()}`;
+    
+    const queryString = params.toString();
+    return queryString ? `${baseHref}?${queryString}` : baseHref;
   };
 
   const navItems = [
