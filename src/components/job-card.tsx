@@ -7,9 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import type { Job } from '@/lib/types';
-import { MapPin, IndianRupee, AlertTriangle, ArrowRight } from 'lucide-react';
+import { MapPin, IndianRupee, AlertTriangle, ArrowRight, Ban, Loader2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useTransition } from 'react';
+import { usePathname } from 'next/navigation';
+import { cancelJobAction } from '@/app/actions';
+import { useToast } from '@/hooks/use-toast';
 
 type JobCardProps = {
   job: Job;
@@ -18,12 +21,26 @@ type JobCardProps = {
 
 export function JobCard({ job, userId }: JobCardProps) {
   const [timeAgo, setTimeAgo] = useState('');
+  const [isCancelling, startCancelTransition] = useTransition();
+  const pathname = usePathname();
+  const { toast } = useToast();
 
   useEffect(() => {
     setTimeAgo(formatDistanceToNow(new Date(job.createdAt), { addSuffix: true }));
   }, [job.createdAt]);
 
   const jobUrl = userId ? `/jobs/${job.id}?userId=${userId}` : `/jobs/${job.id}`;
+  const isDashboardPostings = pathname === '/dashboard' && job.posterId === userId;
+
+  const handleCancelJob = () => {
+    startCancelTransition(async () => {
+        await cancelJobAction(job.id);
+        toast({
+            title: "Job Canceled",
+            description: "Your job post has been successfully removed.",
+        })
+    });
+  }
 
   return (
     <Card className="flex flex-col h-full overflow-hidden rounded-lg border shadow-sm transition-shadow hover:shadow-lg bg-card">
@@ -42,7 +59,7 @@ export function JobCard({ job, userId }: JobCardProps) {
                     </Badge>
                 )}
                 {job.status !== 'open' && (
-                    <Badge variant={job.status === 'completed' ? 'outline' : 'secondary'} className="capitalize">
+                    <Badge variant={job.status === 'completed' || job.status === 'canceled' ? 'outline' : 'secondary'} className="capitalize">
                         {job.status}
                     </Badge>
                 )}
@@ -70,11 +87,27 @@ export function JobCard({ job, userId }: JobCardProps) {
             </p>
         </div>
 
-        <Button asChild>
-          <Link href={jobUrl}>
-            View Job <ArrowRight className="ml-2 h-4 w-4" />
-          </Link>
-        </Button>
+        {isDashboardPostings && job.status === 'open' ? (
+             <Button variant="destructive" onClick={handleCancelJob} disabled={isCancelling}>
+                {isCancelling ? (
+                    <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+                        Cancelling...
+                    </>
+                ) : (
+                    <>
+                        <Ban className="mr-2 h-4 w-4" />
+                        Cancel Job
+                    </>
+                )}
+             </Button>
+        ) : (
+            <Button asChild>
+                <Link href={jobUrl}>
+                    View Job <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+            </Button>
+        )}
       </CardFooter>
     </Card>
   );

@@ -612,4 +612,9 @@ export const updateUserInDb = async (data: { userId: string; name: string; locat
     return undefined;
 };
 
-    
+export const cancelJobInDb = async (jobId: string): Promise<void> => {
+    const job = mockDataStore.jobs.find(j => j.id === jobId);
+    if (job) {
+        job.status = 'canceled';
+    }
+};

@@ -15,7 +15,7 @@ export type Job = {
   payment: number;
   sos: boolean;
   location: string;
-  status: 'open' | 'assigned' | 'completed';
+  status: 'open' | 'assigned' | 'completed' | 'canceled';
   posterId: string;
   workerId?: string;
   applicants: string[];

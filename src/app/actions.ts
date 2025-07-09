@@ -1,6 +1,6 @@
 'use server'
 
-import { createJobInDb, applyToJobInDb, markJobCompleteInDb, selectApplicantForJobInDb, createUserInDb, updateUserInDb } from '@/lib/data'
+import { createJobInDb, applyToJobInDb, markJobCompleteInDb, selectApplicantForJobInDb, createUserInDb, updateUserInDb, cancelJobInDb } from '@/lib/data'
 import { revalidatePath } from 'next/cache';
 
 type JobFormValues = {
@@ -85,4 +85,10 @@ export async function completeOnboardingAction(data: OnboardingFormValues) {
         console.error('Failed to update user profile:', error);
         return { success: false, message: 'An unexpected error occurred.' };
     }
+}
+
+export async function cancelJobAction(jobId: string) {
+    await cancelJobInDb(jobId);
+    revalidatePath('/dashboard');
+    revalidatePath('/');
 }
