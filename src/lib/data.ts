@@ -16,7 +16,7 @@ if (process.env.NODE_ENV === 'production') {
             id: 'user-1',
             name: 'Vedanth Bandodkar',
             email: 'vedanth@example.com',
-            avatarUrl: 'https://placehold.co/100x100.png',
+            avatarUrl: 'https://i.pravatar.cc/150?u=user-1',
             skills: ['React', 'Node.js', 'Web Design'],
             location: 'Panjim, Goa',
           },
@@ -24,7 +24,7 @@ if (process.env.NODE_ENV === 'production') {
             id: 'user-2',
             name: 'Pranav Kokitkar',
             email: 'pranav@example.com',
-            avatarUrl: 'https://placehold.co/100x100.png',
+            avatarUrl: 'https://i.pravatar.cc/150?u=user-2',
             skills: ['Gardening', 'Landscaping'],
             location: 'Margao, Goa',
           },
@@ -32,7 +32,7 @@ if (process.env.NODE_ENV === 'production') {
             id: 'user-3',
             name: 'Shubham Galave',
             email: 'shubham@example.com',
-            avatarUrl: 'https://placehold.co/100x100.png',
+            avatarUrl: 'https://i.pravatar.cc/150?u=user-3',
             skills: ['Content Writing', 'SEO', 'Digital Marketing'],
             location: 'Vasco, Goa',
           },
@@ -40,7 +40,7 @@ if (process.env.NODE_ENV === 'production') {
             id: 'user-4',
             name: 'Moksh Jain',
             email: 'moksh@example.com',
-            avatarUrl: 'https://placehold.co/100x100.png',
+            avatarUrl: 'https://i.pravatar.cc/150?u=user-4',
             skills: ['Event Management', 'Volunteering'],
             location: 'Mapusa, Goa',
           },
@@ -48,7 +48,7 @@ if (process.env.NODE_ENV === 'production') {
             id: 'user-5',
             name: 'Namir Khan',
             email: 'namir@example.com',
-            avatarUrl: 'https://placehold.co/100x100.png',
+            avatarUrl: 'https://i.pravatar.cc/150?u=user-5',
             skills: ['Photography', 'Video Editing', 'Data Entry'],
             location: 'Ponda, Goa',
           },
@@ -65,7 +65,7 @@ if (process.env.NODE_ENV === 'production') {
             status: 'open',
             posterId: 'user-1',
             applicants: ['user-3'],
-            createdAt: new Date('2025-07-09T00:00:00Z'),
+            createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 1), // 1 day ago
             imageUrl: 'https://placehold.co/600x400.png',
           },
           {
@@ -80,7 +80,7 @@ if (process.env.NODE_ENV === 'production') {
             posterId: 'user-3',
             workerId: 'user-2',
             applicants: ['user-2'],
-            createdAt: new Date('2025-07-09T00:00:00Z'),
+            createdAt: new Date(Date.now() - 1000 * 60 * 60 * 12), // 12 hours ago
             imageUrl: 'https://placehold.co/600x400.png',
           },
           {
@@ -95,7 +95,7 @@ if (process.env.NODE_ENV === 'production') {
             posterId: 'user-4',
             workerId: 'user-1',
             applicants: ['user-1'],
-            createdAt: new Date('2025-07-09T00:00:00Z'),
+            createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10), // 10 days ago
             imageUrl: 'https://placehold.co/600x400.png',
           },
             {
@@ -109,7 +109,7 @@ if (process.env.NODE_ENV === 'production') {
             status: 'open',
             posterId: 'user-1',
             applicants: [],
-            createdAt: new Date('2025-07-09T00:00:00Z'),
+            createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3), // 3 days ago
             imageUrl: 'https://placehold.co/600x400.png',
           },
           {
@@ -123,7 +123,7 @@ if (process.env.NODE_ENV === 'production') {
             status: 'open',
             posterId: 'user-3',
             applicants: ['user-1'],
-            createdAt: new Date('2025-07-09T00:00:00Z'),
+            createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5), // 5 days ago
             imageUrl: 'https://placehold.co/600x400.png',
           },
           {
@@ -137,7 +137,7 @@ if (process.env.NODE_ENV === 'production') {
             status: 'open',
             posterId: 'user-4',
             applicants: [],
-            createdAt: new Date('2025-07-09T00:00:00Z'),
+            createdAt: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
             imageUrl: 'https://placehold.co/600x400.png',
           },
           {
@@ -152,7 +152,7 @@ if (process.env.NODE_ENV === 'production') {
             posterId: 'user-1',
             workerId: 'user-3',
             applicants: ['user-3'],
-            createdAt: new Date('2025-07-09T00:00:00Z'),
+            createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7), // 7 days ago
             imageUrl: 'https://placehold.co/600x400.png',
           },
           {
@@ -166,7 +166,7 @@ if (process.env.NODE_ENV === 'production') {
             status: 'open',
             posterId: 'user-2',
             applicants: [],
-            createdAt: new Date('2025-07-09T00:00:00Z'),
+            createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2), // 2 days ago
             imageUrl: 'https://placehold.co/600x400.png',
           },
           {
@@ -180,7 +180,7 @@ if (process.env.NODE_ENV === 'production') {
             status: 'open',
             posterId: 'user-5',
             applicants: ['user-1'],
-            createdAt: new Date('2025-07-09T00:00:00Z'),
+            createdAt: new Date(Date.now() - 1000 * 60 * 60 * 8), // 8 hours ago
             imageUrl: 'https://placehold.co/600x400.png',
           },
           {
@@ -195,7 +195,7 @@ if (process.env.NODE_ENV === 'production') {
             posterId: 'user-4',
             workerId: 'user-5',
             applicants: ['user-5'],
-            createdAt: new Date('2025-07-09T00:00:00Z'),
+            createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
             imageUrl: 'https://placehold.co/600x400.png',
           },
           {
@@ -209,7 +209,7 @@ if (process.env.NODE_ENV === 'production') {
             status: 'open',
             posterId: 'user-3',
             applicants: [],
-            createdAt: new Date('2025-07-09T00:00:00Z'),
+            createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 4), // 4 days ago
             imageUrl: 'https://placehold.co/600x400.png',
           },
           {
@@ -223,7 +223,7 @@ if (process.env.NODE_ENV === 'production') {
             status: 'open',
             posterId: 'user-5',
             applicants: ['user-1'],
-            createdAt: new Date('2025-07-09T00:00:00Z'),
+            createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 6), // 6 days ago
             imageUrl: 'https://placehold.co/600x400.png',
           },
           {
@@ -238,7 +238,7 @@ if (process.env.NODE_ENV === 'production') {
             posterId: 'user-1',
             workerId: 'user-5',
             applicants: ['user-5'],
-            createdAt: new Date('2025-07-09T00:00:00Z'),
+            createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14), // 14 days ago
             imageUrl: 'https://placehold.co/600x400.png',
           }
     ],
@@ -275,7 +275,7 @@ if (process.env.NODE_ENV === 'production') {
                 id: 'user-1',
                 name: 'Vedanth Bandodkar',
                 email: 'vedanth@example.com',
-                avatarUrl: 'https://placehold.co/100x100.png',
+                avatarUrl: 'https://i.pravatar.cc/150?u=user-1',
                 skills: ['React', 'Node.js', 'Web Design'],
                 location: 'Panjim, Goa',
               },
@@ -283,7 +283,7 @@ if (process.env.NODE_ENV === 'production') {
                 id: 'user-2',
                 name: 'Pranav Kokitkar',
                 email: 'pranav@example.com',
-                avatarUrl: 'https://placehold.co/100x100.png',
+                avatarUrl: 'https://i.pravatar.cc/150?u=user-2',
                 skills: ['Gardening', 'Landscaping'],
                 location: 'Margao, Goa',
               },
@@ -291,7 +291,7 @@ if (process.env.NODE_ENV === 'production') {
                 id: 'user-3',
                 name: 'Shubham Galave',
                 email: 'shubham@example.com',
-                avatarUrl: 'https://placehold.co/100x100.png',
+                avatarUrl: 'https://i.pravatar.cc/150?u=user-3',
                 skills: ['Content Writing', 'SEO', 'Digital Marketing'],
                 location: 'Vasco, Goa',
               },
@@ -299,7 +299,7 @@ if (process.env.NODE_ENV === 'production') {
                 id: 'user-4',
                 name: 'Moksh Jain',
                 email: 'moksh@example.com',
-                avatarUrl: 'https://placehold.co/100x100.png',
+                avatarUrl: 'https://i.pravatar.cc/150?u=user-4',
                 skills: ['Event Management', 'Volunteering'],
                 location: 'Mapusa, Goa',
               },
@@ -307,7 +307,7 @@ if (process.env.NODE_ENV === 'production') {
                 id: 'user-5',
                 name: 'Namir Khan',
                 email: 'namir@example.com',
-                avatarUrl: 'https://placehold.co/100x100.png',
+                avatarUrl: 'https://i.pravatar.cc/150?u=user-5',
                 skills: ['Photography', 'Video Editing', 'Data Entry'],
                 location: 'Ponda, Goa',
               },
@@ -324,7 +324,7 @@ if (process.env.NODE_ENV === 'production') {
                 status: 'open',
                 posterId: 'user-1',
                 applicants: ['user-3'],
-                createdAt: new Date('2025-07-09T00:00:00Z'),
+                createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 1), // 1 day ago
                 imageUrl: 'https://placehold.co/600x400.png',
               },
               {
@@ -339,7 +339,7 @@ if (process.env.NODE_ENV === 'production') {
                 posterId: 'user-3',
                 workerId: 'user-2',
                 applicants: ['user-2'],
-                createdAt: new Date('2025-07-09T00:00:00Z'),
+                createdAt: new Date(Date.now() - 1000 * 60 * 60 * 12), // 12 hours ago
                 imageUrl: 'https://placehold.co/600x400.png',
               },
               {
@@ -354,7 +354,7 @@ if (process.env.NODE_ENV === 'production') {
                 posterId: 'user-4',
                 workerId: 'user-1',
                 applicants: ['user-1'],
-                createdAt: new Date('2025-07-09T00:00:00Z'),
+                createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10), // 10 days ago
                 imageUrl: 'https://placehold.co/600x400.png',
               },
                 {
@@ -368,7 +368,7 @@ if (process.env.NODE_ENV === 'production') {
                 status: 'open',
                 posterId: 'user-1',
                 applicants: [],
-                createdAt: new Date('2025-07-09T00:00:00Z'),
+                createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3), // 3 days ago
                 imageUrl: 'https://placehold.co/600x400.png',
               },
               {
@@ -382,7 +382,7 @@ if (process.env.NODE_ENV === 'production') {
                 status: 'open',
                 posterId: 'user-3',
                 applicants: ['user-1'],
-                createdAt: new Date('2025-07-09T00:00:00Z'),
+                createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5), // 5 days ago
                 imageUrl: 'https://placehold.co/600x400.png',
               },
               {
@@ -396,7 +396,7 @@ if (process.env.NODE_ENV === 'production') {
                 status: 'open',
                 posterId: 'user-4',
                 applicants: [],
-                createdAt: new Date('2025-07-09T00:00:00Z'),
+                createdAt: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
                 imageUrl: 'https://placehold.co/600x400.png',
               },
               {
@@ -411,7 +411,7 @@ if (process.env.NODE_ENV === 'production') {
                 posterId: 'user-1',
                 workerId: 'user-3',
                 applicants: ['user-3'],
-                createdAt: new Date('2025-07-09T00:00:00Z'),
+                createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7), // 7 days ago
                 imageUrl: 'https://placehold.co/600x400.png',
               },
               {
@@ -425,7 +425,7 @@ if (process.env.NODE_ENV === 'production') {
                 status: 'open',
                 posterId: 'user-2',
                 applicants: [],
-                createdAt: new Date('2025-07-09T00:00:00Z'),
+                createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2), // 2 days ago
                 imageUrl: 'https://placehold.co/600x400.png',
               },
               {
@@ -439,7 +439,7 @@ if (process.env.NODE_ENV === 'production') {
                 status: 'open',
                 posterId: 'user-5',
                 applicants: ['user-1'],
-                createdAt: new Date('2025-07-09T00:00:00Z'),
+                createdAt: new Date(Date.now() - 1000 * 60 * 60 * 8), // 8 hours ago
                 imageUrl: 'https://placehold.co/600x400.png',
               },
               {
@@ -454,7 +454,7 @@ if (process.env.NODE_ENV === 'production') {
                 posterId: 'user-4',
                 workerId: 'user-5',
                 applicants: ['user-5'],
-                createdAt: new Date('2025-07-09T00:00:00Z'),
+                createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
                 imageUrl: 'https://placehold.co/600x400.png',
               },
               {
@@ -468,7 +468,7 @@ if (process.env.NODE_ENV === 'production') {
                 status: 'open',
                 posterId: 'user-3',
                 applicants: [],
-                createdAt: new Date('2025-07-09T00:00:00Z'),
+                createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 4), // 4 days ago
                 imageUrl: 'https://placehold.co/600x400.png',
               },
               {
@@ -482,7 +482,7 @@ if (process.env.NODE_ENV === 'production') {
                 status: 'open',
                 posterId: 'user-5',
                 applicants: ['user-1'],
-                createdAt: new Date('2025-07-09T00:00:00Z'),
+                createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 6), // 6 days ago
                 imageUrl: 'https://placehold.co/600x400.png',
               },
               {
@@ -497,7 +497,7 @@ if (process.env.NODE_ENV === 'production') {
                 posterId: 'user-1',
                 workerId: 'user-5',
                 applicants: ['user-5'],
-                createdAt: new Date('2025-07-09T00:00:00Z'),
+                createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14), // 14 days ago
                 imageUrl: 'https://placehold.co/600x400.png',
               }
         ],
@@ -559,7 +559,7 @@ export const getJobs = async (query?: string): Promise<Job[]> => {
     let jobs = deepCopy([...mockDataStore.jobs].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
     if (query) {
         const lowercasedQuery = query.toLowerCase();
-        jobs = jobs.filter(job => job.title.toLowerCase().includes(lowercasedQuery));
+        jobs = jobs.filter(job => job.title.toLowerCase().includes(lowercasedQuery) || job.skills.some(skill => skill.toLowerCase().includes(lowercasedQuery)));
     }
     return jobs;
 }
@@ -622,7 +622,7 @@ export const createUserInDb = async (data: { name: string; email: string; }): Pr
         id: newId,
         name: data.name,
         email: data.email,
-        avatarUrl: `https://placehold.co/100x100.png`,
+        avatarUrl: `https://i.pravatar.cc/150?u=${newId}`,
         skills: [],
         location: 'Not Specified',
     };
