@@ -5,6 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { getUserById } from "@/lib/data";
 import { Pencil, MapPin } from "lucide-react";
 
+export const dynamic = 'force-dynamic';
+
 export default async function ProfilePage({ searchParams }: { searchParams?: { userId?: string } }) {
     // Use the passed userId or default to the main mock user
     const userId = searchParams?.userId || 'user-5';

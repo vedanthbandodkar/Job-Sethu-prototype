@@ -1,6 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { JobForm } from '@/components/job-form';
 
+export const dynamic = 'force-dynamic';
+
 export default function NewJobPage() {
   return (
     <div className="container mx-auto max-w-3xl py-12">
