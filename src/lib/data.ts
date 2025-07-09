@@ -1,3 +1,4 @@
+
 import type { User, Job, ChatMessage } from './types';
 
 // This is a workaround to persist mock data across hot reloads in development.
@@ -502,7 +503,12 @@ if (process.env.NODE_ENV === 'production') {
   mockDataStore = (global as any).mockDataStore;
 }
 
-const deepCopy = <T>(data: T): T => JSON.parse(JSON.stringify(data));
+const deepCopy = <T>(data: T): T => {
+    if (data === undefined) {
+        return undefined as T;
+    }
+    return JSON.parse(JSON.stringify(data));
+};
 
 // Mock API functions
 export const getJobById = async (id: string): Promise<Job | undefined> => {
@@ -601,3 +607,5 @@ export const updateUserInDb = async (data: { userId: string; name: string; locat
     }
     return undefined;
 };
+
+    
