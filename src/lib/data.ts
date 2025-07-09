@@ -89,7 +89,7 @@ const initialMockJobs: Job[] = [
     posterId: 'user-4',
     workerId: 'user-1',
     applicants: ['user-1'],
-    createdAt: daysAgo(4),
+    createdAt: daysAgo(3),
   },
     {
     id: 'job-4',
