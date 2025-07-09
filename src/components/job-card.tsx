@@ -31,6 +31,7 @@ export function JobCard({ job, userId }: JobCardProps) {
 
   const jobUrl = userId ? `/jobs/${job.id}?userId=${userId}` : `/jobs/${job.id}`;
   const isDashboardPostings = pathname === '/dashboard' && job.posterId === userId;
+  const canCancel = isDashboardPostings && (job.status === 'open' || job.status === 'assigned');
 
   const handleCancelJob = () => {
     startCancelTransition(async () => {
@@ -87,7 +88,7 @@ export function JobCard({ job, userId }: JobCardProps) {
             </p>
         </div>
 
-        {isDashboardPostings && job.status === 'open' ? (
+        {canCancel ? (
              <Button variant="destructive" onClick={handleCancelJob} disabled={isCancelling}>
                 {isCancelling ? (
                     <>
