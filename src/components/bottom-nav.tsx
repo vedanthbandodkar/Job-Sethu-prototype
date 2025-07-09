@@ -6,17 +6,11 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { Home, LayoutDashboard, User, PlusCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
-import * as React from 'react';
 
 export function BottomNavBar() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const userId = searchParams.get('userId');
-  const [isMounted, setIsMounted] = React.useState(false);
-
-  React.useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   const constructUrl = (baseHref: string) => {
     const params = new URLSearchParams();
@@ -39,11 +33,6 @@ export function BottomNavBar() {
     { href: "/jobs/new", label: "Post", icon: PlusCircle, isButton: true },
     { href: "/profile", label: "Profile", icon: User },
   ];
-  
-  if (!isMounted) {
-    // Return a placeholder or null to avoid rendering on the server and causing hydration mismatches.
-    return null;
-  }
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:hidden">
