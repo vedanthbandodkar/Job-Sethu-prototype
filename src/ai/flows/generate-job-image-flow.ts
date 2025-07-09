@@ -9,11 +9,11 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-export const GenerateJobImageInputSchema = z.string();
-export type GenerateJobImageInput = z.infer<typeof GenerateJobImageInputSchema>;
+const GenerateJobImageInputSchema = z.string();
+type GenerateJobImageInput = z.infer<typeof GenerateJobImageInputSchema>;
 
-export const GenerateJobImageOutputSchema = z.string();
-export type GenerateJobImageOutput = z.infer<typeof GenerateJobImageOutputSchema>;
+const GenerateJobImageOutputSchema = z.string();
+type GenerateJobImageOutput = z.infer<typeof GenerateJobImageOutputSchema>;
 
 
 export async function generateJobImage(title: GenerateJobImageInput): Promise<GenerateJobImageOutput> {
