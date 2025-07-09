@@ -11,13 +11,14 @@ type JobFormValues = {
   payment: number;
   location: string;
   sos: boolean;
+  userId: string;
 }
 
 export async function createJobAction(data: JobFormValues) {
   try {
     const imageUrl = await generateJobImage(data.title);
 
-    const result = await createJobInDb({ ...data, imageUrl });
+    const result = await createJobInDb({ ...data, imageUrl, posterId: data.userId });
     if (result) {
         revalidatePath('/');
         revalidatePath('/dashboard');

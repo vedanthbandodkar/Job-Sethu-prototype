@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { useTransition } from "react"
+import { useSearchParams } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -55,6 +56,7 @@ const defaultValues: Partial<JobFormValues> = {
 export function JobForm() {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+  const searchParams = useSearchParams();
 
   const form = useForm<JobFormValues>({
     resolver: zodResolver(jobFormSchema),
@@ -63,8 +65,10 @@ export function JobForm() {
   })
 
   function onSubmit(data: JobFormValues) {
+    const userId = searchParams.get('userId') || 'user-5'; // Default to mock user if not found
+
     startTransition(async () => {
-        const result = await createJobAction(data);
+        const result = await createJobAction({ ...data, userId });
         if (result?.success) {
             form.reset();
             toast({
@@ -72,7 +76,7 @@ export function JobForm() {
                 description: "Your job has been posted successfully.",
             });
             // Force a hard navigation to bypass client-side caching issues.
-            window.location.assign('/dashboard?tab=postings');
+            window.location.assign(`/dashboard?tab=postings&userId=${userId}`);
         } else {
             toast({
                 variant: "destructive",
