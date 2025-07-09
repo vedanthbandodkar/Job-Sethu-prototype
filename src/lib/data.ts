@@ -282,6 +282,10 @@ export const getJobById = async (id: string): Promise<Job | undefined> => {
     return mockJobs.find(job => job.id === id);
 }
 
+export const getUsers = async (): Promise<User[]> => {
+    return [...mockUsers];
+}
+
 export const getUserById = async (id: string): Promise<User | undefined> => {
     return mockUsers.find(user => user.id === id);
 }
