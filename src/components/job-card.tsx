@@ -26,6 +26,8 @@ export function JobCard({ job, userId }: JobCardProps) {
   const { toast } = useToast();
 
   useEffect(() => {
+    // This check is to prevent hydration mismatch errors on the server.
+    // The server-rendered output will be an empty string, and the client will update it.
     setTimeAgo(formatDistanceToNow(new Date(job.createdAt), { addSuffix: true }));
   }, [job.createdAt]);
 
@@ -88,27 +90,27 @@ export function JobCard({ job, userId }: JobCardProps) {
             </p>
         </div>
 
-        {canCancel ? (
-             <Button variant="destructive" onClick={handleCancelJob} disabled={isCancelling}>
-                {isCancelling ? (
-                    <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                        Cancelling...
-                    </>
-                ) : (
-                    <>
-                        <Ban className="mr-2 h-4 w-4" />
-                        Cancel Job
-                    </>
-                )}
-             </Button>
-        ) : (
-            <Button asChild>
+        <div className="flex items-center gap-2">
+            {canCancel && (
+                <Button variant="destructive" size="sm" onClick={handleCancelJob} disabled={isCancelling}>
+                    {isCancelling ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+                        </>
+                    ) : (
+                        <>
+                            <Ban className="mr-2 h-4 w-4" />
+                            Cancel
+                        </>
+                    )}
+                </Button>
+            )}
+             <Button asChild size="sm">
                 <Link href={jobUrl}>
                     View Job <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
             </Button>
-        )}
+        </div>
       </CardFooter>
     </Card>
   );
