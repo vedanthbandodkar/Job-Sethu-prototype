@@ -35,8 +35,8 @@ const initialMockUsers: User[] = [
   },
   {
     id: 'user-5',
-    name: 'Elroy Rodrigues',
-    email: 'elroy@example.com',
+    name: 'Namir Khan',
+    email: 'namir@example.com',
     avatarUrl: 'https://i.pravatar.cc/100?u=user-5',
     skills: ['Photography', 'Video Editing', 'Data Entry'],
     location: 'Ponda, Goa',
