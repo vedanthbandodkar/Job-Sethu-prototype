@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -12,13 +13,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
-import { Check, ChevronsUpDown, CreditCard, LogOut, Settings, User as UserIcon } from 'lucide-react';
+import { Check, CreditCard, LogOut, Settings, User as UserIcon } from 'lucide-react';
 import { getUsers, getUserById } from '@/lib/data';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { useEffect, useState, useTransition } from 'react';
+import { useEffect, useState } from 'react';
 import type { User } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
 
 export function UserNav() {
   const pathname = usePathname();
@@ -59,9 +59,9 @@ export function UserNav() {
     )
   }
   
-  const constructUrl = (baseHref: string, userId: string) => {
-    const params = new URLSearchParams(searchParams);
-    params.set('userId', userId);
+  const constructUrl = (baseHref: string, newUserId: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('userId', newUserId);
     return `${baseHref}?${params.toString()}`;
   }
 

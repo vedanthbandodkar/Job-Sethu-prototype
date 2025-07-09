@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -12,23 +13,27 @@ import { cn } from '@/lib/utils';
 export function AppHeader() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [userId, setUserId] = React.useState<string | null>(null);
-
-  React.useEffect(() => {
-    setUserId(searchParams.get('userId'));
-  }, [searchParams]);
+  const userId = searchParams.get('userId');
 
   const constructUrl = (baseHref: string) => {
     if (!userId) return baseHref;
-    // Don't add userId to home page
-    if (baseHref === '/') return baseHref;
-    return `${baseHref}?userId=${userId}`;
+    
+    // Create a new URLSearchParams object from the current search params
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('userId', userId);
+    
+    // Do not add userId to the home page to keep the URL clean
+    if (baseHref === '/') {
+        return '/';
+    }
+
+    return `${baseHref}?${params.toString()}`;
   };
 
   const navItems = [
-    { href: constructUrl("/"), label: "Home" },
-    { href: constructUrl("/dashboard"), label: "Dashboard" },
-    { href: constructUrl("/profile"), label: "Profile" },
+    { href: "/", label: "Home" },
+    { href: "/dashboard", label: "Dashboard" },
+    { href: "/profile", label: "Profile" },
   ];
 
   return (
@@ -41,11 +46,12 @@ export function AppHeader() {
             </Link>
             <nav className="hidden items-center gap-1 md:flex">
             {navItems.map((item) => {
-                const baseHref = item.href.split('?')[0];
-                const isActive = pathname === baseHref;
+                const isActive = pathname === item.href;
+                const finalHref = constructUrl(item.href);
+
                 return (
                     <Button key={item.label} variant="ghost" asChild className={cn("font-medium text-muted-foreground transition-colors hover:text-foreground", isActive && "text-foreground")}>
-                        <Link href={item.href}>
+                        <Link href={finalHref}>
                             {item.label}
                         </Link>
                     </Button>
