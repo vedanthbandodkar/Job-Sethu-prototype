@@ -8,8 +8,9 @@ import { Search } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
-export default async function Home({ searchParams }: { searchParams?: { userId?: string }}) {
-  const jobs = await getJobs();
+export default async function Home({ searchParams }: { searchParams?: { userId?: string; q?: string }}) {
+  const query = searchParams?.q || '';
+  const jobs = await getJobs(query);
   const userId = searchParams?.userId;
 
   return (
@@ -19,21 +20,35 @@ export default async function Home({ searchParams }: { searchParams?: { userId?:
         <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
           Browse through hundreds of local jobs and find the perfect fit for your skills.
         </p>
-        <div className="mt-8 mx-auto max-w-2xl flex items-center space-x-2">
-            <Input type="text" placeholder="Search for jobs, skills, or keywords..." className="flex-grow text-base" />
-            <Button size="lg">
+        <form className="mt-8 mx-auto max-w-2xl flex items-center space-x-2">
+            <Input 
+              type="text" 
+              name="q"
+              placeholder="Search for jobs, skills, or keywords..." 
+              className="flex-grow text-base" 
+              defaultValue={query}
+            />
+            {searchParams?.userId && <input type="hidden" name="userId" value={searchParams.userId} />}
+            <Button type="submit" size="lg">
                 <Search className="mr-2 h-5 w-5" /> Search
             </Button>
-        </div>
+        </form>
       </section>
 
       <section>
-        <h2 className="font-headline text-3xl font-bold mb-6">Recent Jobs</h2>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {jobs.map((job: Job) => (
-            <JobCard key={job.id} job={job} userId={userId} />
-          ))}
-        </div>
+        <h2 className="font-headline text-3xl font-bold mb-6">{query ? `Search results for "${query}"` : 'Recent Jobs'}</h2>
+        {jobs.length > 0 ? (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {jobs.map((job: Job) => (
+              <JobCard key={job.id} job={job} userId={userId} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16 border-2 border-dashed rounded-lg mt-6">
+              <h2 className="font-headline text-2xl font-semibold">No jobs found.</h2>
+              <p className="mt-2 text-muted-foreground">Try a different search term or check back later.</p>
+          </div>
+        )}
       </section>
     </div>
   );

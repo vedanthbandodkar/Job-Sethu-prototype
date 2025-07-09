@@ -527,8 +527,12 @@ export const getMessagesForJob = async (jobId: string): Promise<ChatMessage[]> =
     return deepCopy(mockDataStore.messages.filter(msg => msg.jobId === jobId).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()));
 }
 
-export const getJobs = async (): Promise<Job[]> => {
-    return deepCopy([...mockDataStore.jobs].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+export const getJobs = async (query?: string): Promise<Job[]> => {
+    let jobs = deepCopy([...mockDataStore.jobs].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+    if (query) {
+        jobs = jobs.filter(job => job.title.toLowerCase().includes(query.toLowerCase()));
+    }
+    return jobs;
 }
 
 type JobCreationData = {
