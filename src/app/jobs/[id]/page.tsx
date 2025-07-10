@@ -132,3 +132,5 @@ export default async function JobDetailPage({ params, searchParams }: { params: 
     </div>
   );
 }
+
+    
