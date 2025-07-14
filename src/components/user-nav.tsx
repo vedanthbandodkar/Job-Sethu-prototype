@@ -16,7 +16,7 @@ import Link from 'next/link';
 import { Check, CreditCard, LogOut, Settings, User as UserIcon } from 'lucide-react';
 import { getUsers, getUserById } from '@/lib/data';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import type { User } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -27,25 +27,33 @@ export function UserNav() {
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const userId = useMemo(() => searchParams.get('userId') || 'user-5', [searchParams]);
+
   useEffect(() => {
     let isMounted = true;
     const fetchUserData = async () => {
         setLoading(true);
-        const userId = searchParams.get('userId') || 'user-5';
-        const [userData, allUsersData] = await Promise.all([
-          getUserById(userId),
-          getUsers()
-        ]);
-        if (isMounted) {
-            setUser(userData);
-            setAllUsers(allUsersData);
-            setLoading(false);
+        try {
+            const [userData, allUsersData] = await Promise.all([
+              getUserById(userId),
+              getUsers()
+            ]);
+            if (isMounted) {
+                setUser(userData);
+                setAllUsers(allUsersData);
+            }
+        } catch (error) {
+            console.error("Failed to fetch user data:", error);
+        } finally {
+            if (isMounted) {
+                setLoading(false);
+            }
         }
     }
     fetchUserData();
 
     return () => { isMounted = false; };
-  }, [searchParams]);
+  }, [userId]);
 
   if (loading) {
     return <Skeleton className="h-9 w-9 rounded-full" />;
