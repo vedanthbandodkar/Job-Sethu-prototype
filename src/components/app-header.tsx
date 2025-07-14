@@ -6,7 +6,6 @@ import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { UserNav } from '@/components/user-nav';
 import { Briefcase } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from './theme-toggle';
@@ -64,9 +63,7 @@ export function AppHeader() {
                 <Link href={constructUrl('/jobs/new')}>Post a Job</Link>
             </Button>
             <ThemeToggle />
-            <React.Suspense fallback={<Skeleton className="h-9 w-9 rounded-full" />}>
-                <UserNav />
-            </React.Suspense>
+            <UserNav />
         </div>
       </div>
     </header>

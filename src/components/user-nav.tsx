@@ -26,10 +26,20 @@ export function UserNav() {
   const [user, setUser] = useState<User | undefined>(undefined);
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const userId = useMemo(() => searchParams.get('userId') || 'user-5', [searchParams]);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  const userId = useMemo(() => {
+    if (!isClient) return 'user-5'; // Default for SSR
+    return searchParams.get('userId') || 'user-5';
+  }, [searchParams, isClient]);
+
+  useEffect(() => {
+    if (!isClient) return;
+
     let isMounted = true;
     const fetchUserData = async () => {
         setLoading(true);
@@ -53,9 +63,9 @@ export function UserNav() {
     fetchUserData();
 
     return () => { isMounted = false; };
-  }, [userId]);
+  }, [userId, isClient]);
 
-  if (loading) {
+  if (!isClient || loading) {
     return <Skeleton className="h-9 w-9 rounded-full" />;
   }
 
@@ -70,8 +80,6 @@ export function UserNav() {
   const constructUrl = (baseHref: string, newUserId: string) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set('userId', newUserId);
-    // When switching profiles, we go to the base path with the new user ID
-    // but preserve essential params like 'tab' for the dashboard.
     const cleanParams = new URLSearchParams();
     cleanParams.set('userId', newUserId);
     if (searchParams.has('tab')) {
