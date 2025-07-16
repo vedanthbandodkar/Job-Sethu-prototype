@@ -23,6 +23,7 @@ export function ChatInterface({ jobId, currentUserId }: { jobId: string, current
             const enriched = await Promise.all(
                 rawMessages.map(async (msg) => ({
                     ...msg,
+                    timestamp: new Date(msg.timestamp), // Convert string to Date object
                     sender: await getUserById(msg.senderId),
                 }))
             );
