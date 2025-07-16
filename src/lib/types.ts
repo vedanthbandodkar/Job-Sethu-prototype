@@ -23,6 +23,7 @@ export type Job = {
   applicants: string[];
   createdAt: Date | Timestamp;
   imageUrl?: string;
+  title_lowercase?: string;
 };
 
 export type ChatMessage = {

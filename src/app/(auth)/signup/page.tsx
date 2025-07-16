@@ -67,9 +67,9 @@ export default function SignupPage() {
       if (result.success && result.userId) {
         toast({
           title: 'Account Created!',
-          description: "Welcome! Redirecting to the homepage.",
+          description: "Welcome! We're setting up your profile.",
         });
-        router.push(`/?userId=${result.userId}`);
+        router.push(`/onboarding?userId=${result.userId}`);
       } else {
         toast({
           variant: "destructive",

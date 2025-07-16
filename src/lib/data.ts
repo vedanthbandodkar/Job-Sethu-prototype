@@ -33,15 +33,27 @@ export const getUsers = async (): Promise<User[]> => {
 }
 
 export const getUserById = async (id: string): Promise<User | undefined> => {
-    const docRef = doc(db, "users", id);
-    const docSnap = await getDoc(docRef);
+    try {
+        const docRef = doc(db, "users", id);
+        const docSnap = await getDoc(docRef);
 
-    if (docSnap.exists()) {
-        return processDoc<User>(docSnap);
-    } else {
+        if (docSnap.exists()) {
+            return processDoc<User>(docSnap);
+        } else {
+            // Fallback for old email-based IDs if needed
+            const q = query(collection(db, "users"), where("email", "==", id));
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                return processDoc<User>(querySnapshot.docs[0]);
+            }
+            return undefined;
+        }
+    } catch (error) {
+        console.error(`Error fetching user by ID: ${id}`, error);
         return undefined;
     }
 }
+
 
 export const getMessagesForJob = async (jobId: string): Promise<ChatMessage[]> => {
     const messagesCol = collection(db, "messages");
@@ -58,7 +70,7 @@ export const getJobs = async (searchQuery?: string): Promise<Job[]> => {
     // This is a basic "start with" query. For real full-text search, use a third-party service like Algolia.
     if (searchQuery) {
         const lowerQuery = searchQuery.toLowerCase();
-        q = query(jobsCol, where('title_lowercase', '>=', lowerQuery), where('title_lowercase', '<=', lowerQuery + '\uf8ff'), orderBy("createdAt", "desc"));
+        q = query(jobsCol, where('title_lowercase', '>=', lowerQuery), where('title_lowercase', '<=', lowerQuery + '\uf8ff'), orderBy("title_lowercase"), orderBy("createdAt", "desc"));
     } else {
         q = query(jobsCol, orderBy("createdAt", "desc"), limit(20));
     }
@@ -115,22 +127,26 @@ export const selectApplicantForJobInDb = async (jobId: string, applicantId: stri
 };
 
 export const createUserInDb = async (data: { name: string; email: string; }): Promise<User> => {
-    const userRef = doc(db, "users", data.email); // Use email as ID for simplicity
-    const userSnap = await getDoc(userRef);
+    // Generate a more robust ID, but check for existence by email to prevent duplicates.
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, where("email", "==", data.email));
+    const querySnapshot = await getDocs(q);
 
-    if (!userSnap.exists()) {
-        const newUser: User = {
-            id: data.email,
-            name: data.name,
-            email: data.email,
-            avatarUrl: `https://i.pravatar.cc/150?u=${data.email}`,
-            skills: [],
-            location: 'Not Specified',
-        };
-        await addDoc(collection(db, "users"), newUser);
-        return newUser;
+    if (!querySnapshot.empty) {
+      // User already exists
+      return processDoc<User>(querySnapshot.docs[0]);
     }
-    return processDoc<User>(userSnap);
+
+    // User doesn't exist, create a new one.
+    const newUser: Omit<User, 'id'> = {
+        name: data.name,
+        email: data.email,
+        avatarUrl: `https://i.pravatar.cc/150?u=${data.email}`,
+        skills: [],
+        location: 'Not Specified',
+    };
+    const docRef = await addDoc(collection(db, "users"), newUser);
+    return { id: docRef.id, ...newUser };
 };
 
 export const updateUserInDb = async (data: { userId: string; name: string; location: string; skills: string[]; }): Promise<void> => {
@@ -439,21 +455,21 @@ function getInitialMockData() {
           jobId: 'job-2',
           senderId: 'user-3',
           content: 'Hi Pranav, thanks for accepting the gardening job. When would be a good time to come by?',
-          timestamp: new Date('2024-07-21T15:00:00Z'),
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 12 + 3600000),
       },
       {
           id: 'msg-2',
           jobId: 'job-2',
           senderId: 'user-2',
           content: 'Hi Shubham! I can be there tomorrow around 10 AM. Does that work for you?',
-          timestamp: new Date('2024-07-21T15:05:00Z'),
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 12 + 3660000),
       },
       {
           id: 'msg-3',
           jobId: 'job-2',
           senderId: 'user-3',
           content: '10 AM works perfectly. See you then!',
-          timestamp: new Date('2024-07-21T15:06:00Z'),
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 12 + 3720000),
       },
       {
         id: 'msg-job3-1',
