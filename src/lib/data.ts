@@ -1,19 +1,205 @@
-
+import { collection, query, where, getDocs, getDoc, doc, addDoc, updateDoc, serverTimestamp, orderBy, limit, writeBatch } from "firebase/firestore";
 import type { User, Job, ChatMessage } from './types';
+import { db } from './firebase';
+import type { Timestamp } from "firebase/firestore";
 
-// This is a workaround to persist mock data across hot reloads in development.
-// In a real app, you would use a proper database like Firebase Firestore.
-// The data is stored in a global variable, so it's not lost on hot-reloads,
-// but it WILL BE RESET every time you fully restart the application server.
-declare global {
-  var mockDataStore: {
-    users: User[];
-    jobs: Job[];
-    messages: ChatMessage[];
-  } | undefined;
+// This function converts Firestore Timestamps to JS Date objects in a document
+function processDoc<T>(d: any): T {
+    const data = d.data();
+    for (const key in data) {
+        if (data[key] instanceof Object && 'seconds' in data[key] && 'nanoseconds' in data[key]) {
+             data[key] = (data[key] as Timestamp).toDate();
+        }
+    }
+    return { id: d.id, ...data } as T;
 }
 
-const initialMockData = {
+// Mock API functions replaced with Firestore calls
+export const getJobById = async (id:string): Promise<Job | undefined> => {
+    const docRef = doc(db, "jobs", id);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+        return processDoc<Job>(docSnap);
+    } else {
+        return undefined;
+    }
+}
+
+export const getUsers = async (): Promise<User[]> => {
+    const usersCol = collection(db, "users");
+    const userSnapshot = await getDocs(usersCol);
+    return userSnapshot.docs.map(d => processDoc<User>(d));
+}
+
+export const getUserById = async (id: string): Promise<User | undefined> => {
+    const docRef = doc(db, "users", id);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+        return processDoc<User>(docSnap);
+    } else {
+        return undefined;
+    }
+}
+
+export const getMessagesForJob = async (jobId: string): Promise<ChatMessage[]> => {
+    const messagesCol = collection(db, "messages");
+    const q = query(messagesCol, where("jobId", "==", jobId), orderBy("timestamp", "asc"));
+    const messageSnapshot = await getDocs(q);
+    return messageSnapshot.docs.map(d => processDoc<ChatMessage>(d));
+}
+
+export const getJobs = async (searchQuery?: string): Promise<Job[]> => {
+    const jobsCol = collection(db, "jobs");
+    let q;
+    
+    // Note: Firestore does not support native full-text search. 
+    // This is a basic "start with" query. For real full-text search, use a third-party service like Algolia.
+    if (searchQuery) {
+        const lowerQuery = searchQuery.toLowerCase();
+        q = query(jobsCol, where('title_lowercase', '>=', lowerQuery), where('title_lowercase', '<=', lowerQuery + '\uf8ff'), orderBy("createdAt", "desc"));
+    } else {
+        q = query(jobsCol, orderBy("createdAt", "desc"), limit(20));
+    }
+    
+    const jobSnapshot = await getDocs(q);
+    return jobSnapshot.docs.map(d => processDoc<Job>(d));
+}
+
+type JobCreationData = {
+    title: string;
+    description: string;
+    skills: string;
+    payment: number;
+    location: string;
+    sos: boolean;
+    imageUrl?: string;
+    posterId: string;
+};
+
+export const createJobInDb = async (data: JobCreationData): Promise<{ id: string }> => {
+    const newJob = {
+        ...data,
+        skills: data.skills.split(',').map(s => s.trim()).filter(s => s),
+        status: 'open',
+        applicants: [],
+        createdAt: serverTimestamp(),
+        title_lowercase: data.title.toLowerCase() // for searching
+    };
+    const docRef = await addDoc(collection(db, "jobs"), newJob);
+    return { id: docRef.id };
+};
+
+
+export const applyToJobInDb = async (jobId: string, userId: string): Promise<void> => {
+    const jobRef = doc(db, "jobs", jobId);
+    const jobDoc = await getDoc(jobRef);
+    if (jobDoc.exists()) {
+        const jobData = jobDoc.data() as Job;
+        if (!jobData.applicants.includes(userId)) {
+            const applicants = [...jobData.applicants, userId];
+            await updateDoc(jobRef, { applicants });
+        }
+    }
+};
+
+export const markJobCompleteInDb = async (jobId: string): Promise<void> => {
+    const jobRef = doc(db, "jobs", jobId);
+    await updateDoc(jobRef, { status: 'completed' });
+};
+
+export const selectApplicantForJobInDb = async (jobId: string, applicantId: string): Promise<void> => {
+    const jobRef = doc(db, "jobs", jobId);
+    await updateDoc(jobRef, { workerId: applicantId, status: 'assigned' });
+};
+
+export const createUserInDb = async (data: { name: string; email: string; }): Promise<User> => {
+    const userRef = doc(db, "users", data.email); // Use email as ID for simplicity
+    const userSnap = await getDoc(userRef);
+
+    if (!userSnap.exists()) {
+        const newUser: User = {
+            id: data.email,
+            name: data.name,
+            email: data.email,
+            avatarUrl: `https://i.pravatar.cc/150?u=${data.email}`,
+            skills: [],
+            location: 'Not Specified',
+        };
+        await addDoc(collection(db, "users"), newUser);
+        return newUser;
+    }
+    return processDoc<User>(userSnap);
+};
+
+export const updateUserInDb = async (data: { userId: string; name: string; location: string; skills: string[]; }): Promise<void> => {
+    const userRef = doc(db, "users", data.userId);
+    await updateDoc(userRef, {
+        name: data.name,
+        location: data.location,
+        skills: data.skills,
+    });
+};
+
+export const cancelJobInDb = async (jobId: string): Promise<void> => {
+    const jobRef = doc(db, "jobs", jobId);
+    await updateDoc(jobRef, { status: 'canceled' });
+};
+
+export const createMessageInDb = async (message: Omit<ChatMessage, 'id' | 'timestamp'>): Promise<void> => {
+    await addDoc(collection(db, "messages"), {
+        ...message,
+        timestamp: serverTimestamp()
+    });
+};
+
+// --- ONE-TIME SEED SCRIPT ---
+// This script will populate your Firestore database with the initial mock data.
+// You should run this from a client-side component, e.g., a temporary button in your app.
+
+export async function seedDatabase() {
+    console.log("Starting to seed database...");
+    const batch = writeBatch(db);
+
+    const initialMockData = getInitialMockData();
+
+    // Seed Users
+    console.log("Seeding users...");
+    initialMockData.users.forEach(user => {
+        const docRef = doc(db, "users", user.id);
+        batch.set(docRef, user);
+    });
+
+    // Seed Jobs
+    console.log("Seeding jobs...");
+    initialMockData.jobs.forEach(job => {
+        const docRef = doc(db, "jobs", job.id);
+        batch.set(docRef, {
+            ...job,
+            title_lowercase: job.title.toLowerCase()
+        });
+    });
+
+    // Seed Messages
+    console.log("Seeding messages...");
+    initialMockData.messages.forEach(message => {
+        const docRef = doc(collection(db, "messages")); // auto-generate ID
+        batch.set(docRef, message);
+    });
+
+    try {
+        await batch.commit();
+        console.log("Database seeded successfully!");
+        alert("Database seeded successfully!");
+    } catch (error) {
+        console.error("Error seeding database: ", error);
+        alert("Error seeding database. Check console for details.");
+    }
+}
+
+function getInitialMockData() {
+    return {
   users: [
       {
           id: 'user-1',
@@ -341,139 +527,4 @@ const initialMockData = {
       },
   ],
 };
-
-const mockDataStore = global.mockDataStore || (global.mockDataStore = initialMockData);
-
-const deepCopy = <T>(data: T): T => {
-    if (data === undefined) {
-        return undefined as T;
-    }
-    return JSON.parse(JSON.stringify(data));
-};
-
-// Mock API functions
-export const getJobById = async (id: string): Promise<Job | undefined> => {
-    const job = mockDataStore.jobs.find(job => job.id === id)
-    return deepCopy(job);
 }
-
-export const getUsers = async (): Promise<User[]> => {
-    return deepCopy(mockDataStore.users);
-}
-
-export const getUserById = async (id: string): Promise<User | undefined> => {
-    const user = mockDataStore.users.find(user => user.id === id);
-    return deepCopy(user);
-}
-
-export const getMessagesForJob = async (jobId: string): Promise<ChatMessage[]> => {
-    const messages = mockDataStore.messages.filter(msg => msg.jobId === jobId).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-    return deepCopy(messages);
-}
-
-export const getJobs = async (query?: string): Promise<Job[]> => {
-    let jobs = deepCopy([...mockDataStore.jobs].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
-    if (query) {
-        const lowercasedQuery = query.toLowerCase();
-        jobs = jobs.filter(job => job.title.toLowerCase().includes(lowercasedQuery) || job.skills.some(skill => skill.toLowerCase().includes(lowercasedQuery)));
-    }
-    return jobs;
-}
-
-type JobCreationData = {
-    title: string;
-    description: string;
-    skills: string;
-    payment: number;
-    location: string;
-    sos: boolean;
-    imageUrl?: string;
-    posterId: string;
-};
-
-export const createJobInDb = async (data: JobCreationData): Promise<Job> => {
-    const newJob: Job = {
-        id: `job-${Date.now()}`,
-        title: data.title,
-        description: data.description,
-        skills: data.skills.split(',').map(s => s.trim()).filter(s => s),
-        payment: data.payment,
-        sos: data.sos,
-        location: data.location,
-        status: 'open',
-        posterId: data.posterId,
-        applicants: [],
-        createdAt: new Date(),
-        imageUrl: data.imageUrl,
-    };
-    mockDataStore.jobs.unshift(newJob);
-    return deepCopy(newJob);
-};
-
-export const applyToJobInDb = async (jobId: string, userId: string): Promise<void> => {
-    const job = mockDataStore.jobs.find(j => j.id === jobId);
-    if (job && !job.applicants.includes(userId)) {
-        job.applicants.push(userId);
-    }
-};
-
-export const markJobCompleteInDb = async (jobId: string): Promise<void> => {
-    const job = mockDataStore.jobs.find(j => j.id === jobId);
-    if (job) {
-        job.status = 'completed';
-    }
-};
-
-export const selectApplicantForJobInDb = async (jobId: string, applicantId: string): Promise<void> => {
-    const job = mockDataStore.jobs.find(j => j.id === jobId);
-    if (job) {
-        job.workerId = applicantId;
-        job.status = 'assigned';
-    }
-};
-
-export const createUserInDb = async (data: { name: string; email: string; }): Promise<User> => {
-    const newId = `user-${Date.now()}`;
-    const newUser: User = {
-        id: newId,
-        name: data.name,
-        email: data.email,
-        avatarUrl: `https://i.pravatar.cc/150?u=${newId}`,
-        skills: [],
-        location: 'Not Specified',
-    };
-    mockDataStore.users.push(newUser);
-    return deepCopy(newUser);
-};
-
-export const updateUserInDb = async (data: { userId: string; name: string; location: string; skills: string[]; }): Promise<User | undefined> => {
-    const userIndex = mockDataStore.users.findIndex(u => u.id === data.userId);
-    if (userIndex !== -1) {
-        mockDataStore.users[userIndex] = {
-            ...mockDataStore.users[userIndex],
-            name: data.name,
-            location: data.location,
-            skills: data.skills,
-        };
-        return deepCopy(mockDataStore.users[userIndex]);
-    }
-    return undefined;
-};
-
-export const cancelJobInDb = async (jobId: string): Promise<void> => {
-    const job = mockDataStore.jobs.find(j => j.id === jobId);
-    if (job) {
-        job.status = 'canceled';
-    }
-};
-
-export const createMessageInDb = async (message: Omit<ChatMessage, 'id' | 'timestamp'>): Promise<ChatMessage> => {
-    const newMessage: ChatMessage = {
-        ...message,
-        id: `msg-${Date.now()}`,
-        timestamp: new Date(),
-    };
-    mockDataStore.messages.push(newMessage);
-    return deepCopy(newMessage);
-};
-    
