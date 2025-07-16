@@ -81,7 +81,7 @@ if (process.env.NODE_ENV === 'production') {
             workerId: 'user-2',
             applicants: ['user-2'],
             createdAt: new Date('2024-07-09T11:00:00Z'),
-            imageUrl: 'https://placehold.co/600x400.png',
+            imageUrl: 'https://lh3.googleusercontent.com/d/12u0BuUs3eFYcObCKA3-cyWKMmF2yTc4G',
           },
           {
             id: 'job-3',
@@ -96,7 +96,7 @@ if (process.env.NODE_ENV === 'production') {
             workerId: 'user-1',
             applicants: ['user-1'],
             createdAt: new Date('2024-07-09T12:00:00Z'),
-            imageUrl: 'https://placehold.co/600x400.png',
+            imageUrl: 'https://lh3.googleusercontent.com/d/1PAPFWpd8XCj5EbDWb9WpUYeE5LJPVA2z',
           },
             {
             id: 'job-4',
@@ -138,7 +138,7 @@ if (process.env.NODE_ENV === 'production') {
             posterId: 'user-4',
             applicants: [],
             createdAt: new Date('2024-07-09T15:00:00Z'),
-            imageUrl: 'https://placehold.co/600x400.png',
+            imageUrl: 'https://lh3.googleusercontent.com/d/1djhDqDX3YtrRqM7Z42o__z3RfCywFn0q',
           },
           {
             id: 'job-7',
@@ -181,7 +181,7 @@ if (process.env.NODE_ENV === 'production') {
             posterId: 'user-5',
             applicants: ['user-1'],
             createdAt: new Date('2024-07-09T18:00:00Z'),
-            imageUrl: 'https://placehold.co/600x400.png',
+            imageUrl: 'https://lh3.googleusercontent.com/d/1xw3mhAzYmcFgi1ydJevbBZo_2R3C4Aed',
           },
           {
             id: 'job-10',
@@ -340,7 +340,7 @@ if (process.env.NODE_ENV === 'production') {
                 workerId: 'user-2',
                 applicants: ['user-2'],
                 createdAt: new Date(Date.now() - 1000 * 60 * 60 * 12), // 12 hours ago
-                imageUrl: 'https://placehold.co/600x400.png',
+                imageUrl: 'https://lh3.googleusercontent.com/d/12u0BuUs3eFYcObCKA3-cyWKMmF2yTc4G',
               },
               {
                 id: 'job-3',
@@ -355,7 +355,7 @@ if (process.env.NODE_ENV === 'production') {
                 workerId: 'user-1',
                 applicants: ['user-1'],
                 createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10), // 10 days ago
-                imageUrl: 'https://placehold.co/600x400.png',
+                imageUrl: 'https://lh3.googleusercontent.com/d/1PAPFWpd8XCj5EbDWb9WpUYeE5LJPVA2z',
               },
                 {
                 id: 'job-4',
@@ -397,7 +397,7 @@ if (process.env.NODE_ENV === 'production') {
                 posterId: 'user-4',
                 applicants: [],
                 createdAt: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-                imageUrl: 'https://placehold.co/600x400.png',
+                imageUrl: 'https://lh3.googleusercontent.com/d/1djhDqDX3YtrRqM7Z42o__z3RfCywFn0q',
               },
               {
                 id: 'job-7',
@@ -440,7 +440,7 @@ if (process.env.NODE_ENV === 'production') {
                 posterId: 'user-5',
                 applicants: ['user-1'],
                 createdAt: new Date(Date.now() - 1000 * 60 * 60 * 8), // 8 hours ago
-                imageUrl: 'https://placehold.co/600x400.png',
+                imageUrl: 'https://lh3.googleusercontent.com/d/1xw3mhAzYmcFgi1ydJevbBZo_2R3C4Aed',
               },
               {
                 id: 'job-10',
@@ -552,7 +552,8 @@ export const getUserById = async (id: string): Promise<User | undefined> => {
 }
 
 export const getMessagesForJob = async (jobId: string): Promise<ChatMessage[]> => {
-    return deepCopy(mockDataStore.messages.filter(msg => msg.jobId === jobId).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()));
+    const messages = mockDataStore.messages.filter(msg => msg.jobId === jobId).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    return deepCopy(messages);
 }
 
 export const getJobs = async (query?: string): Promise<Job[]> => {
