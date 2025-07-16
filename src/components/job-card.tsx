@@ -24,7 +24,6 @@ export function JobCard({ job, userId }: JobCardProps) {
   const [timeAgo, setTimeAgo] = useState('');
   const [isCancelling, startCancelTransition] = useTransition();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -35,8 +34,7 @@ export function JobCard({ job, userId }: JobCardProps) {
 
   const jobUrl = userId ? `/jobs/${job.id}?userId=${userId}` : `/jobs/${job.id}`;
   
-  // Determine if the card is being viewed in the "My Postings" tab on the dashboard
-  const isDashboardPostings = pathname === '/dashboard' && job.posterId === userId && searchParams.get('tab') === 'postings';
+  const isPosterOnDashboard = pathname === '/dashboard' && job.posterId === userId;
 
   const handleCancelJob = () => {
     startCancelTransition(async () => {
@@ -55,6 +53,51 @@ export function JobCard({ job, userId }: JobCardProps) {
     });
   }
 
+  const renderPosterActions = () => {
+    if (!isPosterOnDashboard) {
+      return (
+        <Button asChild size="sm">
+          <Link href={jobUrl}>
+            View Job <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
+        </Button>
+      );
+    }
+
+    switch (job.status) {
+      case 'open':
+        return (
+          <>
+            <Button variant="destructive" size="sm" onClick={handleCancelJob} disabled={isCancelling}>
+              {isCancelling ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Ban className="mr-2 h-4 w-4" />}
+              Cancel
+            </Button>
+            <Button asChild size="sm">
+              <Link href={jobUrl}>View Job <ArrowRight className="ml-2 h-4 w-4" /></Link>
+            </Button>
+          </>
+        );
+      case 'completed':
+        return (
+          <>
+            <Button onClick={handlePayment} size="sm">
+              <IndianRupee className="mr-2 h-4 w-4" /> Pay Now
+            </Button>
+            <Button asChild size="sm" variant="outline">
+              <Link href={jobUrl}>View</Link>
+            </Button>
+          </>
+        );
+      default:
+         return (
+          <Button asChild size="sm">
+            <Link href={jobUrl}>
+              View Job <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        );
+    }
+  }
 
   return (
     <Card className="flex flex-col h-full overflow-hidden rounded-lg border shadow-sm transition-shadow hover:shadow-lg bg-card">
@@ -112,22 +155,7 @@ export function JobCard({ job, userId }: JobCardProps) {
         </div>
 
         <div className="flex items-center gap-2">
-           {isDashboardPostings && job.status === 'open' && (
-                <Button variant="destructive" size="sm" onClick={handleCancelJob} disabled={isCancelling}>
-                    {isCancelling ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Ban className="mr-2 h-4 w-4" />}
-                    Cancel
-                </Button>
-            )}
-            {isDashboardPostings && job.status === 'completed' && (
-                <Button onClick={handlePayment} size="sm">
-                    <IndianRupee className="mr-2 h-4 w-4" /> Pay Now
-                </Button>
-            )}
-            <Button asChild size="sm">
-                <Link href={jobUrl}>
-                    View Job <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-            </Button>
+           {renderPosterActions()}
         </div>
       </CardFooter>
     </Card>
