@@ -71,14 +71,14 @@ export function JobForm() {
 
     startTransition(async () => {
         const result = await createJobAction({ ...data, userId });
-        if (result?.success) {
+        if (result?.success && result.userId) {
             form.reset();
             toast({
                 title: "Job Created!",
                 description: "Your job has been posted successfully.",
             });
             // Use router.push for a faster, client-side navigation
-            router.push(`/dashboard?tab=postings&userId=${userId}`);
+            router.push(`/dashboard?tab=postings&userId=${result.userId}`);
         } else {
             toast({
                 variant: "destructive",

@@ -33,12 +33,15 @@ export async function createJobAction(data: JobFormValues) {
     if (result) {
         revalidatePath('/');
         revalidatePath('/dashboard');
-        redirect(`/dashboard?userId=${userId}&tab=postings`);
+        // The form component will handle the redirect on success.
+        // redirect(`/dashboard?userId=${userId}&tab=postings`);
+        return { success: true, jobId: result.id, userId: userId };
     }
     return { success: false, message: 'Failed to create job.' };
   } catch (error) {
     console.error('Failed to create job:', error);
-    return { success: false, message: 'An unexpected error occurred. Please try again.' };
+    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
+    return { success: false, message: errorMessage };
   }
 }
 
