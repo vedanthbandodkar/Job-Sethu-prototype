@@ -17,10 +17,11 @@ type JobFormValues = {
 
 export async function createJobAction(data: JobFormValues) {
   try {
-    const imageUrl = await generateJobImage(data.title);
+    const { userId, ...jobData } = data; // Explicitly separate userId
+    const imageUrl = await generateJobImage(jobData.title);
 
     // The userId is the posterId for the new job
-    const result = await createJobInDb({ ...data, imageUrl, posterId: data.userId });
+    const result = await createJobInDb({ ...jobData, imageUrl, posterId: userId });
     if (result) {
         revalidatePath('/');
         revalidatePath('/dashboard');
