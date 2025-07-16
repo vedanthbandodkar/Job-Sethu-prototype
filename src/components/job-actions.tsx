@@ -1,11 +1,12 @@
+
 "use client"
 
 import type { Job } from "@/lib/types";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Check, Send, CheckCheck, Loader2 } from "lucide-react";
+import { Check, Send, CheckCheck, Loader2, IndianRupee, Ban } from "lucide-react";
 import { useTransition } from "react";
-import { applyForJobAction, markJobCompleteAction } from "@/app/actions";
+import { applyForJobAction, markJobCompleteAction, cancelJobAction } from "@/app/actions";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 
@@ -20,6 +21,7 @@ type JobActionsProps = {
 export function JobActions({ job, isPoster, isWorker, hasApplied, currentUserId }: JobActionsProps) {
     const [isApplying, startApplyingTransition] = useTransition();
     const [isCompleting, startCompletingTransition] = useTransition();
+    const [isCancelling, startCancellingTransition] = useTransition();
     const router = useRouter();
     const { toast } = useToast();
 
@@ -45,17 +47,54 @@ export function JobActions({ job, isPoster, isWorker, hasApplied, currentUserId 
         });
     };
 
+    const handleCancelJob = () => {
+        startCancellingTransition(async () => {
+            await cancelJobAction(job.id);
+             toast({
+                title: "Job Canceled",
+                description: "This job post has been removed.",
+            })
+            router.push(`/dashboard?userId=${currentUserId}&tab=postings`);
+        });
+    }
+
+    const handlePayment = () => {
+        toast({
+            title: "Payment Processing",
+            description: "In a real app, this would redirect to a payment gateway.",
+        });
+    }
+
 
     const getActionForUser = () => {
+        if (isPoster) {
+            if (job.status === 'completed') {
+                return (
+                    <Button onClick={handlePayment} className="w-full" size="lg">
+                        <IndianRupee className="mr-2"/> Pay Now
+                    </Button>
+                )
+            }
+            if (job.status === 'assigned') {
+                 return <p className="text-center text-sm text-muted-foreground">You can chat with the assigned worker to coordinate.</p>
+            }
+            if (job.status === 'open') {
+                return (
+                     <Button variant="destructive" onClick={handleCancelJob} className="w-full" size="lg" disabled={isCancelling}>
+                        {isCancelling ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Ban className="mr-2"/>}
+                        Cancel Job
+                    </Button>
+                )
+            }
+            if (job.status === 'canceled') {
+                return <p className="text-center text-sm text-muted-foreground">This job has been canceled.</p>
+            }
+        }
+
         if (job.status === 'completed') {
             return <p className="text-center text-green-600 font-semibold flex items-center justify-center"><CheckCheck className="mr-2 h-5 w-5"/> This job is completed.</p>
         }
-        if (isPoster) {
-             if (job.status === 'assigned') {
-                 return <p className="text-center text-sm text-muted-foreground">You can chat with the assigned worker to coordinate.</p>
-            }
-            return <p className="text-center text-sm text-muted-foreground">You are the poster of this job. Review applicants below.</p>
-        }
+        
         if (isWorker) {
             return (
                 <Button onClick={handleMarkComplete} className="w-full" size="lg" disabled={isCompleting}>
@@ -101,3 +140,4 @@ export function JobActions({ job, isPoster, isWorker, hasApplied, currentUserId 
         </Card>
     )
 }
+
