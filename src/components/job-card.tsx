@@ -10,7 +10,7 @@ import type { Job } from '@/lib/types';
 import { MapPin, IndianRupee, AlertTriangle, ArrowRight, Ban, Loader2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useState, useEffect, useTransition } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { cancelJobAction } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
@@ -24,6 +24,7 @@ export function JobCard({ job, userId }: JobCardProps) {
   const [timeAgo, setTimeAgo] = useState('');
   const [isCancelling, startCancelTransition] = useTransition();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -33,8 +34,10 @@ export function JobCard({ job, userId }: JobCardProps) {
   }, [job.createdAt]);
 
   const jobUrl = userId ? `/jobs/${job.id}?userId=${userId}` : `/jobs/${job.id}`;
-  const isDashboardPostings = pathname === '/dashboard' && job.posterId === userId;
   
+  // Determine if the card is being viewed in the "My Postings" tab on the dashboard
+  const isDashboardPostings = pathname === '/dashboard' && job.posterId === userId && searchParams.get('tab') !== 'applications';
+
   const handleCancelJob = () => {
     startCancelTransition(async () => {
         await cancelJobAction(job.id);
