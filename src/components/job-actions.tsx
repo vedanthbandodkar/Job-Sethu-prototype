@@ -12,44 +12,41 @@ import { useToast } from "@/hooks/use-toast";
 
 type JobActionsProps = {
     job: Job;
-    isPoster: boolean;
-    isWorker: boolean;
-    hasApplied: boolean;
     currentUserId: string;
 }
 
-export function JobActions({ job, isPoster, isWorker, hasApplied, currentUserId }: JobActionsProps) {
-    const [isApplying, startApplyingTransition] = useTransition();
-    const [isCompleting, startCompletingTransition] = useTransition();
-    const [isCancelling, startCancellingTransition] = useTransition();
+export function JobActions({ job, currentUserId }: JobActionsProps) {
+    const [isPending, startTransition] = useTransition();
     const router = useRouter();
     const { toast } = useToast();
 
+    const isPoster = job.posterId === currentUserId;
+    const isWorker = job.workerId === currentUserId;
+    const hasApplied = job.applicants.includes(currentUserId);
+
     const handleApply = () => {
-        startApplyingTransition(async () => {
+        startTransition(async () => {
             await applyForJobAction(job.id, currentUserId);
             toast({
                 title: "Successfully Applied!",
                 description: "The job poster has been notified. You can see this job in your dashboard.",
             });
-            router.refresh();
         });
     };
 
     const handleMarkComplete = () => {
-        startCompletingTransition(async () => {
+        startTransition(async () => {
             await markJobCompleteAction(job.id);
             toast({
                 title: "Job Completed!",
                 description: "You've marked this job as complete.",
             });
-            router.refresh();
         });
     };
 
     const handleCancelJob = () => {
-        startCancellingTransition(async () => {
-            await cancelJobAction(job.id);
+        startTransition(async () => {
+            await cancelJobAction(job.id, currentUserId);
              toast({
                 title: "Job Canceled",
                 description: "This job post has been removed.",
@@ -65,14 +62,13 @@ export function JobActions({ job, isPoster, isWorker, hasApplied, currentUserId 
         });
     }
 
-
     const getActionForUser = () => {
         if (isPoster) {
             switch (job.status) {
                 case 'open':
                     return (
-                        <Button variant="destructive" onClick={handleCancelJob} className="w-full" size="lg" disabled={isCancelling}>
-                            {isCancelling ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Ban className="mr-2"/>}
+                        <Button variant="destructive" onClick={handleCancelJob} className="w-full" size="lg" disabled={isPending}>
+                            {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Ban className="mr-2"/>}
                             Cancel Job
                         </Button>
                     );
@@ -84,46 +80,39 @@ export function JobActions({ job, isPoster, isWorker, hasApplied, currentUserId 
                             <IndianRupee className="mr-2"/> Pay Now
                         </Button>
                     );
+                case 'paid':
+                     return <p className="text-center text-sm text-green-600 font-semibold flex items-center justify-center"><CheckCheck className="mr-2 h-5 w-5"/> This job has been paid.</p>
                 case 'canceled':
                      return <p className="text-center text-sm text-muted-foreground">This job has been canceled.</p>
             }
         }
 
-        if (job.status === 'completed') {
-            return <p className="text-center text-green-600 font-semibold flex items-center justify-center"><CheckCheck className="mr-2 h-5 w-5"/> This job is completed.</p>
+        if (job.status === 'completed' || job.status === 'paid') {
+             return <p className="text-center text-green-600 font-semibold flex items-center justify-center"><CheckCheck className="mr-2 h-5 w-5"/> This job is completed.</p>
         }
         
         if (isWorker) {
             return (
-                <Button onClick={handleMarkComplete} className="w-full" size="lg" disabled={isCompleting}>
-                    {isCompleting ? (
-                        <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Marking...
-                        </>
-                    ) : (
-                        <><Check className="mr-2"/> Mark as Complete</>
-                    )}
+                <Button onClick={handleMarkComplete} className="w-full" size="lg" disabled={isPending}>
+                    {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2"/>}
+                     Mark as Complete
                 </Button>
             );
         }
+
         if (hasApplied) {
             return <Button className="w-full" size="lg" disabled>Applied</Button>
         }
+
         if (job.status === 'open') {
              return (
-                <Button onClick={handleApply} className="w-full" size="lg" disabled={isApplying}>
-                    {isApplying ? (
-                        <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Applying...
-                        </>
-                    ) : (
-                        <><Send className="mr-2"/> Apply Now</>
-                    )}
+                <Button onClick={handleApply} className="w-full" size="lg" disabled={isPending}>
+                    {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2"/>}
+                    Apply Now
                 </Button>
             )
         }
+        
         return <p className="text-center text-sm text-muted-foreground">This job has already been assigned.</p>
     }
 
@@ -138,4 +127,3 @@ export function JobActions({ job, isPoster, isWorker, hasApplied, currentUserId 
         </Card>
     )
 }
-
