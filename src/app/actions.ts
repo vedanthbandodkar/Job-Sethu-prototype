@@ -1,3 +1,4 @@
+
 'use server'
 
 import { generateJobImage } from '@/ai/flows/generate-job-image-flow';
@@ -18,6 +19,7 @@ export async function createJobAction(data: JobFormValues) {
   try {
     const imageUrl = await generateJobImage(data.title);
 
+    // The userId is the posterId for the new job
     const result = await createJobInDb({ ...data, imageUrl, posterId: data.userId });
     if (result) {
         revalidatePath('/');
