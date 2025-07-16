@@ -98,7 +98,7 @@ export const createJobInDb = async (data: JobCreationData): Promise<{ id: string
         location: data.location,
         sos: data.sos,
         imageUrl: data.imageUrl,
-        posterId: data.posterId,
+        posterId: data.posterId, // Ensure posterId is included
         skills: data.skills.split(',').map(s => s.trim()).filter(s => s),
         status: 'open',
         applicants: [],
@@ -550,5 +550,3 @@ function getInitialMockData() {
   ],
 };
 }
-
-    
