@@ -92,7 +92,13 @@ type JobCreationData = {
 
 export const createJobInDb = async (data: JobCreationData): Promise<{ id: string }> => {
     const newJob = {
-        ...data,
+        title: data.title,
+        description: data.description,
+        payment: data.payment,
+        location: data.location,
+        sos: data.sos,
+        imageUrl: data.imageUrl,
+        posterId: data.posterId,
         skills: data.skills.split(',').map(s => s.trim()).filter(s => s),
         status: 'open',
         applicants: [],
@@ -544,3 +550,5 @@ function getInitialMockData() {
   ],
 };
 }
+
+    
