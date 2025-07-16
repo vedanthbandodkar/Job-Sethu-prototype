@@ -9,11 +9,11 @@ import { SeedButton } from '@/components/seed-button';
 
 export const dynamic = 'force-dynamic';
 
-export default async function Home({ searchParams }: { searchParams?: { userId?: string; q?: string }}) {
-  const query = searchParams?.q || '';
+export default async function Home({ searchParams }: { searchParams?: { [key: string]: string | string[] | undefined }}) {
+  const query = typeof searchParams?.q === 'string' ? searchParams.q : '';
+  const userId = typeof searchParams?.userId === 'string' ? searchParams.userId : undefined;
   const jobs = await getJobs(query);
-  const userId = searchParams?.userId;
-
+  
   return (
     <div className="container mx-auto px-4 py-8 md:py-12">
       <section className="mb-12 text-center">
