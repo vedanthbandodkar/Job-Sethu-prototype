@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import type { Job } from '@/lib/types';
-import { MapPin, IndianRupee, AlertTriangle, ArrowRight, Ban, Loader2, CheckCheck } from 'lucide-react';
+import { MapPin, IndianRupee, AlertTriangle, ArrowRight, Ban, Loader2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useState, useEffect, useTransition } from 'react';
 import { usePathname } from 'next/navigation';
@@ -35,10 +35,6 @@ export function JobCard({ job, userId }: JobCardProps) {
   const jobUrl = userId ? `/jobs/${job.id}?userId=${userId}` : `/jobs/${job.id}`;
   const isDashboardPostings = pathname === '/dashboard' && job.posterId === userId;
   
-  const canCancel = isDashboardPostings && job.status === 'open';
-  const canPay = isDashboardPostings && job.status === 'completed';
-
-
   const handleCancelJob = () => {
     startCancelTransition(async () => {
         await cancelJobAction(job.id);
@@ -113,19 +109,13 @@ export function JobCard({ job, userId }: JobCardProps) {
         </div>
 
         <div className="flex items-center gap-2">
-            {canCancel && (
+           {isDashboardPostings && job.status === 'open' && (
                 <Button variant="destructive" size="sm" onClick={handleCancelJob} disabled={isCancelling}>
-                    {isCancelling ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                    ) : (
-                        <>
-                            <Ban className="mr-2 h-4 w-4" />
-                            Cancel
-                        </>
-                    )}
+                    {isCancelling ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Ban className="mr-2 h-4 w-4" />}
+                    Cancel
                 </Button>
             )}
-            {canPay && (
+            {isDashboardPostings && job.status === 'completed' && (
                 <Button onClick={handlePayment} size="sm">
                     <IndianRupee className="mr-2 h-4 w-4" /> Pay Now
                 </Button>
