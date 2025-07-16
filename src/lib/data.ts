@@ -220,8 +220,9 @@ if (process.env.NODE_ENV === 'production') {
             payment: 2000,
             sos: false,
             location: 'Mapusa, Goa',
-            status: 'open',
+            status: 'completed',
             posterId: 'user-5',
+            workerId: 'user-1',
             applicants: ['user-1'],
             createdAt: new Date('2024-07-09T21:00:00Z'),
             imageUrl: 'https://lh3.googleusercontent.com/d/1vRccrDeXDzVL1e9bZRApTeLx9nYuP2ME',
@@ -234,7 +235,7 @@ if (process.env.NODE_ENV === 'production') {
             payment: 2500,
             sos: false,
             location: 'Vasco, Goa',
-            status: 'completed',
+            status: 'paid',
             posterId: 'user-1',
             workerId: 'user-5',
             applicants: ['user-5'],
@@ -724,4 +725,13 @@ export const cancelJobInDb = async (jobId: string): Promise<void> => {
     }
 };
 
+export const createMessageInDb = async (message: Omit<ChatMessage, 'id' | 'timestamp'>): Promise<ChatMessage> => {
+    const newMessage: ChatMessage = {
+        ...message,
+        id: `msg-${Date.now()}`,
+        timestamp: new Date(),
+    };
+    mockDataStore.messages.push(newMessage);
+    return deepCopy(newMessage);
+};
     

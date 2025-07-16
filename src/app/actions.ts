@@ -1,7 +1,7 @@
 'use server'
 
 import { generateJobImage } from '@/ai/flows/generate-job-image-flow';
-import { createJobInDb, applyToJobInDb, markJobCompleteInDb, selectApplicantForJobInDb, createUserInDb, updateUserInDb, cancelJobInDb } from '@/lib/data'
+import { createJobInDb, applyToJobInDb, markJobCompleteInDb, selectApplicantForJobInDb, createUserInDb, updateUserInDb, cancelJobInDb, createMessageInDb } from '@/lib/data'
 import { revalidatePath } from 'next/cache';
 
 type JobFormValues = {
@@ -95,4 +95,9 @@ export async function cancelJobAction(jobId: string) {
     await cancelJobInDb(jobId);
     revalidatePath('/dashboard');
     revalidatePath('/');
+}
+
+export async function sendMessageAction(jobId: string, senderId: string, content: string) {
+    await createMessageInDb({ jobId, senderId, content });
+    revalidatePath(`/jobs/${jobId}`);
 }

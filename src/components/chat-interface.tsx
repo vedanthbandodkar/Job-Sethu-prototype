@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useTransition } from 'react';
 import type { ChatMessage, User } from '@/lib/types';
 import { getMessagesForJob, getUserById } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
@@ -8,13 +8,15 @@ import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
 import { cn } from '@/lib/utils';
-import { Send } from 'lucide-react';
+import { Send, Loader2 } from 'lucide-react';
+import { sendMessageAction } from '@/app/actions';
 
 type EnrichedMessage = ChatMessage & { sender: User | undefined };
 
 export function ChatInterface({ jobId, currentUserId }: { jobId: string, currentUserId: string }) {
     const [messages, setMessages] = useState<EnrichedMessage[]>([]);
     const [newMessage, setNewMessage] = useState('');
+    const [isPending, startTransition] = useTransition();
     const scrollAreaRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -23,7 +25,6 @@ export function ChatInterface({ jobId, currentUserId }: { jobId: string, current
             const enriched = await Promise.all(
                 rawMessages.map(async (msg) => ({
                     ...msg,
-                    timestamp: new Date(msg.timestamp), // Convert string to Date object
                     sender: await getUserById(msg.senderId),
                 }))
             );
@@ -40,19 +41,21 @@ export function ChatInterface({ jobId, currentUserId }: { jobId: string, current
 
     const handleSendMessage = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newMessage.trim()) return;
+        if (!newMessage.trim() || isPending) return;
 
-        // Mock sending a message
-        const sentMessage: EnrichedMessage = {
-            id: `msg-${Date.now()}`,
-            jobId,
-            senderId: currentUserId,
-            content: newMessage.trim(),
-            timestamp: new Date(),
-            sender: messages.find(m => m.senderId === currentUserId)?.sender
-        };
-        setMessages(prev => [...prev, sentMessage]);
-        setNewMessage('');
+        startTransition(async () => {
+            await sendMessageAction(jobId, currentUserId, newMessage.trim());
+            setNewMessage('');
+            // Refetch messages to show the new one
+            const rawMessages = await getMessagesForJob(jobId);
+            const enriched = await Promise.all(
+                rawMessages.map(async (msg) => ({
+                    ...msg,
+                    sender: await getUserById(msg.senderId),
+                }))
+            );
+            setMessages(enriched);
+        });
     }
 
     return (
@@ -78,7 +81,7 @@ export function ChatInterface({ jobId, currentUserId }: { jobId: string, current
                                 )}>
                                     <p className="text-sm">{msg.content}</p>
                                     <p className={cn('text-xs mt-1 text-right', msg.senderId === currentUserId ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}>
-                                        {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'})}
+                                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'})}
                                     </p>
                                 </div>
                                 {msg.senderId === currentUserId && (
@@ -96,9 +99,10 @@ export function ChatInterface({ jobId, currentUserId }: { jobId: string, current
                             onChange={e => setNewMessage(e.target.value)}
                             placeholder="Type your message..." 
                             autoComplete="off"
+                            disabled={isPending}
                         />
-                        <Button type="submit" size="icon">
-                            <Send className="h-4 w-4" />
+                        <Button type="submit" size="icon" disabled={isPending}>
+                            {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                             <span className="sr-only">Send</span>
                         </Button>
                     </form>
