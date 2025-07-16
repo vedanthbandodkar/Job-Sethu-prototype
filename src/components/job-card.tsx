@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import type { Job } from '@/lib/types';
-import { MapPin, IndianRupee, AlertTriangle, ArrowRight, Ban, Loader2 } from 'lucide-react';
+import { MapPin, IndianRupee, AlertTriangle, ArrowRight, Ban, Loader2, CheckCheck } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useState, useEffect, useTransition } from 'react';
 import { usePathname } from 'next/navigation';
@@ -34,7 +34,10 @@ export function JobCard({ job, userId }: JobCardProps) {
 
   const jobUrl = userId ? `/jobs/${job.id}?userId=${userId}` : `/jobs/${job.id}`;
   const isDashboardPostings = pathname === '/dashboard' && job.posterId === userId;
+  
   const canCancel = isDashboardPostings && job.status === 'open';
+  const canPay = isDashboardPostings && job.status === 'completed';
+
 
   const handleCancelJob = () => {
     startCancelTransition(async () => {
@@ -45,6 +48,14 @@ export function JobCard({ job, userId }: JobCardProps) {
         })
     });
   }
+
+  const handlePayment = () => {
+    toast({
+        title: "Payment Processing",
+        description: "In a real app, this would redirect to a payment gateway.",
+    });
+  }
+
 
   return (
     <Card className="flex flex-col h-full overflow-hidden rounded-lg border shadow-sm transition-shadow hover:shadow-lg bg-card">
@@ -105,15 +116,18 @@ export function JobCard({ job, userId }: JobCardProps) {
             {canCancel && (
                 <Button variant="destructive" size="sm" onClick={handleCancelJob} disabled={isCancelling}>
                     {isCancelling ? (
-                        <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                        </>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
                     ) : (
                         <>
                             <Ban className="mr-2 h-4 w-4" />
                             Cancel
                         </>
                     )}
+                </Button>
+            )}
+            {canPay && (
+                <Button onClick={handlePayment} size="sm">
+                    <IndianRupee className="mr-2 h-4 w-4" /> Pay Now
                 </Button>
             )}
              <Button asChild size="sm">
