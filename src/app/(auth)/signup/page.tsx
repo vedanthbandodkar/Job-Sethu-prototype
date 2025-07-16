@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -68,7 +69,7 @@ export default function SignupPage() {
           title: 'Account Created!',
           description: "Welcome! Redirecting to the homepage.",
         });
-        window.location.assign(`/?userId=${result.userId}`);
+        router.push(`/?userId=${result.userId}`);
       } else {
         toast({
           variant: "destructive",

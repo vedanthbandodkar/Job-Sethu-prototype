@@ -1,10 +1,11 @@
+
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { useTransition } from "react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -57,6 +58,7 @@ export function JobForm() {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   const form = useForm<JobFormValues>({
     resolver: zodResolver(jobFormSchema),
@@ -75,8 +77,8 @@ export function JobForm() {
                 title: "Job Created!",
                 description: "Your job has been posted successfully.",
             });
-            // Force a hard navigation to bypass client-side caching issues.
-            window.location.assign(`/dashboard?tab=postings&userId=${userId}`);
+            // Use router.push for a faster, client-side navigation
+            router.push(`/dashboard?tab=postings&userId=${userId}`);
         } else {
             toast({
                 variant: "destructive",
