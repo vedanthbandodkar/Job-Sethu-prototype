@@ -2,7 +2,7 @@
 'use server'
 
 import { generateJobImage } from '@/ai/flows/generate-job-image-flow';
-import { createJobInDb, applyToJobInDb, markJobCompleteInDb, selectApplicantForJobInDb, createUserInDb, updateUserInDb, cancelJobInDb, createMessageInDb } from '@/lib/data'
+import { createJobInDb, applyToJobInDb, markJobCompleteInDb, selectApplicantForJobInDb, createUserInDb, updateUserInDb, cancelJobInDb, createMessageInDb, seedDatabase } from '@/lib/data'
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
@@ -33,8 +33,6 @@ export async function createJobAction(data: JobFormValues) {
     if (result) {
         revalidatePath('/');
         revalidatePath('/dashboard');
-        // The form component will handle the redirect on success.
-        // redirect(`/dashboard?userId=${userId}&tab=postings`);
         return { success: true, jobId: result.id, userId: userId };
     }
     return { success: false, message: 'Failed to create job.' };
@@ -46,19 +44,19 @@ export async function createJobAction(data: JobFormValues) {
 }
 
 export async function applyForJobAction(jobId: string, userId: string) {
-    await applyToJobInDb(jobId, userId);
+    applyToJobInDb(jobId, userId);
     revalidatePath(`/jobs/${jobId}`);
     revalidatePath('/dashboard');
 }
 
 export async function markJobCompleteAction(jobId: string) {
-    await markJobCompleteInDb(jobId);
+    markJobCompleteInDb(jobId);
     revalidatePath(`/jobs/${jobId}`);
     revalidatePath('/dashboard');
 }
 
 export async function selectApplicantAction(jobId: string, applicantId: string) {
-    await selectApplicantForJobInDb(jobId, applicantId);
+    selectApplicantForJobInDb(jobId, applicantId);
     revalidatePath(`/jobs/${jobId}`);
     revalidatePath('/dashboard');
 }
@@ -102,18 +100,19 @@ export async function completeOnboardingAction(data: OnboardingFormValues) {
     }
 }
 
-export async function cancelJobAction(jobId: string, userId: string) {
-    await cancelJobInDb(jobId);
+export async function cancelJobAction(jobId: string) {
+    cancelJobInDb(jobId);
     revalidatePath('/dashboard');
     revalidatePath('/');
     revalidatePath(`/jobs/${jobId}`);
-    // Redirect only if called from the job detail page, on dashboard it will just revalidate
-    // A better approach for general use might be to not redirect here,
-    // and let the client-side component handle it.
-    // For now, revalidation should handle most cases.
 }
 
 export async function sendMessageAction(jobId: string, senderId: string, content: string) {
-    await createMessageInDb({ jobId, senderId, content });
+    createMessageInDb({ jobId, senderId, content });
     revalidatePath(`/jobs/${jobId}`);
+}
+
+export async function seedDatabaseAction() {
+    await seedDatabase();
+    revalidatePath('/');
 }

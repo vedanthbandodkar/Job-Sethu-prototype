@@ -1,10 +1,10 @@
 
 "use client";
 
-import { seedDatabase } from "@/lib/data";
-import { Button } from "./ui/button";
 import { useState } from "react";
 import { Loader2, Database } from "lucide-react";
+import { Button } from "./ui/button";
+import { seedDatabaseAction } from "@/app/actions";
 
 export function SeedButton() {
     const [isSeeding, setIsSeeding] = useState(false);
@@ -12,12 +12,12 @@ export function SeedButton() {
     const handleSeed = async () => {
         setIsSeeding(true);
         try {
-            await seedDatabase();
+            await seedDatabaseAction();
+            // We don't need to manually reload anymore, revalidatePath handles it.
         } catch (e) {
             console.error(e);
         } finally {
             setIsSeeding(false);
-            window.location.reload();
         }
     }
 
@@ -26,12 +26,12 @@ export function SeedButton() {
             {isSeeding ? (
                 <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Seeding...
+                    Resetting...
                 </>
             ) : (
                 <>
                     <Database className="mr-2 h-4 w-4" />
-                    Seed Database
+                    Reset Data
                 </>
             )}
         </Button>

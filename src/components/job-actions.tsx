@@ -46,7 +46,7 @@ export function JobActions({ job, currentUserId }: JobActionsProps) {
 
     const handleCancelJob = () => {
         startTransition(async () => {
-            await cancelJobAction(job.id, currentUserId);
+            await cancelJobAction(job.id);
              toast({
                 title: "Job Canceled",
                 description: "This job post has been removed.",

@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useEffect, useState, useRef, useTransition } from 'react';
@@ -10,6 +11,7 @@ import { Input } from './ui/input';
 import { cn } from '@/lib/utils';
 import { Send, Loader2 } from 'lucide-react';
 import { sendMessageAction } from '@/app/actions';
+import { revalidatePath } from 'next/cache';
 
 type EnrichedMessage = ChatMessage & { sender: User | undefined };
 
@@ -19,17 +21,18 @@ export function ChatInterface({ jobId, currentUserId }: { jobId: string, current
     const [isPending, startTransition] = useTransition();
     const scrollAreaRef = useRef<HTMLDivElement>(null);
 
+    const fetchMessages = async () => {
+        const rawMessages = await getMessagesForJob(jobId);
+        const enriched = await Promise.all(
+            rawMessages.map(async (msg) => ({
+                ...msg,
+                sender: await getUserById(msg.senderId),
+            }))
+        );
+        setMessages(enriched);
+    };
+
     useEffect(() => {
-        const fetchMessages = async () => {
-            const rawMessages = await getMessagesForJob(jobId);
-            const enriched = await Promise.all(
-                rawMessages.map(async (msg) => ({
-                    ...msg,
-                    sender: await getUserById(msg.senderId),
-                }))
-            );
-            setMessages(enriched);
-        };
         fetchMessages();
     }, [jobId]);
 
@@ -47,14 +50,7 @@ export function ChatInterface({ jobId, currentUserId }: { jobId: string, current
             await sendMessageAction(jobId, currentUserId, newMessage.trim());
             setNewMessage('');
             // Refetch messages to show the new one
-            const rawMessages = await getMessagesForJob(jobId);
-            const enriched = await Promise.all(
-                rawMessages.map(async (msg) => ({
-                    ...msg,
-                    sender: await getUserById(msg.senderId),
-                }))
-            );
-            setMessages(enriched);
+            await fetchMessages();
         });
     }
 
