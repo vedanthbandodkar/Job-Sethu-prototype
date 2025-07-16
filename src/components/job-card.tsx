@@ -36,7 +36,7 @@ export function JobCard({ job, userId }: JobCardProps) {
   const jobUrl = userId ? `/jobs/${job.id}?userId=${userId}` : `/jobs/${job.id}`;
   
   // Determine if the card is being viewed in the "My Postings" tab on the dashboard
-  const isDashboardPostings = pathname === '/dashboard' && job.posterId === userId && searchParams.get('tab') !== 'applications';
+  const isDashboardPostings = pathname === '/dashboard' && job.posterId === userId && searchParams.get('tab') === 'postings';
 
   const handleCancelJob = () => {
     startCancelTransition(async () => {
@@ -123,7 +123,7 @@ export function JobCard({ job, userId }: JobCardProps) {
                     <IndianRupee className="mr-2 h-4 w-4" /> Pay Now
                 </Button>
             )}
-             <Button asChild size="sm">
+            <Button asChild size="sm">
                 <Link href={jobUrl}>
                     View Job <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
