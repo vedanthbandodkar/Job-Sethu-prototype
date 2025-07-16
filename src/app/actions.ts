@@ -5,6 +5,7 @@ import { generateJobImage } from '@/ai/flows/generate-job-image-flow';
 import { createJobInDb, applyToJobInDb, markJobCompleteInDb, selectApplicantForJobInDb, createUserInDb, updateUserInDb, cancelJobInDb, createMessageInDb } from '@/lib/data'
 import { revalidatePath } from 'next/cache';
 
+// This type now correctly includes the userId
 type JobFormValues = {
   title: string;
   description: string;
@@ -17,11 +18,14 @@ type JobFormValues = {
 
 export async function createJobAction(data: JobFormValues) {
   try {
-    const { userId, ...jobData } = data; // Explicitly separate userId
-    const imageUrl = await generateJobImage(jobData.title);
+    // Explicitly separate userId from the rest of the job data.
+    const { userId, ...jobDetails } = data;
+    const imageUrl = await generateJobImage(jobDetails.title);
 
     // The userId is the posterId for the new job
-    const result = await createJobInDb({ ...jobData, imageUrl, posterId: userId });
+    // Pass the correct structure to the database function.
+    const result = await createJobInDb({ ...jobDetails, imageUrl, posterId: userId });
+    
     if (result) {
         revalidatePath('/');
         revalidatePath('/dashboard');
