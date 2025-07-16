@@ -68,26 +68,24 @@ export function JobActions({ job, isPoster, isWorker, hasApplied, currentUserId 
 
     const getActionForUser = () => {
         if (isPoster) {
-            if (job.status === 'completed') {
-                return (
-                    <Button onClick={handlePayment} className="w-full" size="lg">
-                        <IndianRupee className="mr-2"/> Pay Now
-                    </Button>
-                )
-            }
-            if (job.status === 'assigned') {
-                 return <p className="text-center text-sm text-muted-foreground">You can chat with the assigned worker to coordinate.</p>
-            }
-            if (job.status === 'open') {
-                return (
-                     <Button variant="destructive" onClick={handleCancelJob} className="w-full" size="lg" disabled={isCancelling}>
-                        {isCancelling ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Ban className="mr-2"/>}
-                        Cancel Job
-                    </Button>
-                )
-            }
-            if (job.status === 'canceled') {
-                return <p className="text-center text-sm text-muted-foreground">This job has been canceled.</p>
+            switch (job.status) {
+                case 'open':
+                    return (
+                        <Button variant="destructive" onClick={handleCancelJob} className="w-full" size="lg" disabled={isCancelling}>
+                            {isCancelling ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Ban className="mr-2"/>}
+                            Cancel Job
+                        </Button>
+                    );
+                case 'assigned':
+                    return <p className="text-center text-sm text-muted-foreground">You can chat with the assigned worker to coordinate.</p>;
+                case 'completed':
+                    return (
+                        <Button onClick={handlePayment} className="w-full" size="lg">
+                            <IndianRupee className="mr-2"/> Pay Now
+                        </Button>
+                    );
+                case 'canceled':
+                     return <p className="text-center text-sm text-muted-foreground">This job has been canceled.</p>
             }
         }
 
