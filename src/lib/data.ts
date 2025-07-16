@@ -66,7 +66,7 @@ if (process.env.NODE_ENV === 'production') {
             posterId: 'user-1',
             applicants: ['user-3'],
             createdAt: new Date('2024-07-09T10:00:00Z'),
-            imageUrl: 'https://placehold.co/600x400.png',
+            imageUrl: 'https://lh3.googleusercontent.com/d/1mbyfw76Ub9IP7ueO7ZArHGCCnxdKKSbH',
           },
           {
             id: 'job-2',
@@ -110,7 +110,7 @@ if (process.env.NODE_ENV === 'production') {
             posterId: 'user-1',
             applicants: [],
             createdAt: new Date('2024-07-09T13:00:00Z'),
-            imageUrl: 'https://placehold.co/600x400.png',
+            imageUrl: 'https://lh3.googleusercontent.com/d/19HBdh97VmITXRc_ExUGhHrto_OxJW2ka',
           },
           {
             id: 'job-5',
@@ -153,7 +153,7 @@ if (process.env.NODE_ENV === 'production') {
             workerId: 'user-3',
             applicants: ['user-3'],
             createdAt: new Date('2024-07-09T16:00:00Z'),
-            imageUrl: 'https://placehold.co/600x400.png',
+            imageUrl: 'https://lh3.googleusercontent.com/d/1L0dhnfM1ntUtO8o55Ei-PfiDrx2lSqkE',
           },
           {
             id: 'job-8',
@@ -196,7 +196,7 @@ if (process.env.NODE_ENV === 'production') {
             workerId: 'user-5',
             applicants: ['user-5'],
             createdAt: new Date('2024-07-09T19:00:00Z'),
-            imageUrl: 'https://placehold.co/600x400.png',
+            imageUrl: 'https://lh3.googleusercontent.com/d/1OC1dPYBfOlPVetHtzy8zc01X2TfxnakQ',
           },
           {
             id: 'job-11',
@@ -224,7 +224,7 @@ if (process.env.NODE_ENV === 'production') {
             posterId: 'user-5',
             applicants: ['user-1'],
             createdAt: new Date('2024-07-09T21:00:00Z'),
-            imageUrl: 'https://placehold.co/600x400.png',
+            imageUrl: 'https://lh3.googleusercontent.com/d/1vRccrDeXDzVL1e9bZRApTeLx9nYuP2ME',
           },
           {
             id: 'job-13',
@@ -239,7 +239,7 @@ if (process.env.NODE_ENV === 'production') {
             workerId: 'user-5',
             applicants: ['user-5'],
             createdAt: new Date('2024-07-09T22:00:00Z'),
-            imageUrl: 'https://placehold.co/600x400.png',
+            imageUrl: 'https://lh3.googleusercontent.com/d/1EhlFhobOk58I7X1jniYGuif8A4-G7zzF',
           }
     ],
     messages: [
@@ -325,7 +325,7 @@ if (process.env.NODE_ENV === 'production') {
                 posterId: 'user-1',
                 applicants: ['user-3'],
                 createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 1), // 1 day ago
-                imageUrl: 'https://placehold.co/600x400.png',
+                imageUrl: 'https://lh3.googleusercontent.com/d/1mbyfw76Ub9IP7ueO7ZArHGCCnxdKKSbH',
               },
               {
                 id: 'job-2',
@@ -369,7 +369,7 @@ if (process.env.NODE_ENV === 'production') {
                 posterId: 'user-1',
                 applicants: [],
                 createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3), // 3 days ago
-                imageUrl: 'https://placehold.co/600x400.png',
+                imageUrl: 'https://lh3.googleusercontent.com/d/19HBdh97VmITXRc_ExUGhHrto_OxJW2ka',
               },
               {
                 id: 'job-5',
@@ -412,7 +412,7 @@ if (process.env.NODE_ENV === 'production') {
                 workerId: 'user-3',
                 applicants: ['user-3'],
                 createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7), // 7 days ago
-                imageUrl: 'https://placehold.co/600x400.png',
+                imageUrl: 'https://lh3.googleusercontent.com/d/1L0dhnfM1ntUtO8o55Ei-PfiDrx2lSqkE',
               },
               {
                 id: 'job-8',
@@ -455,7 +455,7 @@ if (process.env.NODE_ENV === 'production') {
                 workerId: 'user-5',
                 applicants: ['user-5'],
                 createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-                imageUrl: 'https://placehold.co/600x400.png',
+                imageUrl: 'https://lh3.googleusercontent.com/d/1OC1dPYBfOlPVetHtzy8zc01X2TfxnakQ',
               },
               {
                 id: 'job-11',
@@ -483,7 +483,7 @@ if (process.env.NODE_ENV === 'production') {
                 posterId: 'user-5',
                 applicants: ['user-1'],
                 createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 6), // 6 days ago
-                imageUrl: 'https://placehold.co/600x400.png',
+                imageUrl: 'https://lh3.googleusercontent.com/d/1vRccrDeXDzVL1e9bZRApTeLx9nYuP2ME',
               },
               {
                 id: 'job-13',
@@ -498,7 +498,7 @@ if (process.env.NODE_ENV === 'production') {
                 workerId: 'user-5',
                 applicants: ['user-5'],
                 createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14), // 14 days ago
-                imageUrl: 'https://placehold.co/600x400.png',
+                imageUrl: 'https://lh3.googleusercontent.com/d/1EhlFhobOk58I7X1jniYGuif8A4-G7zzF',
               }
         ],
         messages: [
