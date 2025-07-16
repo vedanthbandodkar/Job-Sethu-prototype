@@ -93,17 +93,17 @@ type JobCreationData = {
 export const createJobInDb = async (data: JobCreationData): Promise<{ id: string }> => {
     const newJob = {
         title: data.title,
+        title_lowercase: data.title.toLowerCase(), // for searching
         description: data.description,
         payment: data.payment,
         location: data.location,
         sos: data.sos,
         imageUrl: data.imageUrl,
-        posterId: data.posterId, // Ensure posterId is included
+        posterId: data.posterId,
         skills: data.skills.split(',').map(s => s.trim()).filter(s => s),
         status: 'open',
         applicants: [],
         createdAt: serverTimestamp(),
-        title_lowercase: data.title.toLowerCase() // for searching
     };
     const docRef = await addDoc(collection(db, "jobs"), newJob);
     return { id: docRef.id };
