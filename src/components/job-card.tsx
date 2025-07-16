@@ -10,7 +10,7 @@ import type { Job } from '@/lib/types';
 import { MapPin, IndianRupee, AlertTriangle, ArrowRight, Ban, Loader2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useState, useEffect, useTransition } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { cancelJobAction } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
@@ -27,9 +27,7 @@ export function JobCard({ job, userId }: JobCardProps) {
   const { toast } = useToast();
 
   useEffect(() => {
-    // This check is to prevent hydration mismatch errors on the server.
-    // The server-rendered output will be an empty string, and the client will update it.
-    setTimeAgo(formatDistanceToNow(new Date(job.createdAt), { addSuffix: true }));
+    setTimeAgo(formatDistanceToNow(new Date(job.createdAt as Date), { addSuffix: true }));
   }, [job.createdAt]);
 
   const jobUrl = userId ? `/jobs/${job.id}?userId=${userId}` : `/jobs/${job.id}`;
@@ -37,8 +35,9 @@ export function JobCard({ job, userId }: JobCardProps) {
   const isPosterOnDashboard = pathname === '/dashboard' && job.posterId === userId;
 
   const handleCancelJob = () => {
+    if (!userId) return;
     startCancelTransition(async () => {
-        await cancelJobAction(job.id);
+        await cancelJobAction(job.id, userId);
         toast({
             title: "Job Canceled",
             description: "Your job post has been successfully removed.",
@@ -92,7 +91,7 @@ export function JobCard({ job, userId }: JobCardProps) {
          return (
           <Button asChild size="sm">
             <Link href={jobUrl}>
-              View Job <ArrowRight className="ml-2 h-4 w-4" />
+              View Details <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
         );
@@ -101,47 +100,49 @@ export function JobCard({ job, userId }: JobCardProps) {
 
   return (
     <Card className="flex flex-col h-full overflow-hidden rounded-lg border shadow-sm transition-shadow hover:shadow-lg bg-card">
-      <div className="relative">
-        {job.imageUrl ? (
-          <div className="relative h-40 w-full">
-            <Image src={job.imageUrl} alt={job.title} fill className="object-cover" data-ai-hint={job.title.split(' ').slice(0,2).join(' ').toLowerCase()} />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-          </div>
-        ) : (
-          <div className="h-4 bg-muted" />
-        )}
-        <CardHeader className={job.imageUrl ? 'absolute bottom-0 text-white' : ''}>
-          <div className="flex justify-between items-start gap-4">
-              <div className="flex-grow">
-                  <CardTitle className="font-headline text-xl">{job.title}</CardTitle>
-                  <CardDescription className={`flex items-center text-sm pt-1 ${job.imageUrl ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
-                      <MapPin className="mr-1.5 h-4 w-4" /> {job.location}
-                  </CardDescription>
-              </div>
-              <div className="flex flex-col items-end space-y-1.5 shrink-0">
-                  {job.sos && (
-                      <Badge variant="destructive" className="flex items-center gap-1">
-                          <AlertTriangle className="h-3 w-3" /> SOS
-                      </Badge>
-                  )}
-                  {job.status !== 'open' && (
-                      <Badge variant={job.status === 'completed' || job.status === 'canceled' ? 'outline' : 'secondary'} className="capitalize bg-white/20 text-white border-none">
-                          {job.status}
-                      </Badge>
-                  )}
-              </div>
-          </div>
-        </CardHeader>
-      </div>
-      <CardContent className="flex-grow pt-6">
-        <p className="text-sm text-muted-foreground line-clamp-3">{job.description}</p>
-        <div className="mt-4 flex flex-wrap gap-2">
-            {job.skills.slice(0,3).map((skill) => (
-                <Badge key={skill} variant="secondary">{skill}</Badge>
-            ))}
-            {job.skills.length > 3 && <Badge variant="secondary">+{job.skills.length - 3} more</Badge>}
+      <Link href={jobUrl} className="flex-grow flex flex-col">
+        <div className="relative">
+          {job.imageUrl ? (
+            <div className="relative h-40 w-full">
+              <Image src={job.imageUrl} alt={job.title} fill className="object-cover" data-ai-hint={job.title.split(' ').slice(0,2).join(' ').toLowerCase()} />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+            </div>
+          ) : (
+            <div className="h-4 bg-muted" />
+          )}
+          <CardHeader className={job.imageUrl ? 'absolute bottom-0 text-white' : ''}>
+            <div className="flex justify-between items-start gap-4">
+                <div className="flex-grow">
+                    <CardTitle className="font-headline text-xl">{job.title}</CardTitle>
+                    <CardDescription className={`flex items-center text-sm pt-1 ${job.imageUrl ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
+                        <MapPin className="mr-1.5 h-4 w-4" /> {job.location}
+                    </CardDescription>
+                </div>
+                <div className="flex flex-col items-end space-y-1.5 shrink-0">
+                    {job.sos && (
+                        <Badge variant="destructive" className="flex items-center gap-1">
+                            <AlertTriangle className="h-3 w-3" /> SOS
+                        </Badge>
+                    )}
+                    {job.status !== 'open' && (
+                        <Badge variant={job.status === 'completed' || job.status === 'canceled' ? 'outline' : 'secondary'} className="capitalize bg-white/20 text-white border-none">
+                            {job.status}
+                        </Badge>
+                    )}
+                </div>
+            </div>
+          </CardHeader>
         </div>
-      </CardContent>
+        <CardContent className="flex-grow pt-6">
+          <p className="text-sm text-muted-foreground line-clamp-3">{job.description}</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+              {job.skills.slice(0,3).map((skill) => (
+                  <Badge key={skill} variant="secondary">{skill}</Badge>
+              ))}
+              {job.skills.length > 3 && <Badge variant="secondary">+{job.skills.length - 3} more</Badge>}
+          </div>
+        </CardContent>
+      </Link>
       <Separator className="my-0" />
       <CardFooter className="flex justify-between items-center p-4 bg-muted/20">
         <div className='flex flex-col'>

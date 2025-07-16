@@ -1,9 +1,10 @@
+
 import { getJobById, getUserById } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { MapPin, IndianRupee, AlertTriangle, User, Calendar, Briefcase } from 'lucide-react';
+import { MapPin, IndianRupee, AlertTriangle, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { JobActions } from '@/components/job-actions';
 import { ChatInterface } from '@/components/chat-interface';
@@ -63,7 +64,7 @@ export default async function JobDetailPage({ params, searchParams }: { params: 
                             <CardTitle className="font-headline text-3xl md:text-4xl">{job.title}</CardTitle>
                             <CardDescription className="mt-2 text-base flex flex-wrap items-center gap-x-4 gap-y-2 text-muted-foreground">
                                 <span className="flex items-center"><MapPin className="mr-1.5 h-4 w-4" /> {job.location}</span>
-                                <span className="flex items-center"><Calendar className="mr-1.5 h-4 w-4" /> Posted on {format(new Date(job.createdAt), "PPP")}</span>
+                                <span className="flex items-center"><Calendar className="mr-1.5 h-4 w-4" /> Posted on {format(new Date(job.createdAt as Date), "PPP")}</span>
                             </CardDescription>
                         </div>
                         <Badge variant={job.status === 'open' ? 'default' : job.status === 'assigned' ? 'secondary' : 'outline' } className="capitalize text-sm">{job.status}</Badge>
@@ -125,12 +126,10 @@ export default async function JobDetailPage({ params, searchParams }: { params: 
                         </CardHeader>
                     </Card>
                 )}
-                <JobActions job={job} isPoster={isPoster} isWorker={isWorker} hasApplied={hasApplied} currentUserId={currentUserId} />
+                <JobActions job={job} currentUserId={currentUserId} />
             </div>
         </div>
       </div>
     </div>
   );
 }
-
-    
