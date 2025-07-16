@@ -1,10 +1,11 @@
 
 import { JobCard } from '@/components/job-card';
-import { getJobs } from '@/lib/data';
+import { getJobs, seedDatabase } from '@/lib/data';
 import type { Job } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
+import { SeedButton } from '@/components/seed-button';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,7 +37,10 @@ export default async function Home({ searchParams }: { searchParams?: { userId?:
       </section>
 
       <section>
-        <h2 className="font-headline text-3xl font-bold mb-6">{query ? `Search results for "${query}"` : 'Recent Jobs'}</h2>
+        <div className="flex justify-between items-center mb-6">
+            <h2 className="font-headline text-3xl font-bold">{query ? `Search results for "${query}"` : 'Recent Jobs'}</h2>
+            <SeedButton />
+        </div>
         {jobs.length > 0 ? (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {jobs.map((job: Job) => (
