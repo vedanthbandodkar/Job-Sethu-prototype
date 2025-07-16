@@ -350,7 +350,7 @@ if (process.env.NODE_ENV === 'production') {
                 payment: 500,
                 sos: false,
                 location: 'Mapusa, Goa',
-                status: 'completed',
+                status: 'paid', // > 8 days ago
                 posterId: 'user-4',
                 workerId: 'user-1',
                 applicants: ['user-1'],
@@ -379,8 +379,9 @@ if (process.env.NODE_ENV === 'production') {
                 payment: 1500,
                 sos: false,
                 location: 'Remote',
-                status: 'open',
+                status: 'completed', // > 4 days ago
                 posterId: 'user-3',
+                workerId: 'user-1',
                 applicants: ['user-1'],
                 createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5), // 5 days ago
                 imageUrl: 'https://placehold.co/600x400.png',
@@ -407,11 +408,11 @@ if (process.env.NODE_ENV === 'production') {
                 payment: 800,
                 sos: false,
                 location: 'Margao, Goa',
-                status: 'assigned',
+                status: 'paid', // > 8 days ago
                 posterId: 'user-1',
                 workerId: 'user-3',
                 applicants: ['user-3'],
-                createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7), // 7 days ago
+                createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 9), // 9 days ago
                 imageUrl: 'https://lh3.googleusercontent.com/d/1L0dhnfM1ntUtO8o55Ei-PfiDrx2lSqkE',
               },
               {
@@ -479,8 +480,9 @@ if (process.env.NODE_ENV === 'production') {
                 payment: 2000,
                 sos: false,
                 location: 'Mapusa, Goa',
-                status: 'open',
+                status: 'completed', // > 4 days ago
                 posterId: 'user-5',
+                workerId: 'user-1',
                 applicants: ['user-1'],
                 createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 6), // 6 days ago
                 imageUrl: 'https://lh3.googleusercontent.com/d/1vRccrDeXDzVL1e9bZRApTeLx9nYuP2ME',
@@ -493,7 +495,7 @@ if (process.env.NODE_ENV === 'production') {
                 payment: 2500,
                 sos: false,
                 location: 'Vasco, Goa',
-                status: 'completed',
+                status: 'paid', // > 8 days ago
                 posterId: 'user-1',
                 workerId: 'user-5',
                 applicants: ['user-5'],
@@ -506,14 +508,14 @@ if (process.env.NODE_ENV === 'production') {
                 id: 'msg-1',
                 jobId: 'job-2',
                 senderId: 'user-3',
-                content: 'Hi Brendon, thanks for accepting the gardening job. When would be a good time to come by?',
+                content: 'Hi Pranav, thanks for accepting the gardening job. When would be a good time to come by?',
                 timestamp: new Date('2024-07-21T15:00:00Z'),
             },
             {
                 id: 'msg-2',
                 jobId: 'job-2',
                 senderId: 'user-2',
-                content: 'Hi Chris! I can be there tomorrow around 10 AM. Does that work for you?',
+                content: 'Hi Shubham! I can be there tomorrow around 10 AM. Does that work for you?',
                 timestamp: new Date('2024-07-21T15:05:00Z'),
             },
             {
@@ -522,6 +524,76 @@ if (process.env.NODE_ENV === 'production') {
                 senderId: 'user-3',
                 content: '10 AM works perfectly. See you then!',
                 timestamp: new Date('2024-07-21T15:06:00Z'),
+            },
+            {
+              id: 'msg-job3-1',
+              jobId: 'job-3',
+              senderId: 'user-4',
+              content: 'Hey Vedanth, thanks for volunteering. Please be at the main gate tomorrow at 9 AM for the briefing.',
+              timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10 + 3600000)
+            },
+            {
+              id: 'msg-job3-2',
+              jobId: 'job-3',
+              senderId: 'user-1',
+              content: 'Got it, Moksh. See you there!',
+              timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10 + 3700000)
+            },
+            {
+              id: 'msg-job5-1',
+              jobId: 'job-5',
+              senderId: 'user-3',
+              content: 'Hi Vedanth, I\'ve assigned you the poster design job. I\'ve sent the brand guidelines to your email.',
+              timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5 + 3600000)
+            },
+            {
+              id: 'msg-job5-2',
+              jobId: 'job-5',
+              senderId: 'user-1',
+              content: 'Great, I\'ve received them. I\'ll get started on the first drafts.',
+              timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5 + 3800000)
+            },
+             {
+              id: 'msg-job7-1',
+              jobId: 'job-7',
+              senderId: 'user-1',
+              content: 'Hi Shubham. I\'ve attached the menu document. Let me know if you have any questions.',
+              timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 9 + 3600000)
+            },
+            {
+              id: 'msg-job7-2',
+              jobId: 'job-7',
+              senderId: 'user-3',
+              content: 'Thanks Vedanth. Looks straightforward. I should have it done by tomorrow evening.',
+              timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 9 + 4000000)
+            },
+             {
+              id: 'msg-job12-1',
+              jobId: 'job-12',
+              senderId: 'user-5',
+              content: 'Hi Vedanth, are you available for the first tutoring session this Wednesday at 4 PM?',
+              timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 6 + 3600000)
+            },
+            {
+              id: 'msg-job12-2',
+              jobId: 'job-12',
+              senderId: 'user-1',
+              content: 'Hi Namir, yes that works for me. See you on Wednesday!',
+              timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 6 + 4200000)
+            },
+             {
+              id: 'msg-job13-1',
+              jobId: 'job-13',
+              senderId: 'user-1',
+              content: 'Hi Namir, just confirming the birthday party is at 7 PM on Saturday at the mentioned address.',
+              timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14 + 3600000)
+            },
+            {
+              id: 'msg-job13-2',
+              jobId: 'job-13',
+              senderId: 'user-5',
+              content: 'Confirmed, Vedanth. I\'ll be there!',
+              timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14 + 4300000)
             },
         ],
     };
