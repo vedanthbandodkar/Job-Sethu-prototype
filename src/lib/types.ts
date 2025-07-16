@@ -1,4 +1,3 @@
-import type { Timestamp } from "firebase/firestore";
 
 export type User = {
   id: string;
@@ -21,9 +20,8 @@ export type Job = {
   posterId: string;
   workerId?: string;
   applicants: string[];
-  createdAt: Date | Timestamp;
+  createdAt: Date;
   imageUrl?: string;
-  title_lowercase?: string;
 };
 
 export type ChatMessage = {
@@ -31,5 +29,5 @@ export type ChatMessage = {
   jobId: string;
   senderId: string;
   content: string;
-  timestamp: Date | Timestamp;
+  timestamp: Date;
 };

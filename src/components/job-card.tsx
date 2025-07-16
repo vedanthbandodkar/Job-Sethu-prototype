@@ -27,7 +27,7 @@ export function JobCard({ job, userId }: JobCardProps) {
   const { toast } = useToast();
 
   useEffect(() => {
-    setTimeAgo(formatDistanceToNow(new Date(job.createdAt as Date), { addSuffix: true }));
+    setTimeAgo(formatDistanceToNow(new Date(job.createdAt), { addSuffix: true }));
   }, [job.createdAt]);
 
   const jobUrl = userId ? `/jobs/${job.id}?userId=${userId}` : `/jobs/${job.id}`;
@@ -35,9 +35,8 @@ export function JobCard({ job, userId }: JobCardProps) {
   const isPosterOnDashboard = pathname === '/dashboard' && job.posterId === userId;
 
   const handleCancelJob = () => {
-    if (!userId) return;
     startCancelTransition(async () => {
-        await cancelJobAction(job.id, userId);
+        await cancelJobAction(job.id);
         toast({
             title: "Job Canceled",
             description: "Your job post has been successfully removed.",
