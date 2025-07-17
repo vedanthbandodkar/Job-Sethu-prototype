@@ -20,7 +20,7 @@ export function ChatInterface({ jobId, currentUserId }: { jobId: string, current
     const [isPending, startTransition] = useTransition();
     const [optimisticMessages, addOptimisticMessage] = useOptimistic<EnrichedMessage[], Partial<EnrichedMessage>>(
         messages,
-        (state, newMessage) => [...state, { ...newMessage, id: 'optimistic', timestamp: new Date() } as EnrichedMessage]
+        (state, newMessage) => [...state, { ...newMessage, id: `optimistic-${Date.now()}`, timestamp: new Date() } as EnrichedMessage]
     );
 
     const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -58,8 +58,8 @@ export function ChatInterface({ jobId, currentUserId }: { jobId: string, current
             addOptimisticMessage({ content: newMessage.trim(), senderId: currentUserId, sender });
             const result = await sendMessageAction(jobId, currentUserId, newMessage.trim());
 
-            // Once the server action is complete, the page will re-render with the actual data,
-            // replacing the optimistic update. We just need to make sure the local state is updated.
+            // Once the server action is complete, the page will re-render with the actual data from the revalidated path.
+            // We just need to make sure the local state is also updated to keep it in sync.
             setMessages(prev => [...prev, { ...result, sender }]);
         });
         setNewMessage('');
@@ -85,11 +85,11 @@ export function ChatInterface({ jobId, currentUserId }: { jobId: string, current
                                 <div className={cn(
                                     'max-w-xs md:max-w-md p-3 rounded-lg shadow-sm',
                                     msg.senderId === currentUserId ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-card border rounded-bl-none',
-                                    msg.id === 'optimistic' && 'opacity-70'
+                                    msg.id.toString().startsWith('optimistic') && 'opacity-70'
                                 )}>
                                     <p className="text-sm">{msg.content}</p>
                                     <p className={cn('text-xs mt-1 text-right', msg.senderId === currentUserId ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}>
-                                        {msg.id === 'optimistic' ? 'Sending...' : new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'})}
+                                        {msg.id.toString().startsWith('optimistic') ? 'Sending...' : new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'})}
                                     </p>
                                 </div>
                                 {msg.senderId === currentUserId && (
