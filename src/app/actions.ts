@@ -2,7 +2,8 @@
 'use server'
 
 import { generateJobImage } from '@/ai/flows/generate-job-image-flow';
-import { createJobInDb, applyToJobInDb, markJobCompleteInDb, selectApplicantForJobInDb, createUserInDb, updateUserInDb, cancelJobInDb, createMessageInDb, seedDatabase } from '@/lib/data'
+import { suggestReplies, type SuggestRepliesInput } from '@/ai/flows/suggest-reply-flow';
+import { createJobInDb, applyToJobInDb, markJobCompleteInDb, selectApplicantForJobInDb, createUserInDb, updateUserInDb, cancelJobInDb, createMessageInDb, seedDatabase, deleteMessageFromDb } from '@/lib/data'
 import { revalidatePath } from 'next/cache';
 
 // This type now correctly includes the userId
@@ -108,12 +109,27 @@ export async function cancelJobAction(jobId: string) {
 
 export async function sendMessageAction(jobId: string, senderId: string, content: string) {
     const newMessage = await createMessageInDb({ jobId, senderId, content });
-    revalidatePath(`/jobs/${jobId}`); // Revalidate for others viewing the page
+    revalidatePath(`/jobs/${jobId}`);
     return newMessage;
+}
+
+export async function deleteMessageAction(messageId: string) {
+    await deleteMessageFromDb(messageId);
+    revalidatePath(`/jobs/*`); // Revalidate all job detail pages
 }
 
 export async function seedDatabaseAction() {
     await seedDatabase();
     revalidatePath('/');
     revalidatePath('/dashboard');
+}
+
+export async function suggestRepliesAction(input: SuggestRepliesInput) {
+    try {
+        const result = await suggestReplies(input);
+        return { success: true, suggestions: result.suggestions };
+    } catch (error) {
+        console.error('Failed to get suggestions:', error);
+        return { success: false, message: 'Could not fetch suggestions.' };
+    }
 }

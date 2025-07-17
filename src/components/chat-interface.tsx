@@ -2,29 +2,46 @@
 "use client"
 
 import { useEffect, useState, useRef, useTransition } from 'react';
-import type { ChatMessage, User } from '@/lib/types';
+import type { ChatMessage, User, Job } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
 import { cn } from '@/lib/utils';
-import { Send, Loader2 } from 'lucide-react';
-import { sendMessageAction } from '@/app/actions';
+import { Send, Loader2, Sparkles, Trash2, Bot } from 'lucide-react';
+import { sendMessageAction, suggestRepliesAction, deleteMessageAction } from '@/app/actions';
+import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 type EnrichedMessage = ChatMessage & { sender?: User };
 
 type ChatInterfaceProps = {
-    jobId: string;
+    job: Job;
     currentUserId: string;
     messages: EnrichedMessage[];
 };
 
-export function ChatInterface({ jobId, currentUserId, messages }: ChatInterfaceProps) {
+export function ChatInterface({ job, currentUserId, messages }: ChatInterfaceProps) {
     const [newMessage, setNewMessage] = useState('');
-    const [isPending, startTransition] = useTransition();
+    const [isSending, startSendingTransition] = useTransition();
+    const [isDeleting, startDeletingTransition] = useTransition();
+    const [isSuggesting, startSuggestingTransition] = useTransition();
 
+    const [suggestions, setSuggestions] = useState<string[]>([]);
+    
     const scrollAreaRef = useRef<HTMLDivElement>(null);
     const formRef = useRef<HTMLFormElement>(null);
+    const { toast } = useToast();
     
     useEffect(() => {
         if (scrollAreaRef.current) {
@@ -39,9 +56,38 @@ export function ChatInterface({ jobId, currentUserId, messages }: ChatInterfaceP
         
         formRef.current?.reset();
         setNewMessage('');
+        setSuggestions([]);
         
-        startTransition(async () => {
-            await sendMessageAction(jobId, currentUserId, trimmedMessage);
+        startSendingTransition(async () => {
+            await sendMessageAction(job.id, currentUserId, trimmedMessage);
+        });
+    }
+
+    const handleGetSuggestions = () => {
+        startSuggestingTransition(async () => {
+            const chatHistory = messages.map(m => ({ senderId: m.senderId, content: m.content }));
+            const result = await suggestRepliesAction({ 
+                jobTitle: job.title, 
+                jobDescription: job.description, 
+                chatHistory, 
+                currentUserId 
+            });
+
+            if (result.success && result.suggestions) {
+                setSuggestions(result.suggestions);
+            } else {
+                toast({
+                    variant: 'destructive',
+                    title: 'Could not get suggestions',
+                    description: result.message
+                })
+            }
+        });
+    }
+
+    const handleDeleteMessage = (messageId: string) => {
+        startDeletingTransition(async () => {
+            await deleteMessageAction(messageId);
         });
     }
 
@@ -55,17 +101,42 @@ export function ChatInterface({ jobId, currentUserId, messages }: ChatInterfaceP
                 <div className="flex flex-col h-[400px] border rounded-lg">
                     <div ref={scrollAreaRef} className="flex-grow p-4 space-y-4 overflow-y-auto bg-muted/20">
                         {messages.map(msg => (
-                            <div key={msg.id} className={cn('flex items-end gap-2', msg.senderId === currentUserId ? 'justify-end' : 'justify-start')}>
-                                {msg.senderId !== currentUserId && (
+                            <div key={msg.id} className={cn('flex items-end gap-2 group', msg.senderId === currentUserId ? 'justify-end' : 'justify-start')}>
+                               {msg.senderId !== currentUserId && (
                                     <Avatar className="h-8 w-8">
                                         <AvatarImage src={msg.sender?.avatarUrl} data-ai-hint="person avatar"/>
                                         <AvatarFallback>{msg.sender?.name?.[0] ?? 'U'}</AvatarFallback>
                                     </Avatar>
                                 )}
                                 <div className={cn(
-                                    'max-w-xs md:max-w-md p-3 rounded-lg shadow-sm',
+                                    'max-w-xs md:max-w-md p-3 rounded-lg shadow-sm relative',
                                     msg.senderId === currentUserId ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-card border rounded-bl-none'
                                 )}>
+                                    {msg.senderId === currentUserId && (
+                                         <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="absolute -left-10 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" disabled={isDeleting}>
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    This action cannot be undone. This will permanently delete your message.
+                                                </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handleDeleteMessage(msg.id)} disabled={isDeleting}>
+                                                    {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                                    Delete
+                                                </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    )}
+                                   
                                     <p className="text-sm">{msg.content}</p>
                                     <p className={cn('text-xs mt-1 text-right', msg.senderId === currentUserId ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}>
                                         {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'})}
@@ -80,16 +151,37 @@ export function ChatInterface({ jobId, currentUserId, messages }: ChatInterfaceP
                             </div>
                         ))}
                     </div>
-                    <form ref={formRef} onSubmit={handleSendMessage} className="p-4 border-t flex items-center gap-2 bg-background">
+
+                    {suggestions.length > 0 && (
+                        <div className="p-2 border-t bg-background space-y-2">
+                             <div className="flex items-center gap-2 text-xs text-muted-foreground font-semibold">
+                                <Bot className="h-4 w-4" />
+                                <span>AI Suggestions</span>
+                             </div>
+                             <div className="flex flex-wrap gap-2">
+                                {suggestions.map((s, i) => (
+                                    <Button key={i} size="sm" variant="outline" onClick={() => setNewMessage(s)}>
+                                        {s}
+                                    </Button>
+                                ))}
+                             </div>
+                        </div>
+                    )}
+
+                    <form ref={formRef} onSubmit={handleSendMessage} className="p-2 border-t flex items-center gap-2 bg-background">
+                        <Button type="button" size="icon" variant="ghost" onClick={handleGetSuggestions} disabled={isSuggesting || isSending}>
+                            {isSuggesting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                            <span className="sr-only">Get Suggestions</span>
+                        </Button>
                         <Input 
                             value={newMessage}
                             onChange={e => setNewMessage(e.target.value)}
                             placeholder="Type your message..." 
                             autoComplete="off"
-                            disabled={isPending}
+                            disabled={isSending}
                         />
-                        <Button type="submit" size="icon" disabled={isPending || !newMessage.trim()}>
-                            {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                        <Button type="submit" size="icon" disabled={isSending || !newMessage.trim()}>
+                            {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                             <span className="sr-only">Send</span>
                         </Button>
                     </form>
