@@ -27,6 +27,7 @@ export function JobCard({ job, userId }: JobCardProps) {
   const { toast } = useToast();
 
   useEffect(() => {
+    // This hook ensures the time is only calculated on the client, preventing hydration mismatch.
     setTimeAgo(formatDistanceToNow(new Date(job.createdAt), { addSuffix: true }));
   }, [job.createdAt]);
 
@@ -97,6 +98,17 @@ export function JobCard({ job, userId }: JobCardProps) {
     }
   }
 
+  const getStatusBadgeVariant = () => {
+    switch (job.status) {
+      case 'canceled':
+        return 'destructive';
+      case 'completed':
+        return 'outline';
+      default:
+        return 'secondary';
+    }
+  }
+
   return (
     <Card className="flex flex-col h-full overflow-hidden rounded-lg border shadow-sm transition-shadow hover:shadow-lg bg-card">
       <Link href={jobUrl} className="flex-grow flex flex-col">
@@ -124,7 +136,7 @@ export function JobCard({ job, userId }: JobCardProps) {
                         </Badge>
                     )}
                     {job.status !== 'open' && (
-                        <Badge variant={job.status === 'completed' || job.status === 'canceled' ? 'outline' : 'secondary'} className="capitalize bg-white/20 text-white border-none">
+                        <Badge variant={getStatusBadgeVariant()} className="capitalize bg-white/20 text-white border-none">
                             {job.status}
                         </Badge>
                     )}
