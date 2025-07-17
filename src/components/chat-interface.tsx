@@ -108,40 +108,44 @@ export function ChatInterface({ job, currentUserId, messages }: ChatInterfacePro
                                         <AvatarFallback>{msg.sender?.name?.[0] ?? 'U'}</AvatarFallback>
                                     </Avatar>
                                 )}
+
+                                {msg.senderId === currentUserId && (
+                                    <div className="flex items-center self-center">
+                                        <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" disabled={isDeleting}>
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                This action cannot be undone. This will permanently delete your message.
+                                            </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => handleDeleteMessage(msg.id)} disabled={isDeleting}>
+                                                {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                                Delete
+                                            </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                    </div>
+                                )}
+
                                 <div className={cn(
-                                    'max-w-xs md:max-w-md p-3 rounded-lg shadow-sm relative',
+                                    'max-w-xs md:max-w-md p-3 rounded-lg shadow-sm',
                                     msg.senderId === currentUserId ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-card border rounded-bl-none'
                                 )}>
-                                    {msg.senderId === currentUserId && (
-                                         <AlertDialog>
-                                            <AlertDialogTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="absolute -left-10 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" disabled={isDeleting}>
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            </AlertDialogTrigger>
-                                            <AlertDialogContent>
-                                                <AlertDialogHeader>
-                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                <AlertDialogDescription>
-                                                    This action cannot be undone. This will permanently delete your message.
-                                                </AlertDialogDescription>
-                                                </AlertDialogHeader>
-                                                <AlertDialogFooter>
-                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                <AlertDialogAction onClick={() => handleDeleteMessage(msg.id)} disabled={isDeleting}>
-                                                    {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                                    Delete
-                                                </AlertDialogAction>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
-                                    )}
-                                   
                                     <p className="text-sm">{msg.content}</p>
                                     <p className={cn('text-xs mt-1 text-right', msg.senderId === currentUserId ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}>
                                         {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'})}
                                     </p>
                                 </div>
+
                                 {msg.senderId === currentUserId && (
                                     <Avatar className="h-8 w-8">
                                         <AvatarImage src={msg.sender?.avatarUrl} data-ai-hint="person avatar"/>
