@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 import { Send, Loader2 } from 'lucide-react';
 import { sendMessageAction } from '@/app/actions';
 
-type EnrichedMessage = ChatMessage & { sender: User | undefined };
+type EnrichedMessage = ChatMessage & { sender?: User };
 
 export function ChatInterface({ jobId, currentUserId }: { jobId: string, currentUserId: string }) {
     const [messages, setMessages] = useState<EnrichedMessage[]>([]);
@@ -45,7 +45,7 @@ export function ChatInterface({ jobId, currentUserId }: { jobId: string, current
         if (scrollAreaRef.current) {
             scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
         }
-    }, [optimisticMessages])
+    }, [optimisticMessages]);
 
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -53,14 +53,19 @@ export function ChatInterface({ jobId, currentUserId }: { jobId: string, current
 
         const sender = await getUserById(currentUserId);
         formRef.current?.reset();
-
+        
         startTransition(async () => {
             addOptimisticMessage({ content: newMessage.trim(), senderId: currentUserId, sender });
-            const result = await sendMessageAction(jobId, currentUserId, newMessage.trim());
-
-            // Once the server action is complete, the page will re-render with the actual data from the revalidated path.
-            // We just need to make sure the local state is also updated to keep it in sync.
-            setMessages(prev => [...prev, { ...result, sender }]);
+            
+            try {
+                const result = await sendMessageAction(jobId, currentUserId, newMessage.trim());
+                // The action now returns the created message. Update the state with the real message.
+                 setMessages(prev => [...prev, { ...result, sender }]);
+            } catch (error) {
+                // If the action fails, remove the optimistic message
+                console.error("Failed to send message:", error);
+                setMessages(prev => prev.slice(0, -1)); // Simple removal, could be more sophisticated
+            }
         });
         setNewMessage('');
     }
