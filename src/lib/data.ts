@@ -3,20 +3,14 @@ import type { User, Job, ChatMessage } from './types';
 import { db } from './firebase';
 import { collection, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, query, where, orderBy, deleteDoc, serverTimestamp, arrayUnion, Timestamp } from 'firebase/firestore';
 
-// We now have two sets of functions:
-// 1. Functions ending with *FromDb to interact with Firestore.
-// 2. Functions with original names (e.g., getJobs) that call the mock data functions.
-//    This allows the app to still work with mock data for components that haven't been migrated.
-
 // --- Firestore Data Functions ---
 
 export const getJobsFromDb = async (searchQuery?: string): Promise<Job[]> => {
     const jobsCol = collection(db, 'jobs');
+    // SIMPLIFIED QUERY: Only order by creation date.
+    // This avoids the need for a composite index. Filtering by status will happen in-memory.
     let q = query(jobsCol, orderBy('createdAt', 'desc'));
 
-    // Note: Firestore doesn't support case-insensitive or partial text search out-of-the-box.
-    // For a real app, a search service like Algolia or Typesense would be needed for robust search.
-    // Here, we fetch all jobs and filter them on the client-side for simplicity.
     const jobSnapshot = await getDocs(q);
     let jobs = jobSnapshot.docs.map(doc => {
         const data = doc.data();
@@ -27,6 +21,9 @@ export const getJobsFromDb = async (searchQuery?: string): Promise<Job[]> => {
             createdAt: (data.createdAt as Timestamp)?.toDate() || new Date(),
         } as Job;
     });
+
+    // In-memory filtering
+    jobs = jobs.filter(job => job.status === 'open');
 
     if (searchQuery) {
         const lowercasedQuery = searchQuery.toLowerCase();
