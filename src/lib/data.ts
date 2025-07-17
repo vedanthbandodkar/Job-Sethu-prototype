@@ -351,6 +351,7 @@ export const seedDatabase = async () => {
 
 // The following functions simulate async database calls
 export const getJobs = async (searchQuery?: string): Promise<Job[]> => {
+    await new Promise(resolve => setTimeout(resolve, 50)); // Simulate network delay
     let jobs = [...mockDataStore.jobs];
 
     if (searchQuery) {
@@ -366,19 +367,23 @@ export const getJobs = async (searchQuery?: string): Promise<Job[]> => {
 };
 
 export const getJobById = async (id: string): Promise<Job | undefined> => {
+    await new Promise(resolve => setTimeout(resolve, 50));
     return mockDataStore.jobs.find(job => job.id === id);
 };
 
 export const getUsers = async (): Promise<User[]> => {
+    await new Promise(resolve => setTimeout(resolve, 50));
     return [...mockDataStore.users];
 };
 
 export const getUserById = async (id: string): Promise<User | undefined> => {
+    await new Promise(resolve => setTimeout(resolve, 50));
     const user = mockDataStore.users.find(user => user.id === id || user.email === id);
     return user;
 };
 
 export const getMessagesForJob = async (jobId: string): Promise<ChatMessage[]> => {
+    await new Promise(resolve => setTimeout(resolve, 50));
     return mockDataStore.messages
         .filter(msg => msg.jobId === jobId)
         .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
@@ -396,6 +401,7 @@ type JobCreationData = {
 };
 
 export const createJobInDb = async (data: JobCreationData) => {
+    await new Promise(resolve => setTimeout(resolve, 100));
     const newJob: Job = {
         id: `job-${Date.now()}`,
         ...data,
@@ -408,21 +414,24 @@ export const createJobInDb = async (data: JobCreationData) => {
     return newJob;
 };
 
-export const applyToJobInDb = (jobId: string, userId: string) => {
+export const applyToJobInDb = async (jobId: string, userId: string) => {
+    await new Promise(resolve => setTimeout(resolve, 100));
     const job = mockDataStore.jobs.find(j => j.id === jobId);
     if (job && !job.applicants.includes(userId)) {
         job.applicants.push(userId);
     }
 };
 
-export const markJobCompleteInDb = (jobId: string) => {
+export const markJobCompleteInDb = async (jobId: string) => {
+    await new Promise(resolve => setTimeout(resolve, 100));
     const job = mockDataStore.jobs.find(j => j.id === jobId);
     if (job) {
         job.status = 'completed';
     }
 };
 
-export const selectApplicantForJobInDb = (jobId: string, applicantId: string) => {
+export const selectApplicantForJobInDb = async (jobId: string, applicantId: string) => {
+    await new Promise(resolve => setTimeout(resolve, 100));
     const job = mockDataStore.jobs.find(j => j.id === jobId);
     if (job) {
         job.workerId = applicantId;
@@ -431,6 +440,7 @@ export const selectApplicantForJobInDb = (jobId: string, applicantId: string) =>
 };
 
 export const createUserInDb = async (data: { name: string; email: string; }) => {
+    await new Promise(resolve => setTimeout(resolve, 100));
     // Check if user already exists
     const existingUser = mockDataStore.users.find(u => u.email === data.email);
     if (existingUser) return existingUser;
@@ -448,6 +458,7 @@ export const createUserInDb = async (data: { name: string; email: string; }) => 
 };
 
 export const updateUserInDb = async (data: { userId: string, name: string; location: string; skills: string[]; }) => {
+    await new Promise(resolve => setTimeout(resolve, 100));
     const user = mockDataStore.users.find(u => u.id === data.userId);
     if (user) {
         user.name = data.name;
@@ -456,18 +467,21 @@ export const updateUserInDb = async (data: { userId: string, name: string; locat
     }
 };
 
-export const cancelJobInDb = (jobId: string) => {
+export const cancelJobInDb = async (jobId: string) => {
+    await new Promise(resolve => setTimeout(resolve, 100));
     const job = mockDataStore.jobs.find(j => j.id === jobId);
     if (job) {
         job.status = 'canceled';
     }
 };
 
-export const createMessageInDb = (message: Omit<ChatMessage, 'id' | 'timestamp'>) => {
+export const createMessageInDb = async (message: Omit<ChatMessage, 'id' | 'timestamp'>) => {
+    await new Promise(resolve => setTimeout(resolve, 100));
     const newMessage: ChatMessage = {
         id: `msg-${Date.now()}`,
         ...message,
         timestamp: new Date(),
     };
     mockDataStore.messages.push(newMessage);
+    return newMessage;
 };
