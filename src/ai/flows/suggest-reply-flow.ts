@@ -1,0 +1,98 @@
+
+'use server';
+/**
+ * @fileOverview An AI flow to suggest replies in a chat conversation.
+ *
+ * - suggestReplies - A function that suggests chat replies based on context.
+ * - SuggestRepliesInput - The input type for the suggestReplies function.
+ * - SuggestRepliesOutput - The return type for the suggestReplies function.
+ */
+
+import {ai} from '@/ai/genkit';
+import {z} from 'genkit';
+
+const SuggestRepliesInputSchema = z.object({
+  jobTitle: z.string().describe('The title of the job being discussed.'),
+  jobDescription: z.string().describe('The description of the job.'),
+  chatHistory: z
+    .array(
+      z.object({
+        senderId: z.string(),
+        content: z.string(),
+      })
+    )
+    .describe('The existing chat history between the two users.'),
+  currentUserId: z
+    .string()
+    .describe(
+      'The ID of the user for whom we are generating suggestions.'
+    ),
+});
+export type SuggestRepliesInput = z.infer<typeof SuggestRepliesInputSchema>;
+
+const SuggestRepliesOutputSchema = z.object({
+  suggestions: z
+    .array(z.string())
+    .describe('An array of 3-4 professional and relevant reply suggestions.'),
+});
+export type SuggestRepliesOutput = z.infer<typeof SuggestRepliesOutputSchema>;
+
+export async function suggestReplies(
+  input: SuggestRepliesInput
+): Promise<SuggestRepliesOutput> {
+  return suggestRepliesFlow(input);
+}
+
+const formatChatHistory = (
+  history: SuggestRepliesInput['chatHistory'],
+  currentUserId: string
+) => {
+  return history
+    .map(
+      (msg) =>
+        `${msg.senderId === currentUserId ? 'You' : 'Other User'}: ${
+          msg.content
+        }`
+    )
+    .join('\n');
+};
+
+const prompt = ai.definePrompt({
+  name: 'suggestRepliesPrompt',
+  input: {schema: SuggestRepliesInputSchema},
+  output: {schema: SuggestRepliesOutputSchema},
+  prompt: `You are a helpful and professional communication assistant for a job marketplace app.
+Your goal is to help users communicate effectively by suggesting relevant replies.
+
+You will be given the job details and the current chat history. Based on this context, generate 3-4 short, relevant, and professionally-toned reply suggestions for the user identified as "You".
+
+The suggestions should be natural next steps in the conversation. For example, if the last message was a question, suggest answers. If it was a statement, suggest follow-up questions or acknowledgements. Do not suggest replies that have already been said.
+
+**Job Title:** {{{jobTitle}}}
+**Job Description:** {{{jobDescription}}}
+
+**Chat History:**
+{{{user "chatHistory" "currentUserId" formatChatHistory}}}
+
+Based on the full context, provide suggestions for "You".`,
+  customize: (definition) => {
+    definition.customizers = {
+      user: (renderer, history, currentUserId, formatter) => {
+        return formatter(history, currentUserId);
+      }
+    };
+    return definition;
+  },
+});
+
+const suggestRepliesFlow = ai.defineFlow(
+  {
+    name: 'suggestRepliesFlow',
+    inputSchema: SuggestRepliesInputSchema,
+    outputSchema: SuggestRepliesOutputSchema,
+  },
+  async (input) => {
+    const {output} = await prompt(input);
+    return output!;
+  }
+);

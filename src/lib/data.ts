@@ -485,3 +485,11 @@ export const createMessageInDb = async (message: Omit<ChatMessage, 'id' | 'times
     mockDataStore.messages.push(newMessage);
     return newMessage;
 };
+
+export const deleteMessageFromDb = async (messageId: string) => {
+    await new Promise(resolve => setTimeout(resolve, 100));
+    const index = mockDataStore.messages.findIndex(m => m.id === messageId);
+    if (index > -1) {
+        mockDataStore.messages.splice(index, 1);
+    }
+};

@@ -103,7 +103,7 @@ export default async function JobDetailPage({ params, searchParams }: { params: 
             )}
 
             {canChat && (
-                <ChatInterface jobId={job.id} currentUserId={currentUserId} messages={messages} />
+                <ChatInterface job={job} currentUserId={currentUserId} messages={messages} />
             )}
 
         </div>
