@@ -3,7 +3,6 @@
 
 import { useEffect, useState, useRef, useTransition } from 'react';
 import type { ChatMessage, User } from '@/lib/types';
-import { getMessagesForJob, getUserById } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -14,33 +13,19 @@ import { sendMessageAction } from '@/app/actions';
 
 type EnrichedMessage = ChatMessage & { sender?: User };
 
-export function ChatInterface({ jobId, currentUserId }: { jobId: string, currentUserId: string }) {
-    const [messages, setMessages] = useState<EnrichedMessage[]>([]);
+type ChatInterfaceProps = {
+    jobId: string;
+    currentUserId: string;
+    messages: EnrichedMessage[];
+};
+
+export function ChatInterface({ jobId, currentUserId, messages }: ChatInterfaceProps) {
     const [newMessage, setNewMessage] = useState('');
     const [isPending, startTransition] = useTransition();
 
     const scrollAreaRef = useRef<HTMLDivElement>(null);
     const formRef = useRef<HTMLFormElement>(null);
-    const [currentUser, setCurrentUser] = useState<User | null>(null);
     
-    useEffect(() => {
-        const fetchInitialData = async () => {
-            const rawMessages = await getMessagesForJob(jobId);
-            const user = await getUserById(currentUserId);
-
-            const enriched = await Promise.all(
-                rawMessages.map(async (msg) => ({
-                    ...msg,
-                    sender: msg.senderId === currentUserId ? user : await getUserById(msg.senderId),
-                }))
-            );
-            setMessages(enriched);
-            setCurrentUser(user);
-        };
-
-        fetchInitialData();
-    }, [jobId, currentUserId]);
-
     useEffect(() => {
         if (scrollAreaRef.current) {
             scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
@@ -50,25 +35,13 @@ export function ChatInterface({ jobId, currentUserId }: { jobId: string, current
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
         const trimmedMessage = newMessage.trim();
-        if (!trimmedMessage || !currentUser) return;
+        if (!trimmedMessage) return;
         
         formRef.current?.reset();
         setNewMessage('');
         
         startTransition(async () => {
             await sendMessageAction(jobId, currentUserId, trimmedMessage);
-            // The revalidatePath in the action will trigger a re-render of the page
-            // which will re-fetch the messages in the parent component. For this component,
-            // we'll just add it to our local state to see it immediately.
-            const newMsg: EnrichedMessage = {
-              id: `temp-${Date.now()}`,
-              jobId,
-              senderId: currentUserId,
-              content: trimmedMessage,
-              timestamp: new Date(),
-              sender: currentUser
-            };
-            setMessages(prev => [...prev, newMsg]);
         });
     }
 
