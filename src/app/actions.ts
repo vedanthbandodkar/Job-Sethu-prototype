@@ -4,7 +4,6 @@
 import { generateJobImage } from '@/ai/flows/generate-job-image-flow';
 import { createJobInDb, applyToJobInDb, markJobCompleteInDb, selectApplicantForJobInDb, createUserInDb, updateUserInDb, cancelJobInDb, createMessageInDb, seedDatabase } from '@/lib/data'
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
 
 // This type now correctly includes the userId
 type JobFormValues = {
@@ -108,8 +107,9 @@ export async function cancelJobAction(jobId: string) {
 }
 
 export async function sendMessageAction(jobId: string, senderId: string, content: string) {
-    createMessageInDb({ jobId, senderId, content });
+    const newMessage = createMessageInDb({ jobId, senderId, content });
     revalidatePath(`/jobs/${jobId}`);
+    return newMessage;
 }
 
 export async function seedDatabaseAction() {
