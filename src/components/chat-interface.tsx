@@ -11,7 +11,6 @@ import { Input } from './ui/input';
 import { cn } from '@/lib/utils';
 import { Send, Loader2 } from 'lucide-react';
 import { sendMessageAction } from '@/app/actions';
-import { revalidatePath } from 'next/cache';
 
 type EnrichedMessage = ChatMessage & { sender: User | undefined };
 
