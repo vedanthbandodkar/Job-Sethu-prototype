@@ -167,7 +167,9 @@ export function JobCard({ job, userId }: JobCardProps) {
         </div>
 
         <div className="flex items-center gap-2">
-           {renderPosterActions()}
+           {job.status === 'canceled' ? (
+              <Badge variant="destructive" className="text-sm">Canceled</Badge>
+           ) : renderPosterActions()}
         </div>
       </CardFooter>
     </Card>
