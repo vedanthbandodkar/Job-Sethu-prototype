@@ -332,13 +332,21 @@ const getInitialMockData = () => ({
     ],
 });
 
-let mockDataStore = getInitialMockData();
+// To prevent data from being reset on hot-reloads in development,
+// we store the mock data in a global object.
+const globalForMock = globalThis as unknown as {
+    mockDataStore: ReturnType<typeof getInitialMockData> | undefined
+}
+
+const mockDataStore = globalForMock.mockDataStore ?? getInitialMockData();
+if (process.env.NODE_ENV !== 'production') globalForMock.mockDataStore = mockDataStore
+
 
 // We need a way to reset the data, e.g. for testing.
 // This is not a real database, so we just reset the in-memory object.
 export const seedDatabase = async () => {
     console.log("Resetting mock data...");
-    mockDataStore = getInitialMockData();
+    globalForMock.mockDataStore = getInitialMockData();
 };
 
 // The following functions simulate async database calls
