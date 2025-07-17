@@ -4,16 +4,17 @@
 // to have in place for when you decide to connect to a real Firebase backend.
 
 import { initializeApp, getApp, getApps } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
 
 // Your web app's Firebase configuration
-// This is placeholder configuration. Replace it with your actual Firebase config.
+// IMPORTANT: Replace with your actual Firebase project configuration
 const firebaseConfig = {
-  apiKey: "your-api-key",
-  authDomain: "your-project-id.firebaseapp.com",
-  projectId: "your-project-id",
-  storageBucket: "your-project-id.appspot.com",
-  messagingSenderId: "your-messaging-sender-id",
-  appId: "your-app-id"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "your-api-key",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "your-project-id.firebaseapp.com",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "your-project-id",
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "your-project-id.appspot.com",
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "your-messaging-sender-id",
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "your-app-id"
 };
 
 // Initialize Firebase
@@ -21,8 +22,6 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
 // In a real app, you would export auth and db instances here:
 // import { getAuth } from "firebase/auth";
-// import { getFirestore } from "firebase/firestore";
-// export const auth = getAuth(app);
-// export const db = getFirestore(app);
+export const db = getFirestore(app);
 
 export { app };

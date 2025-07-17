@@ -3,7 +3,7 @@
 
 import { generateJobImage } from '@/ai/flows/generate-job-image-flow';
 import { suggestReplies, type SuggestRepliesInput } from '@/ai/flows/suggest-reply-flow';
-import { createJobInDb, applyToJobInDb, markJobCompleteInDb, selectApplicantForJobInDb, createUserInDb, updateUserInDb, cancelJobInDb, createMessageInDb, seedDatabase, deleteMessageFromDb } from '@/lib/data'
+import { createJobInDb, applyToJobInDb, markJobCompleteInDb, selectApplicantForJobInDb, createUserInDb, updateUserInDb, cancelJobInDb, createMessageInDb, seedDatabase, deleteMessageFromDb, getJobsFromDb, getJobByIdFromDb, getUserByIdFromDb, getUsersFromDb, getMessagesForJobFromDb } from '@/lib/data'
 import { revalidatePath } from 'next/cache';
 
 // This type now correctly includes the userId
@@ -26,7 +26,12 @@ export async function createJobAction(data: JobFormValues) {
     }
 
     const imageUrl = await generateJobImage(jobDetails.title);
-    const newJobData = { ...jobDetails, imageUrl, posterId: userId };
+    const newJobData = { 
+      ...jobDetails, 
+      imageUrl, 
+      posterId: userId,
+      skills: data.skills.split(',').map(s => s.trim()).filter(Boolean),
+    };
     
     const result = await createJobInDb(newJobData);
     
