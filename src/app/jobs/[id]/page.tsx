@@ -1,5 +1,5 @@
 
-import { getJobById, getUserById } from '@/lib/data';
+import { getJobById, getUserById, getMessagesForJob } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +9,7 @@ import { format } from 'date-fns';
 import { JobActions } from '@/components/job-actions';
 import { ChatInterface } from '@/components/chat-interface';
 import { ApplicantList } from '@/components/applicant-list';
-import type { User as UserType } from '@/lib/types';
+import type { User as UserType, ChatMessage } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Image from 'next/image';
 
@@ -21,16 +21,25 @@ export default async function JobDetailPage({ params, searchParams }: { params: 
     notFound();
   }
 
-  const poster = await getUserById(job.posterId);
-  const worker = job.workerId ? await getUserById(job.workerId) : null;
-  
-  const applicants = await Promise.all(
-    job.applicants.map(id => getUserById(id))
-  ).then(users => users.filter((u): u is UserType => u !== undefined));
-
-
   // Use passed userId or default to a mock user
   const currentUserId = searchParams?.userId || 'user-5';
+
+  const [poster, worker, applicants, rawMessages] = await Promise.all([
+    getUserById(job.posterId),
+    job.workerId ? getUserById(job.workerId) : null,
+    Promise.all(job.applicants.map(id => getUserById(id))).then(users => users.filter((u): u is UserType => u !== undefined)),
+    getMessagesForJob(job.id)
+  ]);
+  
+  const allUsersInvolved = [poster, worker, ...applicants].filter((u): u is UserType => u !== undefined);
+  
+  const messages = await Promise.all(
+    rawMessages.map(async (msg) => {
+      const sender = allUsersInvolved.find(u => u.id === msg.senderId) ?? await getUserById(msg.senderId);
+      return { ...msg, sender };
+    })
+  );
+
   const isPoster = job.posterId === currentUserId;
   const isWorker = job.workerId === currentUserId;
   const hasApplied = job.applicants.includes(currentUserId);
@@ -94,7 +103,7 @@ export default async function JobDetailPage({ params, searchParams }: { params: 
             )}
 
             {canChat && (
-                <ChatInterface jobId={job.id} currentUserId={currentUserId} />
+                <ChatInterface jobId={job.id} currentUserId={currentUserId} messages={messages} />
             )}
 
         </div>
