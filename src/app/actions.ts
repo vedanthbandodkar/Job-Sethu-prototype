@@ -25,7 +25,9 @@ export async function createJobAction(data: JobFormValues) {
       throw new Error("User ID is required to create a job.");
     }
 
-    const imageUrl = await generateJobImage(jobDetails.title);
+    // Temporarily use a placeholder image to avoid Firestore size limits
+    const imageUrl = `https://placehold.co/600x400.png`;
+    
     const newJobData = { 
       ...jobDetails, 
       imageUrl, 
