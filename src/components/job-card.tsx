@@ -6,14 +6,15 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import type { Job } from '@/lib/types';
-import { MapPin, IndianRupee, AlertTriangle, ArrowRight, Ban, Loader2 } from 'lucide-react';
+import type { Job, User } from '@/lib/types';
+import { MapPin, IndianRupee, AlertTriangle, ArrowRight, Ban, Loader2, User as UserIcon } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useState, useEffect, useTransition } from 'react';
 import { usePathname } from 'next/navigation';
 import { cancelJobAction } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
+import { getUserById } from '@/lib/data';
 
 type JobCardProps = {
   job: Job;
@@ -23,13 +24,30 @@ type JobCardProps = {
 export function JobCard({ job, userId }: JobCardProps) {
   const [timeAgo, setTimeAgo] = useState('');
   const [isCancelling, startCancelTransition] = useTransition();
+  const [worker, setWorker] = useState<User | null>(null);
   const pathname = usePathname();
   const { toast } = useToast();
 
   useEffect(() => {
     // This hook ensures the time is only calculated on the client, preventing hydration mismatch.
     setTimeAgo(formatDistanceToNow(new Date(job.createdAt), { addSuffix: true }));
-  }, [job.createdAt]);
+
+    let isMounted = true;
+    const fetchWorker = async () => {
+        if (job.workerId) {
+            const workerData = await getUserById(job.workerId);
+            if (isMounted && workerData) {
+                setWorker(workerData);
+            }
+        }
+    };
+    
+    if (job.status === 'assigned' || job.status === 'completed' || job.status === 'paid') {
+        fetchWorker();
+    }
+
+    return () => { isMounted = false; };
+  }, [job.createdAt, job.workerId, job.status]);
 
   const jobUrl = userId ? `/jobs/${job.id}?userId=${userId}` : `/jobs/${job.id}`;
   
@@ -145,6 +163,12 @@ export function JobCard({ job, userId }: JobCardProps) {
           </CardHeader>
         </div>
         <CardContent className="flex-grow pt-6">
+          {worker && (job.status === 'assigned' || job.status === 'completed' || job.status === 'paid') && (
+            <Badge variant="secondary" className="mb-3 font-normal">
+              <UserIcon className="mr-1.5 h-3 w-3" />
+              Assigned to {worker.name}
+            </Badge>
+          )}
           <p className="text-sm text-muted-foreground line-clamp-3">{job.description}</p>
           <div className="mt-4 flex flex-wrap gap-2">
               {job.skills.slice(0,3).map((skill) => (
