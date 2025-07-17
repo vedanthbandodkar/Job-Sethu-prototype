@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useEffect, useState, useRef, useTransition, useOptimistic } from 'react';
+import { useEffect, useState, useRef, useTransition } from 'react';
 import type { ChatMessage, User } from '@/lib/types';
 import { getMessagesForJob, getUserById } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
@@ -18,56 +18,58 @@ export function ChatInterface({ jobId, currentUserId }: { jobId: string, current
     const [messages, setMessages] = useState<EnrichedMessage[]>([]);
     const [newMessage, setNewMessage] = useState('');
     const [isPending, startTransition] = useTransition();
-    const [optimisticMessages, addOptimisticMessage] = useOptimistic<EnrichedMessage[], Partial<EnrichedMessage>>(
-        messages,
-        (state, newMessage) => [...state, { ...newMessage, id: `optimistic-${Date.now()}`, timestamp: new Date() } as EnrichedMessage]
-    );
 
     const scrollAreaRef = useRef<HTMLDivElement>(null);
     const formRef = useRef<HTMLFormElement>(null);
+    const [currentUser, setCurrentUser] = useState<User | null>(null);
     
     useEffect(() => {
-        const fetchMessages = async () => {
+        const fetchInitialData = async () => {
             const rawMessages = await getMessagesForJob(jobId);
+            const user = await getUserById(currentUserId);
+
             const enriched = await Promise.all(
                 rawMessages.map(async (msg) => ({
                     ...msg,
-                    sender: await getUserById(msg.senderId),
+                    sender: msg.senderId === currentUserId ? user : await getUserById(msg.senderId),
                 }))
             );
             setMessages(enriched);
+            setCurrentUser(user);
         };
 
-        fetchMessages();
-    }, [jobId]);
+        fetchInitialData();
+    }, [jobId, currentUserId]);
 
     useEffect(() => {
         if (scrollAreaRef.current) {
             scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
         }
-    }, [optimisticMessages]);
+    }, [messages]);
 
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newMessage.trim()) return;
-
-        const sender = await getUserById(currentUserId);
+        const trimmedMessage = newMessage.trim();
+        if (!trimmedMessage || !currentUser) return;
+        
         formRef.current?.reset();
+        setNewMessage('');
         
         startTransition(async () => {
-            addOptimisticMessage({ content: newMessage.trim(), senderId: currentUserId, sender });
-            
-            try {
-                const result = await sendMessageAction(jobId, currentUserId, newMessage.trim());
-                // The action now returns the created message. Update the state with the real message.
-                 setMessages(prev => [...prev, { ...result, sender }]);
-            } catch (error) {
-                // If the action fails, remove the optimistic message
-                console.error("Failed to send message:", error);
-                setMessages(prev => prev.slice(0, -1)); // Simple removal, could be more sophisticated
-            }
+            await sendMessageAction(jobId, currentUserId, trimmedMessage);
+            // The revalidatePath in the action will trigger a re-render of the page
+            // which will re-fetch the messages in the parent component. For this component,
+            // we'll just add it to our local state to see it immediately.
+            const newMsg: EnrichedMessage = {
+              id: `temp-${Date.now()}`,
+              jobId,
+              senderId: currentUserId,
+              content: trimmedMessage,
+              timestamp: new Date(),
+              sender: currentUser
+            };
+            setMessages(prev => [...prev, newMsg]);
         });
-        setNewMessage('');
     }
 
     return (
@@ -79,7 +81,7 @@ export function ChatInterface({ jobId, currentUserId }: { jobId: string, current
             <CardContent>
                 <div className="flex flex-col h-[400px] border rounded-lg">
                     <div ref={scrollAreaRef} className="flex-grow p-4 space-y-4 overflow-y-auto bg-muted/20">
-                        {optimisticMessages.map(msg => (
+                        {messages.map(msg => (
                             <div key={msg.id} className={cn('flex items-end gap-2', msg.senderId === currentUserId ? 'justify-end' : 'justify-start')}>
                                 {msg.senderId !== currentUserId && (
                                     <Avatar className="h-8 w-8">
@@ -89,12 +91,11 @@ export function ChatInterface({ jobId, currentUserId }: { jobId: string, current
                                 )}
                                 <div className={cn(
                                     'max-w-xs md:max-w-md p-3 rounded-lg shadow-sm',
-                                    msg.senderId === currentUserId ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-card border rounded-bl-none',
-                                    msg.id.toString().startsWith('optimistic') && 'opacity-70'
+                                    msg.senderId === currentUserId ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-card border rounded-bl-none'
                                 )}>
                                     <p className="text-sm">{msg.content}</p>
                                     <p className={cn('text-xs mt-1 text-right', msg.senderId === currentUserId ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}>
-                                        {msg.id.toString().startsWith('optimistic') ? 'Sending...' : new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'})}
+                                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'})}
                                     </p>
                                 </div>
                                 {msg.senderId === currentUserId && (
