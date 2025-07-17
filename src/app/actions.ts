@@ -43,19 +43,19 @@ export async function createJobAction(data: JobFormValues) {
 }
 
 export async function applyForJobAction(jobId: string, userId: string) {
-    applyToJobInDb(jobId, userId);
+    await applyToJobInDb(jobId, userId);
     revalidatePath(`/jobs/${jobId}`);
     revalidatePath('/dashboard');
 }
 
 export async function markJobCompleteAction(jobId: string) {
-    markJobCompleteInDb(jobId);
+    await markJobCompleteInDb(jobId);
     revalidatePath(`/jobs/${jobId}`);
     revalidatePath('/dashboard');
 }
 
 export async function selectApplicantAction(jobId: string, applicantId: string) {
-    selectApplicantForJobInDb(jobId, applicantId);
+    await selectApplicantForJobInDb(jobId, applicantId);
     revalidatePath(`/jobs/${jobId}`);
     revalidatePath('/dashboard');
 }
@@ -100,19 +100,20 @@ export async function completeOnboardingAction(data: OnboardingFormValues) {
 }
 
 export async function cancelJobAction(jobId: string) {
-    cancelJobInDb(jobId);
+    await cancelJobInDb(jobId);
     revalidatePath('/dashboard');
     revalidatePath('/');
     revalidatePath(`/jobs/${jobId}`);
 }
 
 export async function sendMessageAction(jobId: string, senderId: string, content: string) {
-    const newMessage = createMessageInDb({ jobId, senderId, content });
-    revalidatePath(`/jobs/${jobId}`);
+    const newMessage = await createMessageInDb({ jobId, senderId, content });
+    revalidatePath(`/jobs/${jobId}`); // Revalidate for others viewing the page
     return newMessage;
 }
 
 export async function seedDatabaseAction() {
     await seedDatabase();
     revalidatePath('/');
+    revalidatePath('/dashboard');
 }
