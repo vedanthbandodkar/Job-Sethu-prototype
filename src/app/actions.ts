@@ -4,6 +4,8 @@
 import { generateJobImage } from '@/ai/flows/generate-job-image-flow';
 import { suggestReplies, type SuggestRepliesInput } from '@/ai/flows/suggest-reply-flow';
 import { createJobInDb, applyToJobInDb, markJobCompleteInDb, selectApplicantForJobInDb, createUserInDb, updateUserInDb, cancelJobInDb, createMessageInDb, seedDatabase, deleteMessageFromDb, getJobsFromDb, getJobByIdFromDb, getUserByIdFromDb, getUsersFromDb, getMessagesForJobFromDb } from '@/lib/data'
+import { storage } from '@/lib/firebase';
+import { getDownloadURL, ref, uploadString } from 'firebase/storage';
 import { revalidatePath } from 'next/cache';
 
 // This type now correctly includes the userId
@@ -17,16 +19,38 @@ type JobFormValues = {
   userId: string;
 }
 
+// Helper function to upload base64 image to Firebase Storage
+async function uploadImageToStorage(dataUri: string, jobId: string): Promise<string> {
+    if (!dataUri.startsWith('data:image/')) {
+        console.warn('Invalid data URI, returning placeholder.');
+        return `https://placehold.co/600x400.png`;
+    }
+    const storageRef = ref(storage, `job-images/${jobId}.png`);
+    const uploadResult = await uploadString(storageRef, dataUri, 'data_url');
+    return getDownloadURL(uploadResult.ref);
+}
+
 export async function createJobAction(data: JobFormValues) {
   try {
     const { userId, ...jobDetails } = data;
-
     if (!userId) {
       throw new Error("User ID is required to create a job.");
     }
 
-    // Temporarily use a placeholder image to avoid Firestore size limits
-    const imageUrl = `https://placehold.co/600x400.png`;
+    // Generate a temporary ID for the job to use in the image path
+    const tempJobId = `${userId}-${Date.now()}`;
+    let imageUrl = `https://placehold.co/600x400.png`;
+
+    try {
+        // Generate AI image
+        const generatedDataUri = await generateJobImage(data.title);
+        if (generatedDataUri) {
+            imageUrl = await uploadImageToStorage(generatedDataUri, tempJobId);
+        }
+    } catch (aiError) {
+        console.error("AI image generation or upload failed, falling back to placeholder.", aiError);
+        // Keep the placeholder URL if AI fails
+    }
     
     const newJobData = { 
       ...jobDetails, 
