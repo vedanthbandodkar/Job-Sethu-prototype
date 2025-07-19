@@ -1,5 +1,6 @@
 
 
+
 import { JobCard } from '@/components/job-card';
 import { getJobs } from '@/lib/data';
 import type { Job } from '@/lib/types';
@@ -10,9 +11,9 @@ import { SeedButton } from '@/components/seed-button';
 
 export const dynamic = 'force-dynamic';
 
-export default async function Home({ searchParams }: { searchParams?: { [key: string]: string | string[] | undefined }}) {
-  const query = typeof searchParams?.q === 'string' ? searchParams.q : '';
-  const userId = typeof searchParams?.userId === 'string' ? searchParams.userId : undefined;
+export default async function Home({ searchParams }: { searchParams?: { q?: string; userId?: string }}) {
+  const query = searchParams?.q || '';
+  const userId = searchParams?.userId;
   const jobs = await getJobs(query);
   
   return (
