@@ -1,3 +1,4 @@
+// This file is deprecated. Please use the next.config.js in the root directory.
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: {
@@ -21,7 +22,8 @@ const nextConfig = {
         pathname: '/**',
       },
       {
-        protocol: 'https',
+        protocol: 'https'
+        ,
         hostname: 'lh3.googleusercontent.com',
         port: '',
         pathname: '/**',
