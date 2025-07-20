@@ -2,6 +2,8 @@
 import type { User, Job, ChatMessage } from './types';
 import { db } from './firebase';
 import { collection, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, query, where, orderBy, deleteDoc, serverTimestamp, arrayUnion, Timestamp } from 'firebase/firestore';
+import { storage } from './firebase';
+import { getDownloadURL, ref, uploadString } from 'firebase/storage';
 
 // --- Firestore Data Functions ---
 
@@ -57,25 +59,25 @@ export const getUsersFromDb = async (): Promise<User[]> => {
 };
 
 export const getUserByIdFromDb = async (id: string): Promise<User | undefined> => {
-    const userRef = doc(db, 'users', id);
-    const userSnap = await getDoc(userRef);
-    if (userSnap.exists()) {
-        return { id: userSnap.id, ...userSnap.data() } as User;
-    }
-    // Also check by email for flexibility
-    const q = query(collection(db, 'users'), where('email', '==', id));
-    const querySnapshot = await getDocs(q);
-    if (!querySnapshot.empty) {
-        const doc = querySnapshot.docs[0];
-        return { id: doc.id, ...doc.data() } as User;
+    try {
+        if (!id) return undefined;
+        const userRef = doc(db, 'users', id);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+            return { id: userSnap.id, ...userSnap.data() } as User;
+        }
+    } catch (error) {
+        console.error(`Failed to fetch user by ID: ${id}`, error);
     }
     return undefined;
 };
 
 export const getMessagesForJobFromDb = async (jobId: string): Promise<ChatMessage[]> => {
-    const messagesQuery = query(collection(db, 'messages'), where('jobId', '==', jobId), orderBy('timestamp', 'asc'));
+    // Remove orderBy from query to avoid composite index requirement
+    const messagesQuery = query(collection(db, 'messages'), where('jobId', '==', jobId));
     const messagesSnapshot = await getDocs(messagesQuery);
-    return messagesSnapshot.docs.map(doc => {
+    
+    const messages = messagesSnapshot.docs.map(doc => {
         const data = doc.data();
         return {
             id: doc.id,
@@ -83,6 +85,11 @@ export const getMessagesForJobFromDb = async (jobId: string): Promise<ChatMessag
             timestamp: (data.timestamp as Timestamp)?.toDate() || new Date(),
         } as ChatMessage;
     });
+
+    // Sort the messages in-memory by timestamp
+    messages.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+
+    return messages;
 };
 
 type JobCreationData = {
@@ -554,3 +561,4 @@ export const getUsers = async (): Promise<User[]> => getUsersFromDb();
 export const getUserById = async (id: string): Promise<User | undefined> => getUserByIdFromDb(id);
 export const getMessagesForJob = async (jobId: string): Promise<ChatMessage[]> => getMessagesForJobFromDb(jobId);
 
+  
