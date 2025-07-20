@@ -26,17 +26,17 @@ export default async function JobDetailPage({ params, searchParams }: { params: 
 
   const [poster, worker, applicants, rawMessages] = await Promise.all([
     getUserById(job.posterId),
-    job.workerId ? getUserById(job.workerId) : null,
-    Promise.all(job.applicants.map(id => getUserById(id))).then(users => users.filter((u): u is UserType => u !== undefined)),
+    job.workerId ? getUserById(job.workerId).catch(err => { console.error(`Failed to fetch worker ${job.workerId}`, err); return null; }) : null,
+    Promise.all(job.applicants.map(id => getUserById(id).catch(err => { console.error(`Failed to fetch applicant ${id}`, err); return null; }))).then(users => users.filter((u): u is UserType => u !== null && u !== undefined)),
     getMessagesForJob(job.id)
   ]);
   
-  const allUsersInvolved = [poster, worker, ...applicants].filter((u): u is UserType => u !== undefined);
+  const allUsersInvolved = [poster, worker, ...applicants].filter((u): u is UserType => u !== null && u !== undefined);
   
   const messages = await Promise.all(
     rawMessages.map(async (msg) => {
-      const sender = allUsersInvolved.find(u => u.id === msg.senderId) ?? await getUserById(msg.senderId);
-      return { ...msg, sender };
+      const sender = allUsersInvolved.find(u => u.id === msg.senderId) ?? await getUserById(msg.senderId).catch(() => null);
+      return { ...msg, sender: sender ?? undefined };
     })
   );
 
