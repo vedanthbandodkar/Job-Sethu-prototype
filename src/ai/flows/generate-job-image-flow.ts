@@ -29,7 +29,7 @@ const generateJobImageFlow = ai.defineFlow(
   async (jobTitle) => {
     const {media} = await ai.generate({
       model: 'googleai/gemini-2.0-flash-preview-image-generation',
-      prompt: `Generate a visually appealing and professional image that represents the following job title: "${jobTitle}". The image should be clean, modern, and focus on concepts and metaphors related to the job. For example, for "website designer", an image of abstract code lines or a sleek, minimalist desk setup would be appropriate. Avoid overly detailed scenes or people.`,
+      prompt: `Generate a visually appealing and professional image that represents the following job title: "${jobTitle}". The image should be clean, modern, and focus on concepts and metaphors related to the job. For example, for "website designer", an image of abstract code lines or a sleek, minimalist desk setup would be appropriate. The image must not contain any text, letters, or numbers. Avoid overly detailed scenes or people.`,
       config: {
         responseModalities: ['TEXT', 'IMAGE'],
       },
