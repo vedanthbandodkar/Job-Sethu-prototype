@@ -1,6 +1,7 @@
 
 
 
+
 import { JobCard } from '@/components/job-card';
 import { getJobs } from '@/lib/data';
 import type { Job } from '@/lib/types';
@@ -14,8 +15,15 @@ export const dynamic = 'force-dynamic';
 export default async function Home({ searchParams }: { searchParams?: { q?: string; userId?: string }}) {
   const query = searchParams?.q || '';
   const userId = searchParams?.userId;
-  const jobs = await getJobs(query);
+  const allJobs = await getJobs(query);
   
+  // Custom sort: 'open' jobs first, then others sorted by creation date
+  const sortedJobs = allJobs.sort((a, b) => {
+    if (a.status === 'open' && b.status !== 'open') return -1;
+    if (a.status !== 'open' && b.status === 'open') return 1;
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+
   return (
     <div className="container mx-auto px-4 py-8 md:py-12">
       <section className="mb-12 text-center">
@@ -43,9 +51,9 @@ export default async function Home({ searchParams }: { searchParams?: { q?: stri
             <h2 className="font-headline text-3xl font-bold">{query ? `Search results for "${query}"` : 'Recent Jobs'}</h2>
             <SeedButton />
         </div>
-        {jobs.length > 0 ? (
+        {sortedJobs.length > 0 ? (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {jobs.map((job: Job) => (
+            {sortedJobs.map((job: Job) => (
               <JobCard key={job.id} job={job} userId={userId} />
             ))}
           </div>

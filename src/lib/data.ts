@@ -1,4 +1,5 @@
 
+
 import type { User, Job, ChatMessage } from './types';
 import { db } from './firebase';
 import { collection, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, query, where, orderBy, deleteDoc, serverTimestamp, arrayUnion, Timestamp } from 'firebase/firestore';
@@ -9,8 +10,8 @@ import { getDownloadURL, ref, uploadString } from 'firebase/storage';
 
 export const getJobsFromDb = async (searchQuery?: string): Promise<Job[]> => {
     const jobsCol = collection(db, 'jobs');
-    // SIMPLIFIED QUERY: Only order by creation date.
-    // This avoids the need for a composite index. Filtering by status will happen in-memory.
+    // We only sort by creation date now and do all status filtering client-side
+    // This avoids needing multiple composite indexes for different status filters.
     let q = query(jobsCol, orderBy('createdAt', 'desc'));
 
     const jobSnapshot = await getDocs(q);
@@ -23,9 +24,9 @@ export const getJobsFromDb = async (searchQuery?: string): Promise<Job[]> => {
             createdAt: (data.createdAt as Timestamp)?.toDate() || new Date(),
         } as Job;
     });
-
-    // In-memory filtering
-    jobs = jobs.filter(job => job.status === 'open');
+    
+    // Do not filter by status here anymore, return all jobs that aren't canceled
+    jobs = jobs.filter(job => job.status !== 'canceled' && job.status !== 'assigned');
 
     if (searchQuery) {
         const lowercasedQuery = searchQuery.toLowerCase();
