@@ -553,3 +553,4 @@ export const getJobById = async (id: string): Promise<Job | undefined> => getJob
 export const getUsers = async (): Promise<User[]> => getUsersFromDb();
 export const getUserById = async (id: string): Promise<User | undefined> => getUserByIdFromDb(id);
 export const getMessagesForJob = async (jobId: string): Promise<ChatMessage[]> => getMessagesForJobFromDb(jobId);
+
