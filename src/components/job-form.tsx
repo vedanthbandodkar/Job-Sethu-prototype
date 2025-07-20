@@ -20,7 +20,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
-import { AlertTriangle, Loader2 } from "lucide-react"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { AlertTriangle, Loader2, Sparkles, Upload } from "lucide-react"
 import { createJobAction } from "@/app/actions"
 import { useToast } from "@/hooks/use-toast"
 
@@ -41,7 +42,17 @@ const jobFormSchema = z.object({
     message: "Location is required.",
   }),
   sos: z.boolean().default(false),
-})
+  imageSource: z.enum(['ai', 'upload']).default('ai'),
+  imageFile: z.any().optional(),
+}).refine(data => {
+    if (data.imageSource === 'upload') {
+        return data.imageFile instanceof File;
+    }
+    return true;
+}, {
+    message: "Please upload an image file.",
+    path: ["imageFile"],
+});
 
 type JobFormValues = z.infer<typeof jobFormSchema>
 
@@ -52,6 +63,7 @@ const defaultValues: Partial<JobFormValues> = {
   location: "",
   payment: undefined,
   sos: false,
+  imageSource: 'ai',
 }
 
 export function JobForm() {
@@ -65,12 +77,38 @@ export function JobForm() {
     defaultValues,
     mode: "onChange",
   })
+  
+  const imageSource = form.watch("imageSource");
 
   function onSubmit(data: JobFormValues) {
     const userId = searchParams.get('userId') || 'user-5'; // Default to mock user if not found
 
     startTransition(async () => {
-        const result = await createJobAction({ ...data, userId });
+        let imageDataUri: string | undefined = undefined;
+        if (data.imageSource === 'upload' && data.imageFile) {
+            try {
+                imageDataUri = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = e => resolve(e.target?.result as string);
+                    reader.onerror = e => reject(e);
+                    reader.readAsDataURL(data.imageFile);
+                });
+            } catch (error) {
+                 toast({
+                    variant: "destructive",
+                    title: "Image Read Error",
+                    description: "Could not read the uploaded image file.",
+                })
+                return;
+            }
+        }
+        
+        const result = await createJobAction({ 
+            ...data, 
+            userId, 
+            imageFile: imageDataUri 
+        });
+
         if (result?.success && result.userId) {
             form.reset();
             toast({
@@ -122,6 +160,66 @@ export function JobForm() {
             </FormItem>
           )}
         />
+
+        <FormField
+          control={form.control}
+          name="imageSource"
+          render={({ field }) => (
+            <FormItem className="space-y-3">
+              <FormLabel>Job Image</FormLabel>
+              <FormControl>
+                <RadioGroup
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  className="flex flex-col space-y-1"
+                >
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="ai" />
+                    </FormControl>
+                    <FormLabel className="font-normal flex items-center">
+                      <Sparkles className="mr-2 h-4 w-4 text-primary" /> Generate with AI (Default)
+                    </FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="upload" />
+                    </FormControl>
+                    <FormLabel className="font-normal flex items-center">
+                       <Upload className="mr-2 h-4 w-4" /> Upload your own
+                    </FormLabel>
+                  </FormItem>
+                </RadioGroup>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        {imageSource === 'upload' && (
+            <FormField
+            control={form.control}
+            name="imageFile"
+            render={({ field: { onChange, value, ...rest } }) => (
+              <FormItem>
+                <FormLabel>Upload Image</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="file" 
+                    accept="image/png, image/jpeg, image/jpg"
+                    onChange={e => onChange(e.target.files?.[0])}
+                    {...rest}
+                  />
+                </FormControl>
+                <FormDescription>
+                    We recommend an image with a 16:9 aspect ratio.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+
         <FormField
           control={form.control}
           name="skills"

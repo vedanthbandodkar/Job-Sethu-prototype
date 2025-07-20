@@ -17,6 +17,8 @@ type JobFormValues = {
   location: string;
   sos: boolean;
   userId: string;
+  imageSource: 'ai' | 'upload';
+  imageFile?: string; // data URI for uploaded file
 }
 
 // Helper function to upload base64 image to Firebase Storage
@@ -32,7 +34,7 @@ async function uploadImageToStorage(dataUri: string, jobId: string): Promise<str
 
 export async function createJobAction(data: JobFormValues) {
   try {
-    const { userId, ...jobDetails } = data;
+    const { userId, imageSource, imageFile, ...jobDetails } = data;
     if (!userId) {
       throw new Error("User ID is required to create a job.");
     }
@@ -42,13 +44,18 @@ export async function createJobAction(data: JobFormValues) {
     let imageUrl = `https://placehold.co/600x400.png`;
 
     try {
-        // Generate AI image
-        const generatedDataUri = await generateJobImage(data.title);
-        if (generatedDataUri) {
-            imageUrl = await uploadImageToStorage(generatedDataUri, tempJobId);
+        let imageDataUri: string | null = null;
+        if (imageSource === 'ai') {
+            imageDataUri = await generateJobImage(data.title);
+        } else if (imageSource === 'upload' && imageFile) {
+            imageDataUri = imageFile;
+        }
+
+        if (imageDataUri) {
+            imageUrl = await uploadImageToStorage(imageDataUri, tempJobId);
         }
     } catch (aiError) {
-        console.error("AI image generation or upload failed, falling back to placeholder.", aiError);
+        console.error("Image generation or upload failed, falling back to placeholder.", aiError);
         // Keep the placeholder URL if AI fails
     }
     
