@@ -11,7 +11,9 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-const SuggestJobDetailsInputSchema = z.string().describe('A simple job title provided by the user.');
+const SuggestJobDetailsInputSchema = z.object({
+  title: z.string().describe('A simple job title provided by the user.'),
+});
 export type SuggestJobDetailsInput = z.infer<typeof SuggestJobDetailsInputSchema>;
 
 const SuggestJobDetailsOutputSchema = z.object({
@@ -30,9 +32,9 @@ export type SuggestJobDetailsOutput = z.infer<typeof SuggestJobDetailsOutputSche
 
 
 export async function suggestJobDetails(
-  title: SuggestJobDetailsInput
+  input: SuggestJobDetailsInput
 ): Promise<SuggestJobDetailsOutput> {
-  return suggestJobDetailsFlow(title);
+  return suggestJobDetailsFlow(input);
 }
 
 const prompt = ai.definePrompt({
@@ -44,7 +46,7 @@ A user has provided a job title. Your task is to expand this title into a profes
 
 The description should be helpful and encouraging. The skills should be specific and relevant to the job.
 
-**Job Title:** {{{prompt}}}
+**Job Title:** {{{title}}}
 
 Generate a response based on this title.`,
 });
@@ -55,8 +57,8 @@ const suggestJobDetailsFlow = ai.defineFlow(
     inputSchema: SuggestJobDetailsInputSchema,
     outputSchema: SuggestJobDetailsOutputSchema,
   },
-  async (title) => {
-    const {output} = await prompt(title);
+  async (input) => {
+    const {output} = await prompt(input);
     return output!;
   }
 );

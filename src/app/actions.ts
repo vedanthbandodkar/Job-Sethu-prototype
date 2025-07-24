@@ -178,7 +178,7 @@ export async function suggestJobDetailsAction(title: string) {
     return { success: false, message: 'Please provide a job title first.' };
   }
   try {
-    const result = await suggestJobDetails(title);
+    const result = await suggestJobDetails({ title });
     return { success: true, details: result };
   } catch (error) {
     console.error('Failed to get job details:', error);
