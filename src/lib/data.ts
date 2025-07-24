@@ -26,7 +26,7 @@ export const getJobsFromDb = async (searchQuery?: string): Promise<Job[]> => {
     });
     
     // Do not filter by status here anymore, return all jobs that aren't canceled
-    jobs = jobs.filter(job => job.status !== 'canceled' && job.status !== 'assigned');
+    jobs = jobs.filter(job => job.status !== 'canceled');
 
     if (searchQuery) {
         const lowercasedQuery = searchQuery.toLowerCase();
@@ -563,3 +563,5 @@ export const getUserById = async (id: string): Promise<User | undefined> => getU
 export const getMessagesForJob = async (jobId: string): Promise<ChatMessage[]> => getMessagesForJobFromDb(jobId);
 
   
+
+    
