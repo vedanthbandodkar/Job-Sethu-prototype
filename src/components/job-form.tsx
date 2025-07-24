@@ -22,7 +22,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { AlertTriangle, Loader2, Sparkles, Upload } from "lucide-react"
-import { createJobAction } from "@/app/actions"
+import { createJobAction, suggestJobDetailsAction } from "@/app/actions"
 import { useToast } from "@/hooks/use-toast"
 
 const jobFormSchema = z.object({
@@ -68,6 +68,7 @@ const defaultValues: Partial<JobFormValues> = {
 
 export function JobForm() {
   const [isPending, startTransition] = useTransition();
+  const [isSuggesting, startSuggestingTransition] = useTransition();
   const { toast } = useToast();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -79,6 +80,29 @@ export function JobForm() {
   })
   
   const imageSource = form.watch("imageSource");
+  const titleValue = form.watch("title");
+
+  const handleSuggestDetails = () => {
+    const title = form.getValues("title");
+    startSuggestingTransition(async () => {
+      const result = await suggestJobDetailsAction(title);
+      if (result.success && result.details) {
+        form.setValue("description", result.details.description, { shouldValidate: true });
+        form.setValue("skills", result.details.skills.join(", "), { shouldValidate: true });
+        toast({
+          title: "Details Generated!",
+          description: "The description and skills have been filled in for you.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Suggestion Failed",
+          description: result.message || "Couldn't generate details. Please try again.",
+        });
+      }
+    });
+  };
+
 
   function onSubmit(data: JobFormValues) {
     const userId = searchParams.get('userId') || 'user-5'; // Default to mock user if not found
@@ -139,27 +163,39 @@ export function JobForm() {
               <FormControl>
                 <Input placeholder="e.g., Build a responsive website" {...field} />
               </FormControl>
+               <FormDescription>
+                Start with a clear title. You can use the AI assistant to fill in the rest.
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Job Description</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Provide a detailed description of the job requirements."
-                  className="min-h-[120px]"
-                  {...field}
+
+        <div className="space-y-2">
+            <div className="flex justify-between items-center">
+                <FormLabel>Job Details</FormLabel>
+                 <Button type="button" variant="outline" size="sm" onClick={handleSuggestDetails} disabled={!titleValue || isSuggesting}>
+                    {isSuggesting ? <Loader2 className="animate-spin" /> : <Sparkles />}
+                    Generate with AI
+                </Button>
+            </div>
+             <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                    <FormItem className="!mt-0">
+                    <FormControl>
+                        <Textarea
+                        placeholder="Provide a detailed description of the job requirements."
+                        className="min-h-[120px]"
+                        {...field}
+                        />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
                 />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        </div>
 
         <FormField
           control={form.control}

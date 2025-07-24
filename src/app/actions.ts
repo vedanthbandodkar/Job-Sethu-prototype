@@ -3,6 +3,7 @@
 
 import { generateJobImage } from '@/ai/flows/generate-job-image-flow';
 import { suggestReplies, type SuggestRepliesInput } from '@/ai/flows/suggest-reply-flow';
+import { suggestJobDetails } from '@/ai/flows/suggest-job-details-flow';
 import { createJobInDb, applyToJobInDb, markJobCompleteInDb, selectApplicantForJobInDb, createUserInDb, updateUserInDb, cancelJobInDb, createMessageInDb, seedDatabase, deleteMessageFromDb, getJobsFromDb, getJobByIdFromDb, getUserByIdFromDb, getUsersFromDb, getMessagesForJobFromDb } from '@/lib/data'
 import { storage } from '@/lib/firebase';
 import { getDownloadURL, ref, uploadString } from 'firebase/storage';
@@ -170,4 +171,17 @@ export async function suggestRepliesAction(input: SuggestRepliesInput) {
         console.error('Failed to get suggestions:', error);
         return { success: false, message: 'Could not fetch suggestions.' };
     }
+}
+
+export async function suggestJobDetailsAction(title: string) {
+  if (!title) {
+    return { success: false, message: 'Please provide a job title first.' };
+  }
+  try {
+    const result = await suggestJobDetails(title);
+    return { success: true, details: result };
+  } catch (error) {
+    console.error('Failed to get job details:', error);
+    return { success: false, message: 'Could not generate job details from AI.' };
+  }
 }
