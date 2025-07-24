@@ -59,7 +59,13 @@ const formatChatHistory = (
 
 const prompt = ai.definePrompt({
   name: 'suggestRepliesPrompt',
-  input: {schema: SuggestRepliesInputSchema},
+  input: {
+    schema: z.object({
+      jobTitle: z.string(),
+      jobDescription: z.string(),
+      formattedChatHistory: z.string(),
+    }),
+  },
   output: {schema: SuggestRepliesOutputSchema},
   prompt: `You are a helpful and professional communication assistant for a job marketplace app.
 Your goal is to help users communicate effectively by suggesting relevant replies.
@@ -72,17 +78,9 @@ The suggestions should be natural next steps in the conversation. For example, i
 **Job Description:** {{{jobDescription}}}
 
 **Chat History:**
-{{{user "chatHistory" "currentUserId" formatChatHistory}}}
+{{{formattedChatHistory}}}
 
 Based on the full context, provide suggestions for "You".`,
-  customize: (definition) => {
-    definition.customizers = {
-      user: (renderer, history, currentUserId, formatter) => {
-        return formatter(history, currentUserId);
-      }
-    };
-    return definition;
-  },
 });
 
 const suggestRepliesFlow = ai.defineFlow(
@@ -92,7 +90,16 @@ const suggestRepliesFlow = ai.defineFlow(
     outputSchema: SuggestRepliesOutputSchema,
   },
   async (input) => {
-    const {output} = await prompt(input);
+    const formattedChatHistory = formatChatHistory(
+      input.chatHistory,
+      input.currentUserId
+    );
+
+    const {output} = await prompt({
+      jobTitle: input.jobTitle,
+      jobDescription: input.jobDescription,
+      formattedChatHistory,
+    });
     return output!;
   }
 );
