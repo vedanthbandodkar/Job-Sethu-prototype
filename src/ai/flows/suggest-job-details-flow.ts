@@ -23,7 +23,7 @@ const SuggestJobDetailsOutputSchema = z.object({
   skills: z
     .array(z.string())
     .describe(
-      'An array of 3-5 relevant skills for the job, formatted as individual strings.'
+      'An array of 1-3 of the most relevant skills for the job, formatted as individual strings. Usually, 1 or 2 skills are sufficient.'
     ),
 });
 export type SuggestJobDetailsOutput = z.infer<typeof SuggestJobDetailsOutputSchema>;
