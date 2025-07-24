@@ -31,6 +31,17 @@ type ChatInterfaceProps = {
     messages: EnrichedMessage[];
 };
 
+// A small component to safely render timestamps on the client
+function ClientTimestamp({ timestamp }: { timestamp: Date }) {
+    const [formattedTime, setFormattedTime] = useState('');
+    useEffect(() => {
+        setFormattedTime(new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    }, [timestamp]);
+
+    return <>{formattedTime}</>;
+}
+
+
 export function ChatInterface({ job, currentUserId, messages }: ChatInterfaceProps) {
     const [newMessage, setNewMessage] = useState('');
     const [isSending, startSendingTransition] = useTransition();
@@ -142,7 +153,7 @@ export function ChatInterface({ job, currentUserId, messages }: ChatInterfacePro
                                 )}>
                                     <p className="text-sm">{msg.content}</p>
                                     <p className={cn('text-xs mt-1 text-right', msg.senderId === currentUserId ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}>
-                                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'})}
+                                        <ClientTimestamp timestamp={msg.timestamp} />
                                     </p>
                                 </div>
 
