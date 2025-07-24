@@ -171,8 +171,8 @@ export function JobForm() {
           )}
         />
 
-        <div className="space-y-2">
-            <div className="flex justify-between items-center">
+        <div className="space-y-4">
+            <div className="flex justify-between items-center mb-2">
                 <FormLabel>Job Details</FormLabel>
                  <Button type="button" variant="outline" size="sm" onClick={handleSuggestDetails} disabled={!titleValue || isSuggesting}>
                     {isSuggesting ? <Loader2 className="animate-spin" /> : <Sparkles />}
@@ -196,7 +196,24 @@ export function JobForm() {
                 )}
                 />
         </div>
-
+        
+        <FormField
+          control={form.control}
+          name="skills"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Required Skills</FormLabel>
+              <FormControl>
+                <Input placeholder="e.g., React, Plumbing, Graphic Design" {...field} />
+              </FormControl>
+              <FormDescription>
+                Enter skills separated by commas.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
         <FormField
           control={form.control}
           name="imageSource"
@@ -256,22 +273,6 @@ export function JobForm() {
         )}
 
 
-        <FormField
-          control={form.control}
-          name="skills"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Required Skills</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g., React, Plumbing, Graphic Design" {...field} />
-              </FormControl>
-              <FormDescription>
-                Enter skills separated by commas.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <FormField
             control={form.control}
