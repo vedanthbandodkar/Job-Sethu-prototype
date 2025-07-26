@@ -8,7 +8,7 @@ import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
 import { cn } from '@/lib/utils';
-import { Send, Loader2, Sparkles, Trash2, Bot } from 'lucide-react';
+import { Send, Loader2, Sparkles, Trash2, Bot, Phone } from 'lucide-react';
 import { sendMessageAction, suggestRepliesAction, deleteMessageAction } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -22,6 +22,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { getUserById } from '@/lib/data';
 
 type EnrichedMessage = ChatMessage & { sender?: User };
 
@@ -48,11 +49,28 @@ export function ChatInterface({ job, currentUserId, messages }: ChatInterfacePro
     const [isDeleting, startDeletingTransition] = useTransition();
     const [isSuggesting, startSuggestingTransition] = useTransition();
 
+    const [otherUser, setOtherUser] = useState<User | null>(null);
     const [suggestions, setSuggestions] = useState<string[]>([]);
     
     const scrollAreaRef = useRef<HTMLDivElement>(null);
     const formRef = useRef<HTMLFormElement>(null);
     const { toast } = useToast();
+
+    useEffect(() => {
+      let isMounted = true;
+      const fetchOtherUser = async () => {
+        const otherUserId = job.posterId === currentUserId ? job.workerId : job.posterId;
+        if (otherUserId) {
+            const user = await getUserById(otherUserId);
+            if(isMounted && user) {
+                setOtherUser(user);
+            }
+        }
+      };
+
+      fetchOtherUser();
+      return () => { isMounted = false };
+    }, [job.posterId, job.workerId, currentUserId]);
     
     useEffect(() => {
         if (scrollAreaRef.current) {
@@ -104,9 +122,39 @@ export function ChatInterface({ job, currentUserId, messages }: ChatInterfacePro
 
     return (
         <Card>
-            <CardHeader>
-                <CardTitle className="font-headline">Chat</CardTitle>
-                <CardDescription>Communicate with the other party about the job.</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                    <CardTitle className="font-headline">Chat</CardTitle>
+                    <CardDescription>Communicate with the other party about the job.</CardDescription>
+                </div>
+                {otherUser && (
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="outline" size="icon">
+                                <Phone className="h-4 w-4" />
+                                <span className="sr-only">Call {otherUser.name}</span>
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                            <AlertDialogTitle>Call {otherUser.name}?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                You can call {otherUser.name} at the following phone number to discuss the job details.
+                                <div className="font-bold text-lg text-foreground my-4 text-center bg-muted p-3 rounded-md">
+                                    {otherUser.phoneNumber}
+                                </div>
+                                Standard call charges may apply.
+                            </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction asChild>
+                                <a href={`tel:${otherUser.phoneNumber}`}>Call Now</a>
+                            </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                )}
             </CardHeader>
             <CardContent>
                 <div className="flex flex-col h-[400px] border rounded-lg">

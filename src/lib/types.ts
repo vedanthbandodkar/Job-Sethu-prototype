@@ -6,6 +6,7 @@ export type User = {
   avatarUrl: string;
   skills: string[];
   location:string;
+  phoneNumber?: string;
 };
 
 export type Job = {

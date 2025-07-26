@@ -148,6 +148,7 @@ export const createUserInDb = async (data: { id?: string; name: string; email: s
         avatarUrl: data.avatarUrl || `https://i.pravatar.cc/150?u=${data.email}`,
         skills: [],
         location: 'Not Specified',
+        phoneNumber: '987-654-3210', // Default phone number
     };
     await setDoc(userRef, newUser);
     return { id: userId, ...newUser };
@@ -194,6 +195,7 @@ const getInitialMockData = () => ({
             avatarUrl: 'https://i.pravatar.cc/150?u=user-1',
             skills: ['React', 'Node.js', 'Web Design'],
             location: 'Panjim, Goa',
+            phoneNumber: '987-654-3210',
           },
           {
             id: 'user-2',
@@ -202,6 +204,7 @@ const getInitialMockData = () => ({
             avatarUrl: 'https://i.pravatar.cc/150?u=user-2',
             skills: ['Gardening', 'Landscaping'],
             location: 'Margao, Goa',
+            phoneNumber: '987-654-3211',
           },
           {
             id: 'user-3',
@@ -210,6 +213,7 @@ const getInitialMockData = () => ({
             avatarUrl: 'https://i.pravatar.cc/150?u=user-3',
             skills: ['Content Writing', 'SEO', 'Digital Marketing'],
             location: 'Vasco, Goa',
+            phoneNumber: '987-654-3212',
           },
             {
             id: 'user-4',
@@ -218,6 +222,7 @@ const getInitialMockData = () => ({
             avatarUrl: 'https://i.pravatar.cc/150?u=user-4',
             skills: ['Event Management', 'Volunteering'],
             location: 'Mapusa, Goa',
+            phoneNumber: '987-654-3213',
           },
           {
             id: 'user-5',
@@ -226,6 +231,7 @@ const getInitialMockData = () => ({
             avatarUrl: 'https://i.pravatar.cc/150?u=user-5',
             skills: ['Photography', 'Video Editing', 'Data Entry'],
             location: 'Ponda, Goa',
+            phoneNumber: '987-654-3214',
           },
     ],
     jobs: [
