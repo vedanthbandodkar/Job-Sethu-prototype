@@ -140,9 +140,11 @@ export function ChatInterface({ job, currentUserId, messages }: ChatInterfacePro
                             <AlertDialogTitle>Call {otherUser.name}?</AlertDialogTitle>
                             <AlertDialogDescription>
                                 You can call {otherUser.name} at the following phone number to discuss the job details.
-                                <div className="font-bold text-lg text-foreground my-4 text-center bg-muted p-3 rounded-md">
-                                    {otherUser.phoneNumber}
-                                </div>
+                            </AlertDialogDescription>
+                            <div className="font-bold text-lg text-foreground my-4 text-center bg-muted p-3 rounded-md">
+                                {otherUser.phoneNumber}
+                            </div>
+                            <AlertDialogDescription>
                                 Standard call charges may apply.
                             </AlertDialogDescription>
                             </AlertDialogHeader>
