@@ -4,7 +4,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { useTransition, useState } from "react"
+import { useTransition, useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
@@ -39,7 +39,8 @@ export function EditProfileForm({ user }: { user: User }) {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   const router = useRouter();
-  const [closeDialog, setCloseDialog] = useState(false);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -85,8 +86,8 @@ export function EditProfileForm({ user }: { user: User }) {
                 title: "Profile Updated!",
                 description: "Your profile has been saved successfully.",
             });
-            setCloseDialog(true);
             router.refresh();
+            closeButtonRef.current?.click();
         } else {
             toast({
                 variant: "destructive",
@@ -179,7 +180,7 @@ export function EditProfileForm({ user }: { user: User }) {
         />
         <div className="flex justify-end gap-2">
             <DialogClose asChild>
-                <Button type="button" variant="outline">Cancel</Button>
+                <Button type="button" variant="outline" ref={closeButtonRef}>Cancel</Button>
             </DialogClose>
              <Button type="submit" disabled={isPending}>
                 {isPending ? (
@@ -193,7 +194,6 @@ export function EditProfileForm({ user }: { user: User }) {
             </Button>
         </div>
       </form>
-      {closeDialog && <DialogClose />}
     </Form>
   )
 }
