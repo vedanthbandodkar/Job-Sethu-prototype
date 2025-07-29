@@ -1,5 +1,6 @@
 
 
+
 import type { User, Job, ChatMessage } from './types';
 import { db } from './firebase';
 import { collection, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, query, where, orderBy, deleteDoc, serverTimestamp, arrayUnion, Timestamp } from 'firebase/firestore';
@@ -39,6 +40,25 @@ export const getJobsFromDb = async (searchQuery?: string): Promise<Job[]> => {
     return jobs;
 };
 
+export const getCompletedJobsForUserFromDb = async (userId: string): Promise<Job[]> => {
+    const jobsCol = collection(db, 'jobs');
+    const q = query(jobsCol, 
+        where('workerId', '==', userId), 
+        where('status', 'in', ['completed', 'paid']),
+        orderBy('createdAt', 'desc')
+    );
+    const jobSnapshot = await getDocs(q);
+    return jobSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            id: doc.id,
+            ...data,
+            createdAt: (data.createdAt as Timestamp)?.toDate() || new Date(),
+        } as Job;
+    });
+};
+
+
 export const getJobByIdFromDb = async (id: string): Promise<Job | undefined> => {
     const jobRef = doc(db, 'jobs', id);
     const jobSnap = await getDoc(jobRef);
@@ -65,7 +85,12 @@ export const getUserByIdFromDb = async (id: string): Promise<User | undefined> =
         const userRef = doc(db, 'users', id);
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
-            return { id: userSnap.id, ...userSnap.data() } as User;
+            const data = userSnap.data();
+            return { 
+                id: userSnap.id, 
+                ...data,
+                createdAt: (data.createdAt as Timestamp)?.toDate() || new Date(Date.now() - 1000 * 60 * 60 * 24 * 30), // Fallback for older users
+            } as User;
         }
     } catch (error) {
         console.error(`Failed to fetch user by ID: ${id}`, error);
@@ -149,18 +174,24 @@ export const createUserInDb = async (data: { id?: string; name: string; email: s
         skills: [],
         location: 'Not Specified',
         phoneNumber: '987-654-3210', // Default phone number
+        about: '',
+        createdAt: new Date(),
     };
     await setDoc(userRef, newUser);
     return { id: userId, ...newUser };
 };
 
-export const updateUserInDb = async (data: { userId: string, name: string; location: string; skills: string[]; }) => {
+export const updateUserInDb = async (data: { userId: string, name: string; location: string; skills: string[]; about?: string }) => {
     const userRef = doc(db, 'users', data.userId);
-    await updateDoc(userRef, {
+    const updateData: any = {
         name: data.name,
         location: data.location,
         skills: data.skills,
-    });
+    };
+    if (data.about !== undefined) {
+        updateData.about = data.about;
+    }
+    await updateDoc(userRef, updateData);
 };
 
 export const cancelJobInDb = async (jobId: string) => {
@@ -196,6 +227,8 @@ const getInitialMockData = () => ({
             skills: ['React', 'Node.js', 'Web Design'],
             location: 'Panjim, Goa',
             phoneNumber: '987-654-3210',
+            about: "I'm a passionate web developer and student, skilled in the MERN stack. I enjoy building responsive and user-friendly applications. I've completed several projects on this platform and am always eager to take on new challenges.",
+            createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 90), // 90 days ago
           },
           {
             id: 'user-2',
@@ -205,6 +238,8 @@ const getInitialMockData = () => ({
             skills: ['Gardening', 'Landscaping'],
             location: 'Margao, Goa',
             phoneNumber: '987-654-3211',
+            about: 'I have a green thumb and love transforming outdoor spaces. Whether it\'s regular maintenance or a complete garden makeover, I\'m your person. Reliable and hardworking.',
+            createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 120), // 120 days ago
           },
           {
             id: 'user-3',
@@ -214,6 +249,8 @@ const getInitialMockData = () => ({
             skills: ['Content Writing', 'SEO', 'Digital Marketing'],
             location: 'Vasco, Goa',
             phoneNumber: '987-654-3212',
+            about: 'Creative writer with a knack for digital marketing. I can help your brand grow with engaging content and smart SEO strategies. Let\'s connect!',
+            createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 60), // 60 days ago
           },
             {
             id: 'user-4',
@@ -223,6 +260,8 @@ const getInitialMockData = () => ({
             skills: ['Event Management', 'Volunteering'],
             location: 'Mapusa, Goa',
             phoneNumber: '987-654-3213',
+            about: 'Experienced in organizing events and coordinating teams. I am enthusiastic, organized, and love bringing people together for a great cause.',
+            createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30), // 30 days ago
           },
           {
             id: 'user-5',
@@ -232,6 +271,8 @@ const getInitialMockData = () => ({
             skills: ['Photography', 'Video Editing', 'Data Entry'],
             location: 'Ponda, Goa',
             phoneNumber: '987-654-3214',
+            about: 'Detail-oriented and versatile, with skills in media and data management. I capture moments beautifully and ensure data is handled with precision.',
+            createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 150), // 150 days ago
           },
     ],
     jobs: [
@@ -538,7 +579,10 @@ export const seedDatabase = async () => {
     
     // Seed users
     for (const user of initialData.users) {
-        await setDoc(doc(db, 'users', user.id), user);
+        await setDoc(doc(db, 'users', user.id), {
+            ...user,
+            createdAt: Timestamp.fromDate(user.createdAt || new Date()),
+        });
     }
     
     // Seed jobs
@@ -563,6 +607,7 @@ export const seedDatabase = async () => {
 
 // The following functions now call the Firestore functions
 export const getJobs = async (searchQuery?: string): Promise<Job[]> => getJobsFromDb(searchQuery);
+export const getCompletedJobsForUser = async (userId: string): Promise<Job[]> => getCompletedJobsForUserFromDb(userId);
 export const getJobById = async (id: string): Promise<Job | undefined> => getJobByIdFromDb(id);
 export const getUsers = async (): Promise<User[]> => getUsersFromDb();
 export const getUserById = async (id: string): Promise<User | undefined> => getUserByIdFromDb(id);
@@ -571,3 +616,4 @@ export const getMessagesForJob = async (jobId: string): Promise<ChatMessage[]> =
   
 
     
+

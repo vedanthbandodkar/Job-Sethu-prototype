@@ -7,6 +7,8 @@ export type User = {
   skills: string[];
   location:string;
   phoneNumber?: string;
+  about?: string;
+  createdAt?: Date;
 };
 
 export type Job = {
