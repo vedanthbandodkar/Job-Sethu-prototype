@@ -180,9 +180,9 @@ export function EditProfileForm({ user }: { user: User }) {
         />
         <div className="flex justify-end gap-2">
             <DialogClose asChild>
-                <Button type="button" variant="outline" ref={closeButtonRef}>Cancel</Button>
+                <Button type="button" variant="outline">Cancel</Button>
             </DialogClose>
-             <Button type="submit" disabled={isPending}>
+            <Button type="submit" disabled={isPending}>
                 {isPending ? (
                     <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -193,6 +193,7 @@ export function EditProfileForm({ user }: { user: User }) {
                 )}
             </Button>
         </div>
+        <DialogClose ref={closeButtonRef} className="hidden" />
       </form>
     </Form>
   )
