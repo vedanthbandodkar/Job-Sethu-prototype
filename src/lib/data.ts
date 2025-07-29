@@ -1,6 +1,5 @@
 
 
-
 import type { User, Job, ChatMessage } from './types';
 import { db } from './firebase';
 import { collection, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, query, where, orderBy, deleteDoc, serverTimestamp, arrayUnion, Timestamp } from 'firebase/firestore';
@@ -42,13 +41,11 @@ export const getJobsFromDb = async (searchQuery?: string): Promise<Job[]> => {
 
 export const getCompletedJobsForUserFromDb = async (userId: string): Promise<Job[]> => {
     const jobsCol = collection(db, 'jobs');
-    const q = query(jobsCol, 
-        where('workerId', '==', userId), 
-        where('status', 'in', ['completed', 'paid']),
-        orderBy('createdAt', 'desc')
-    );
+    // Query only by workerId to avoid needing a composite index.
+    const q = query(jobsCol, where('workerId', '==', userId));
     const jobSnapshot = await getDocs(q);
-    return jobSnapshot.docs.map(doc => {
+
+    const allUserJobs = jobSnapshot.docs.map(doc => {
         const data = doc.data();
         return {
             id: doc.id,
@@ -56,6 +53,13 @@ export const getCompletedJobsForUserFromDb = async (userId: string): Promise<Job
             createdAt: (data.createdAt as Timestamp)?.toDate() || new Date(),
         } as Job;
     });
+
+    // Filter and sort in memory
+    const completedJobs = allUserJobs
+        .filter(job => job.status === 'completed' || job.status === 'paid')
+        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+    return completedJobs;
 };
 
 
@@ -617,3 +621,6 @@ export const getMessagesForJob = async (jobId: string): Promise<ChatMessage[]> =
 
     
 
+
+
+    
