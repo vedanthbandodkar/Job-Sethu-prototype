@@ -1,4 +1,5 @@
 
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,9 @@ import { Pencil, MapPin, Briefcase, CalendarCheck, Calendar } from "lucide-react
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 import { format, formatDistanceToNow } from 'date-fns';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { EditProfileForm } from "@/components/edit-profile-form";
+import type { User } from "@/lib/types";
 
 export const dynamic = 'force-dynamic';
 
@@ -42,10 +46,23 @@ export default async function ProfilePage({ searchParams }: { searchParams?: { u
                                     </CardDescription>
                                 </div>
                             </div>
-                            <Button variant="outline" size="icon" className="absolute top-4 right-4">
-                                <Pencil className="h-4 w-4" />
-                                <span className="sr-only">Edit Profile</span>
-                            </Button>
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button variant="outline" size="icon" className="absolute top-4 right-4">
+                                        <Pencil className="h-4 w-4" />
+                                        <span className="sr-only">Edit Profile</span>
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-[480px]">
+                                    <DialogHeader>
+                                        <DialogTitle>Edit Profile</DialogTitle>
+                                        <DialogDescription>
+                                            Make changes to your profile here. Click save when you're done.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <EditProfileForm user={user as User} />
+                                </DialogContent>
+                            </Dialog>
                         </CardHeader>
                         <CardContent className="mt-2">
                              <div className="space-y-4 text-sm text-muted-foreground">

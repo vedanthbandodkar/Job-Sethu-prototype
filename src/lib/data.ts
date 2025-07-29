@@ -185,7 +185,14 @@ export const createUserInDb = async (data: { id?: string; name: string; email: s
     return { id: userId, ...newUser };
 };
 
-export const updateUserInDb = async (data: { userId: string, name: string; location: string; skills: string[]; about?: string }) => {
+export const updateUserInDb = async (data: { 
+    userId: string;
+    name: string;
+    location: string;
+    skills: string[];
+    about?: string;
+    avatarUrl?: string; 
+}) => {
     const userRef = doc(db, 'users', data.userId);
     const updateData: any = {
         name: data.name,
@@ -194,6 +201,9 @@ export const updateUserInDb = async (data: { userId: string, name: string; locat
     };
     if (data.about !== undefined) {
         updateData.about = data.about;
+    }
+    if (data.avatarUrl) {
+        updateData.avatarUrl = data.avatarUrl;
     }
     await updateDoc(userRef, updateData);
 };
@@ -458,7 +468,7 @@ const getInitialMockData = () => ({
             id: 'job-13',
             title: 'Event Photographer for a Birthday Party',
             description: 'Photographer needed for a small birthday party on Saturday. Should be friendly and good with people. Deliver 50 edited photos.',
-            skills: ['Photography', 'Event Photography'],
+            skills: ['Event Photography'],
             payment: 2500,
             sos: false,
             location: 'Vasco, Goa',

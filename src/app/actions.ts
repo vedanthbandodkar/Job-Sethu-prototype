@@ -23,12 +23,12 @@ type JobFormValues = {
 }
 
 // Helper function to upload base64 image to Firebase Storage
-async function uploadImageToStorage(dataUri: string, jobId: string): Promise<string> {
+async function uploadImageToStorage(dataUri: string, path: string): Promise<string> {
     if (!dataUri.startsWith('data:image/')) {
         console.warn('Invalid data URI, returning placeholder.');
         return `https://placehold.co/600x400.png`;
     }
-    const storageRef = ref(storage, `job-images/${jobId}.png`);
+    const storageRef = ref(storage, path);
     const uploadResult = await uploadString(storageRef, dataUri, 'data_url');
     return getDownloadURL(uploadResult.ref);
 }
@@ -53,7 +53,7 @@ export async function createJobAction(data: JobFormValues) {
         }
 
         if (imageDataUri) {
-            imageUrl = await uploadImageToStorage(imageDataUri, tempJobId);
+            imageUrl = await uploadImageToStorage(imageDataUri, `job-images/${tempJobId}.png`);
         }
     } catch (aiError) {
         console.error("Image generation or upload failed, falling back to placeholder.", aiError);
@@ -184,4 +184,39 @@ export async function suggestJobDetailsAction(title: string) {
     console.error('Failed to get job details:', error);
     return { success: false, message: 'Could not generate job details from AI.' };
   }
+}
+
+type ProfileFormValues = {
+    userId: string;
+    name: string;
+    location: string;
+    skills: string;
+    about: string;
+    avatarFile?: string; // data URI for uploaded file
+}
+
+export async function updateUserProfileAction(data: ProfileFormValues) {
+    try {
+        const { userId, avatarFile, ...profileData } = data;
+        let avatarUrl: string | undefined = undefined;
+
+        if (avatarFile) {
+            avatarUrl = await uploadImageToStorage(avatarFile, `avatars/${userId}.png`);
+        }
+
+        await updateUserInDb({
+            userId,
+            ...profileData,
+            skills: profileData.skills.split(',').map(s => s.trim()).filter(Boolean),
+            avatarUrl,
+        });
+
+        revalidatePath(`/profile?userId=${userId}`);
+        revalidatePath('/dashboard'); // User name might be displayed there
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to update profile:', error);
+        const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
+        return { success: false, message: errorMessage };
+    }
 }
