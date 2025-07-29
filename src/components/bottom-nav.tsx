@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -11,11 +12,12 @@ export function BottomNavBar() {
   const searchParams = useSearchParams();
   const userId = searchParams.get('userId');
 
-  const constructUrl = (baseHref: string) => {
+  // This function now preserves the active user's session (userId) across all links,
+  // preventing the profile from switching when just viewing another user's page.
+  const constructUrlWithUser = (baseHref: string) => {
+    if (!userId) return baseHref;
     const params = new URLSearchParams();
-    if (userId) {
-      params.set('userId', userId);
-    }
+    params.set('userId', userId);
     
     // Preserve the 'tab' param only for the dashboard link
     if (baseHref === '/dashboard' && searchParams.has('tab')) {
@@ -37,7 +39,10 @@ export function BottomNavBar() {
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:hidden">
       <div className="container grid h-16 grid-cols-4 items-center">
         {navItems.map((item) => {
-          const finalHref = constructUrl(item.href);
+          // The profile link should point to the current user's profile page.
+          // Other links will also carry the userId to maintain the session.
+          const finalHref = constructUrlWithUser(item.href);
+
           if (item.isButton) {
             return (
               <div key={item.href} className="flex justify-center">
