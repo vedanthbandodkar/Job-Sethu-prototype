@@ -15,15 +15,21 @@ import type { User } from "@/lib/types";
 
 export const dynamic = 'force-dynamic';
 
-export default async function ProfilePage({ searchParams }: { searchParams?: { userId?: string } }) {
-    // Use the passed userId or default to the main mock user
-    const userId = searchParams?.userId || 'user-5';
-    const user = await getUserById(userId);
-    const completedJobs = await getCompletedJobsForUser(userId);
+export default async function ProfilePage({ searchParams }: { searchParams?: { userId?: string, viewUserId?: string } }) {
+    // The current logged-in user
+    const currentUserId = searchParams?.userId || 'user-5';
+    // The user whose profile is being viewed
+    const profileUserId = searchParams?.viewUserId || currentUserId;
+    
+    const user = await getUserById(profileUserId);
+    const completedJobs = await getCompletedJobsForUser(profileUserId);
 
     if (!user) {
         return <p className="p-8 text-center">User not found.</p>;
     }
+    
+    // Check if the current user is viewing their own profile
+    const isOwnProfile = currentUserId === profileUserId;
 
     const memberSince = user.createdAt ? format(user.createdAt, "MMMM yyyy") : 'N/A';
 
@@ -46,7 +52,8 @@ export default async function ProfilePage({ searchParams }: { searchParams?: { u
                                     </CardDescription>
                                 </div>
                             </div>
-                            <Dialog>
+                           {isOwnProfile && (
+                             <Dialog>
                                 <DialogTrigger asChild>
                                     <Button variant="outline" size="icon" className="absolute top-4 right-4">
                                         <Pencil className="h-4 w-4" />
@@ -63,6 +70,7 @@ export default async function ProfilePage({ searchParams }: { searchParams?: { u
                                     <EditProfileForm user={user as User} />
                                 </DialogContent>
                             </Dialog>
+                           )}
                         </CardHeader>
                         <CardContent className="mt-2">
                              <div className="space-y-4 text-sm text-muted-foreground">
@@ -115,7 +123,7 @@ export default async function ProfilePage({ searchParams }: { searchParams?: { u
                                                 <CalendarCheck className="h-5 w-5 text-primary"/>
                                             </div>
                                             <div>
-                                                <Link href={`/jobs/${job.id}?userId=${userId}`} className="font-semibold hover:underline">{job.title}</Link>
+                                                <Link href={`/jobs/${job.id}?userId=${currentUserId}`} className="font-semibold hover:underline">{job.title}</Link>
                                                 <p className="text-sm text-muted-foreground">
                                                     Completed {formatDistanceToNow(job.createdAt, { addSuffix: true })}
                                                 </p>

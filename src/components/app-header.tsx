@@ -22,7 +22,12 @@ export function AppHeader() {
     const params = new URLSearchParams();
     params.set('userId', userId);
 
-    // If navigating to dashboard, preserve the 'tab' param if it exists
+    // For the profile link, we always want it to point to the current user's own profile.
+    if (baseHref === '/profile') {
+      return `/profile?userId=${userId}`;
+    }
+    
+    // Preserve other relevant params
     if (baseHref === '/dashboard' && searchParams.has('tab')) {
       params.set('tab', searchParams.get('tab')!);
     }

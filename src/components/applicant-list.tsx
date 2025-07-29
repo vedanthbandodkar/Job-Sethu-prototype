@@ -1,3 +1,4 @@
+
 "use client"
 
 import type { User } from "@/lib/types";
@@ -8,7 +9,7 @@ import Link from "next/link";
 import { Check, Loader2 } from "lucide-react";
 import { useTransition, useState } from "react";
 import { selectApplicantAction } from "@/app/actions";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 type ApplicantListProps = {
     applicants: User[];
@@ -19,6 +20,8 @@ export function ApplicantList({ applicants, jobId }: ApplicantListProps) {
     const [isPending, startTransition] = useTransition();
     const [selectedApplicantId, setSelectedApplicantId] = useState<string | null>(null);
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const currentUserId = searchParams.get('userId');
 
     if (applicants.length === 0) {
         return (
@@ -56,7 +59,7 @@ export function ApplicantList({ applicants, jobId }: ApplicantListProps) {
                                 </Avatar>
                                 <div>
                                     <p className="font-semibold">{applicant.name}</p>
-                                    <Link href={`/profile?userId=${applicant.id}`} className="text-sm text-primary hover:underline">View Profile</Link>
+                                    <Link href={`/profile?userId=${currentUserId}&viewUserId=${applicant.id}`} className="text-sm text-primary hover:underline">View Profile</Link>
                                 </div>
                             </div>
                             <Button size="sm" onClick={() => handleSelectApplicant(applicant.id)} disabled={isPending}>

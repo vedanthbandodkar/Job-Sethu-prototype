@@ -19,6 +19,11 @@ export function BottomNavBar() {
     const params = new URLSearchParams();
     params.set('userId', userId);
     
+    // For the profile link, always point to the current user's own profile.
+    if (baseHref === '/profile') {
+        return `/profile?userId=${userId}`;
+    }
+
     // Preserve the 'tab' param only for the dashboard link
     if (baseHref === '/dashboard' && searchParams.has('tab')) {
       params.set('tab', searchParams.get('tab')!);
