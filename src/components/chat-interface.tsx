@@ -95,11 +95,14 @@ export function ChatInterface({ job, currentUserId, messages }: ChatInterfacePro
     const handleGetSuggestions = () => {
         startSuggestingTransition(async () => {
             const chatHistory = messages.map(m => ({ senderId: m.senderId, content: m.content }));
+            const userRole = job.posterId === currentUserId ? 'poster' : 'worker';
+            
             const result = await suggestRepliesAction({ 
                 jobTitle: job.title, 
                 jobDescription: job.description, 
                 chatHistory, 
-                currentUserId 
+                currentUserId,
+                userRole
             });
 
             if (result.success && result.suggestions) {

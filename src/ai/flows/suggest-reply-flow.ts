@@ -24,8 +24,11 @@ const SuggestRepliesInputSchema = z.object({
     .describe('The existing chat history between the two users.'),
   currentUserId: z
     .string()
+    .describe('The ID of the user for whom we are generating suggestions.'),
+  userRole: z
+    .enum(['poster', 'worker'])
     .describe(
-      'The ID of the user for whom we are generating suggestions.'
+      'The role of the user for whom we are generating suggestions (either the job poster or the applicant/worker).'
     ),
 });
 export type SuggestRepliesInput = z.infer<typeof SuggestRepliesInputSchema>;
@@ -64,6 +67,7 @@ const prompt = ai.definePrompt({
       jobTitle: z.string(),
       jobDescription: z.string(),
       formattedChatHistory: z.string(),
+      userRole: z.string(),
     }),
   },
   output: {schema: SuggestRepliesOutputSchema},
@@ -71,6 +75,8 @@ const prompt = ai.definePrompt({
 Your goal is to help users communicate effectively by suggesting relevant replies.
 
 You will be given the job details and the current chat history. Based on this context, generate 3-4 short, relevant, and professionally-toned reply suggestions for the user identified as "You".
+
+The current user's role is: **{{{userRole}}}**. Tailor your suggestions to fit this role. For example, a 'poster' might ask about availability or qualifications, while a 'worker' might confirm details or ask about next steps.
 
 The suggestions should be natural next steps in the conversation. For example, if the last message was a question, suggest answers. If it was a statement, suggest follow-up questions or acknowledgements. Do not suggest replies that have already been said.
 
@@ -80,7 +86,7 @@ The suggestions should be natural next steps in the conversation. For example, i
 **Chat History:**
 {{{formattedChatHistory}}}
 
-Based on the full context, provide suggestions for "You".`,
+Based on the full context, provide suggestions for "You" (the {{{userRole}}}).`,
 });
 
 const suggestRepliesFlow = ai.defineFlow(
@@ -99,6 +105,7 @@ const suggestRepliesFlow = ai.defineFlow(
       jobTitle: input.jobTitle,
       jobDescription: input.jobDescription,
       formattedChatHistory,
+      userRole: input.userRole,
     });
     return output!;
   }
