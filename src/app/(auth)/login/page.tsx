@@ -2,12 +2,20 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTransition } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Loader2 } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { loginAction } from '@/app/actions';
+
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
@@ -20,18 +28,54 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
     )
 }
 
+const loginSchema = z.object({
+    email: z.string().email("Please enter a valid email address."),
+    password: z.string().min(1, "Password is required."),
+});
+
+type LoginFormValues = z.infer<typeof loginSchema>;
+
+
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const [isPending, startTransition] = useTransition();
+
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
   const handleGoogleLogin = () => {
-    // In a real app, this is where you'd call Firebase.
+    // In a real app, this is where you'd call Firebase Google Sign-In.
     // For this prototype, we'll simulate a successful login.
     toast({
       title: 'Login Successful!',
       description: 'Redirecting you to your dashboard.',
     });
     router.push('/dashboard');
+  };
+
+  const onSubmit = (data: LoginFormValues) => {
+    startTransition(async () => {
+      const result = await loginAction(data);
+      if (result.success && result.userId) {
+        toast({
+          title: 'Login Successful!',
+          description: 'Redirecting you to your dashboard.',
+        });
+        router.push(`/dashboard?userId=${result.userId}`);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Login Failed",
+          description: result.message || "Invalid credentials. Please try again.",
+        });
+      }
+    });
   };
   
   return (
@@ -41,17 +85,40 @@ export default function LoginPage() {
         <CardDescription>Enter your email below to login to your account.</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" placeholder="m@example.com" required />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="password">Password</Label>
-          <Input id="password" type="password" required />
-        </div>
-        <Button type="submit" className="w-full">
-          Login
-        </Button>
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+                <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                            <Input type="email" placeholder="m@example.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                            <Input type="password" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <Button type="submit" className="w-full" disabled={isPending}>
+                    {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Login
+                </Button>
+            </form>
+        </Form>
         <Separator className="my-2" />
         <Button variant="outline" className="w-full" onClick={handleGoogleLogin}>
           <GoogleIcon className="mr-2 h-4 w-4" />

@@ -52,7 +52,7 @@ export default function SignupPage() {
   });
 
   const handleGoogleSignUp = () => {
-    // In a real app, this is where you'd call Firebase.
+    // In a real app, this is where you'd call Firebase Google Sign-In.
     // For this prototype, we'll simulate a successful login.
     toast({
       title: 'Sign Up Successful!',
@@ -63,7 +63,7 @@ export default function SignupPage() {
 
   const onSubmit = (data: SignupFormValues) => {
     startTransition(async () => {
-      const result = await signupAction({ name: data.fullName, email: data.email });
+      const result = await signupAction({ name: data.fullName, email: data.email, password: data.password });
       if (result.success && result.userId) {
         toast({
           title: 'Account Created!',

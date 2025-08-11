@@ -5,7 +5,8 @@ import { generateJobImage } from '@/ai/flows/generate-job-image-flow';
 import { suggestReplies, type SuggestRepliesInput } from '@/ai/flows/suggest-reply-flow';
 import { suggestJobDetails } from '@/ai/flows/suggest-job-details-flow';
 import { createJobInDb, applyToJobInDb, markJobCompleteInDb, selectApplicantForJobInDb, createUserInDb, updateUserInDb, cancelJobInDb, createMessageInDb, seedDatabase, deleteMessageFromDb, getJobsFromDb, getJobByIdFromDb, getUserByIdFromDb, getUsersFromDb, getMessagesForJobFromDb } from '@/lib/data'
-import { storage } from '@/lib/firebase';
+import { auth, storage } from '@/lib/firebase';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { getDownloadURL, ref, uploadString } from 'firebase/storage';
 import { revalidatePath } from 'next/cache';
 
@@ -103,17 +104,52 @@ export async function selectApplicantAction(jobId: string, applicantId: string) 
 type SignupFormValues = {
   name: string;
   email: string;
+  password?: string;
 }
 
 export async function signupAction(data: SignupFormValues) {
   try {
-    const newUser = await createUserInDb({ name: data.name, email: data.email });
+    if (!data.password) {
+        return { success: false, message: "Password is required."};
+    }
+    const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+    const firebaseUser = userCredential.user;
+    
+    const newUser = await createUserInDb({ id: firebaseUser.uid, name: data.name, email: data.email });
     return { success: true, userId: newUser.id };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to create user:', error);
-    return { success: false, message: 'An unexpected error occurred. Please try again.' };
+    let message = 'An unexpected error occurred. Please try again.';
+    if (error.code === 'auth/email-already-in-use') {
+        message = 'This email address is already in use.';
+    }
+    return { success: false, message };
   }
 }
+
+type LoginValues = {
+  email: string;
+  password?: string;
+};
+
+export async function loginAction(data: LoginValues) {
+  try {
+    if (!data.password) {
+        return { success: false, message: "Password is required."};
+    }
+    const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
+    return { success: true, userId: userCredential.user.uid };
+  } catch (error: any) {
+    console.error('Login failed:', error);
+    let message = 'Invalid credentials. Please try again.';
+    // Firebase returns specific error codes for common issues
+    if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        message = 'Invalid email or password.';
+    }
+    return { success: false, message: message };
+  }
+}
+
 
 type OnboardingFormValues = {
     userId: string;
