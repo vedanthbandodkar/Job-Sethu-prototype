@@ -1,4 +1,5 @@
 
+
 import { JobCard } from '@/components/job-card';
 import { getJobs } from '@/lib/data';
 import type { Job } from '@/lib/types';
