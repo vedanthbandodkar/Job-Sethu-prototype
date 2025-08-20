@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { AppHeader } from '@/components/app-header';
-import { Toaster } from '@/components/ui/toaster';
+import { Toaster } from '@/components/ui/toaster';  
 import { cn } from '@/lib/utils';
 import { BottomNavBar } from '@/components/bottom-nav';
 import { ThemeProvider } from '@/components/theme-provider';
