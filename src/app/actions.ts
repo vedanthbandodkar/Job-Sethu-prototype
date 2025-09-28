@@ -15,6 +15,7 @@ type JobFormValues = {
   location: string;
   sos: boolean;
   userId: string;
+  imageUrl?: string;
 }
 
 export async function createJobAction(data: JobFormValues) {
@@ -25,8 +26,12 @@ export async function createJobAction(data: JobFormValues) {
       throw new Error("User ID is required to create a job.");
     }
 
-    const imageUrl = await generateJobImage(jobDetails.title);
-    const newJobData = { ...jobDetails, imageUrl, posterId: userId };
+    let finalImageUrl = data.imageUrl;
+    if (!finalImageUrl) {
+        finalImageUrl = await generateJobImage(jobDetails.title);
+    }
+    
+    const newJobData = { ...jobDetails, imageUrl: finalImageUrl, posterId: userId };
     
     const result = await createJobInDb(newJobData);
     
