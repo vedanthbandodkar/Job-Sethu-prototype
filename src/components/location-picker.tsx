@@ -91,4 +91,3 @@ export function LocationPicker({ isOpen, onClose, onLocationSelect }: LocationPi
     </Dialog>
   );
 }
-
