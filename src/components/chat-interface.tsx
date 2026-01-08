@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/alert-dialog"
 import dynamic from 'next/dynamic';
 import { Skeleton } from './ui/skeleton';
-import Link from 'next/link';
 
 const LocationPicker = dynamic(() => import('./location-picker').then(mod => mod.LocationPicker), {
     ssr: false,
@@ -127,11 +126,20 @@ export function ChatInterface({ job, currentUserId, messages }: ChatInterfacePro
     }
 
     const renderMessageContent = (msg: EnrichedMessage) => {
+        const isSender = msg.senderId === currentUserId;
         if (msg.content.startsWith('LOCATION::')) {
             const [lat, lng] = msg.content.replace('LOCATION::', '').split(',');
             const url = `https://www.google.com/maps?q=${lat},${lng}`;
             return (
-                <a href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 underline text-primary">
+                <a 
+                    href={url} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className={cn(
+                        "flex items-center gap-2 underline",
+                        isSender ? "text-primary-foreground/90 hover:text-primary-foreground" : "text-primary"
+                    )}
+                >
                     <MapPin className="h-4 w-4" />
                     <span>View Location</span>
                 </a>
