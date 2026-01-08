@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import { LatLngExpression, Icon } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -27,7 +27,6 @@ const defaultIcon = new Icon({
 });
 
 type LocationPickerProps = {
-  isOpen: boolean;
   onClose: () => void;
   onLocationSelect: (lat: number, lng: number) => void;
 };
@@ -44,17 +43,9 @@ const LocationMarker = ({ position, setPosition }: { position: LatLngExpression 
   );
 };
 
-export function LocationPicker({ isOpen, onClose, onLocationSelect }: LocationPickerProps) {
+export function LocationPicker({ onClose, onLocationSelect }: LocationPickerProps) {
   const [markerPosition, setMarkerPosition] = useState<LatLngExpression | null>(null);
-  const [mapCenterKey, setMapCenterKey] = useState(Date.now());
   const defaultCenter: LatLngExpression = [15.4989, 73.8278]; // Centered on Goa
-
-  useEffect(() => {
-    if (isOpen) {
-      setMarkerPosition(null); // Reset position when dialog opens
-      setMapCenterKey(Date.now()); // Force re-render of map
-    }
-  }, [isOpen]);
 
   const handleConfirm = () => {
     if (markerPosition && 'lat' in markerPosition && 'lng' in markerPosition) {
@@ -64,7 +55,7 @@ export function LocationPicker({ isOpen, onClose, onLocationSelect }: LocationPi
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Select a Location</DialogTitle>
@@ -73,15 +64,13 @@ export function LocationPicker({ isOpen, onClose, onLocationSelect }: LocationPi
           </DialogDescription>
         </DialogHeader>
         <div className="h-[400px] w-full rounded-md overflow-hidden">
-            {isOpen && (
-                 <MapContainer key={mapCenterKey} center={defaultCenter} zoom={13} scrollWheelZoom={true} style={{ height: '100%', width: '100%' }}>
-                    <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    />
-                    <LocationMarker position={markerPosition} setPosition={setMarkerPosition} />
-                </MapContainer>
-            )}
+             <MapContainer center={defaultCenter} zoom={13} scrollWheelZoom={true} style={{ height: '100%', width: '100%' }}>
+                <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                <LocationMarker position={markerPosition} setPosition={setMarkerPosition} />
+            </MapContainer>
         </div>
         <DialogFooter>
             <Button variant="outline" onClick={onClose}>Cancel</Button>

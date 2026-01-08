@@ -246,7 +246,6 @@ export function ChatInterface({ job, currentUserId, messages }: ChatInterfacePro
                 </div>
                  {showLocationPicker && (
                     <LocationPicker
-                        isOpen={showLocationPicker}
                         onClose={() => setShowLocationPicker(false)}
                         onLocationSelect={handleLocationSelect}
                     />
@@ -255,5 +254,3 @@ export function ChatInterface({ job, currentUserId, messages }: ChatInterfacePro
         </Card>
     );
 }
-
-    
