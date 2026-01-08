@@ -8,7 +8,7 @@ import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
 import { cn } from '@/lib/utils';
-import { Send, Loader2, Sparkles, Trash2, Bot } from 'lucide-react';
+import { Send, Loader2, Sparkles, Trash2, Bot, MapPin } from 'lucide-react';
 import { sendMessageAction, suggestRepliesAction, deleteMessageAction } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -22,6 +22,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import dynamic from 'next/dynamic';
+import { Skeleton } from './ui/skeleton';
+import Link from 'next/link';
+
+const LocationPicker = dynamic(() => import('./location-picker').then(mod => mod.LocationPicker), {
+    ssr: false,
+    loading: () => <Skeleton className="h-[400px] w-full" />,
+});
 
 type EnrichedMessage = ChatMessage & { sender?: User };
 
@@ -31,11 +39,28 @@ type ChatInterfaceProps = {
     messages: EnrichedMessage[];
 };
 
+function ClientTime({ timestamp }: { timestamp: Date }) {
+    const [time, setTime] = useState('');
+  
+    useEffect(() => {
+      setTime(new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'}));
+    }, [timestamp]);
+  
+    if (!time) {
+        // You can return a placeholder or null
+        return <span className="text-xs opacity-70">...</span>;
+    }
+
+    return <>{time}</>;
+}
+
+
 export function ChatInterface({ job, currentUserId, messages }: ChatInterfaceProps) {
     const [newMessage, setNewMessage] = useState('');
     const [isSending, startSendingTransition] = useTransition();
     const [isDeleting, startDeletingTransition] = useTransition();
     const [isSuggesting, startSuggestingTransition] = useTransition();
+    const [showLocationPicker, setShowLocationPicker] = useState(false);
 
     const [suggestions, setSuggestions] = useState<string[]>([]);
     
@@ -49,9 +74,8 @@ export function ChatInterface({ job, currentUserId, messages }: ChatInterfacePro
         }
     }, [messages]);
 
-    const handleSendMessage = async (e: React.FormEvent) => {
-        e.preventDefault();
-        const trimmedMessage = newMessage.trim();
+    const handleSendMessage = async (content: string) => {
+        const trimmedMessage = content.trim();
         if (!trimmedMessage) return;
         
         formRef.current?.reset();
@@ -61,6 +85,11 @@ export function ChatInterface({ job, currentUserId, messages }: ChatInterfacePro
         startSendingTransition(async () => {
             await sendMessageAction(job.id, currentUserId, trimmedMessage);
         });
+    }
+
+    const handleFormSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        handleSendMessage(newMessage);
     }
 
     const handleGetSuggestions = () => {
@@ -90,6 +119,28 @@ export function ChatInterface({ job, currentUserId, messages }: ChatInterfacePro
             await deleteMessageAction(messageId);
         });
     }
+
+    const handleLocationSelect = (lat: number, lng: number) => {
+        const locationMessage = `LOCATION::${lat},${lng}`;
+        handleSendMessage(locationMessage);
+        setShowLocationPicker(false);
+    }
+
+    const renderMessageContent = (msg: EnrichedMessage) => {
+        if (msg.content.startsWith('LOCATION::')) {
+            const [lat, lng] = msg.content.replace('LOCATION::', '').split(',');
+            const url = `https://www.google.com/maps?q=${lat},${lng}`;
+            return (
+                <a href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 underline text-primary">
+                    <MapPin className="h-4 w-4" />
+                    <span>View Location</span>
+                </a>
+            )
+        }
+        return <p className="text-sm">{msg.content}</p>;
+    }
+    
+    const isPoster = job.posterId === currentUserId;
 
     return (
         <Card>
@@ -137,9 +188,10 @@ export function ChatInterface({ job, currentUserId, messages }: ChatInterfacePro
                                         </AlertDialog>
                                     )}
                                    
-                                    <p className="text-sm">{msg.content}</p>
+                                    {renderMessageContent(msg)}
+
                                     <p className={cn('text-xs mt-1 text-right', msg.senderId === currentUserId ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}>
-                                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'})}
+                                        <ClientTime timestamp={msg.timestamp} />
                                     </p>
                                 </div>
                                 {msg.senderId === currentUserId && (
@@ -168,11 +220,17 @@ export function ChatInterface({ job, currentUserId, messages }: ChatInterfacePro
                         </div>
                     )}
 
-                    <form ref={formRef} onSubmit={handleSendMessage} className="p-2 border-t flex items-center gap-2 bg-background">
+                    <form ref={formRef} onSubmit={handleFormSubmit} className="p-2 border-t flex items-center gap-2 bg-background">
                         <Button type="button" size="icon" variant="ghost" onClick={handleGetSuggestions} disabled={isSuggesting || isSending}>
                             {isSuggesting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                             <span className="sr-only">Get Suggestions</span>
                         </Button>
+                         {isPoster && (
+                            <Button type="button" size="icon" variant="ghost" onClick={() => setShowLocationPicker(true)}>
+                                <MapPin className="h-4 w-4" />
+                                <span className="sr-only">Share Location</span>
+                            </Button>
+                        )}
                         <Input 
                             value={newMessage}
                             onChange={e => setNewMessage(e.target.value)}
@@ -186,7 +244,16 @@ export function ChatInterface({ job, currentUserId, messages }: ChatInterfacePro
                         </Button>
                     </form>
                 </div>
+                 {showLocationPicker && (
+                    <LocationPicker
+                        isOpen={showLocationPicker}
+                        onClose={() => setShowLocationPicker(false)}
+                        onLocationSelect={handleLocationSelect}
+                    />
+                )}
             </CardContent>
         </Card>
     );
 }
+
+    
