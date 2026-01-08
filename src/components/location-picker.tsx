@@ -1,6 +1,7 @@
+
 "use client"
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 import {
   Dialog,
@@ -12,6 +13,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "./ui/skeleton";
+import { LocateFixed, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 type LocationPickerProps = {
   onClose: () => void;
@@ -34,6 +37,11 @@ export function LocationPicker({
 }: LocationPickerProps) {
   const [markerPosition, setMarkerPosition] =
     useState<{ lat: number, lng: number } | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
+  const { toast } = useToast();
+  
+  const mapRef = useRef<google.maps.Map | null>(null);
+
 
   const handleMapClick = (e: google.maps.MapMouseEvent) => {
     if (e.latLng) {
@@ -48,6 +56,41 @@ export function LocationPicker({
     if (markerPosition) {
       onLocationSelect(markerPosition.lat, markerPosition.lng);
       onClose();
+    }
+  };
+
+  const handleGetCurrentLocation = () => {
+    setIsLocating(true);
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const newPos = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude,
+                };
+                setMarkerPosition(newPos);
+                if (mapRef.current) {
+                    mapRef.current.panTo(newPos);
+                    mapRef.current.setZoom(15);
+                }
+                setIsLocating(false);
+            },
+            () => {
+                toast({
+                    variant: "destructive",
+                    title: "Location Access Denied",
+                    description: "Please enable location services in your browser to use this feature.",
+                });
+                setIsLocating(false);
+            }
+        );
+    } else {
+        toast({
+            variant: "destructive",
+            title: "Geolocation Not Supported",
+            description: "Your browser does not support geolocation.",
+        });
+        setIsLocating(false);
     }
   };
   
@@ -77,7 +120,7 @@ export function LocationPicker({
         <DialogHeader>
           <DialogTitle>Select a Location</DialogTitle>
           <DialogDescription>
-            Click on the map to place a marker for the meeting point.
+            Click on the map to place a marker, or use your current location.
           </DialogDescription>
         </DialogHeader>
 
@@ -91,6 +134,8 @@ export function LocationPicker({
                     center={defaultCenter}
                     zoom={13}
                     onClick={handleMapClick}
+                    onLoad={(map) => { mapRef.current = map }}
+                    onUnmount={() => { mapRef.current = null }}
                     options={{
                         fullscreenControl: false,
                         mapTypeControl: false,
@@ -102,13 +147,19 @@ export function LocationPicker({
             </LoadScript>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button onClick={handleConfirm} disabled={!markerPosition}>
-            Confirm Location
-          </Button>
+        <DialogFooter className="sm:justify-between flex-col-reverse sm:flex-row gap-2">
+           <Button variant="outline" onClick={handleGetCurrentLocation} disabled={isLocating} className="w-full sm:w-auto">
+                {isLocating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LocateFixed className="mr-2 h-4 w-4" />}
+                Use My Location
+            </Button>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
+                Cancel
+            </Button>
+            <Button onClick={handleConfirm} disabled={!markerPosition} className="w-full sm:w-auto">
+                Confirm Location
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
