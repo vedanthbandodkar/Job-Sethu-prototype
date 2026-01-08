@@ -65,14 +65,14 @@ export function LocationPicker({
 
   const handleClose = () => {
     if (mapRef.current) {
-      mapRef.current.remove(); // ✅ CRITICAL FIX
+      mapRef.current.remove(); 
       mapRef.current = null;
     }
     onClose();
   };
 
   return (
-    <Dialog open={true} onOpenChange={handleClose}>
+    <Dialog open={true} onOpenChange={(isOpen) => !isOpen && handleClose()}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Select a Location</DialogTitle>
