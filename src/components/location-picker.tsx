@@ -1,11 +1,7 @@
-
 "use client"
 
-import { useEffect, useRef, useState } from "react";
-import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
-import { LatLngExpression, Icon, Map as LeafletMap } from "leaflet";
-import "leaflet/dist/leaflet.css";
-
+import { useState } from "react";
+import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 import {
   Dialog,
   DialogContent,
@@ -15,35 +11,21 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-
-const defaultIcon = new Icon({
-  iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
-  shadowSize: [41, 41],
-});
+import { Skeleton } from "./ui/skeleton";
 
 type LocationPickerProps = {
   onClose: () => void;
   onLocationSelect: (lat: number, lng: number) => void;
 };
 
-const LocationMarker = ({
-  position,
-  setPosition,
-}: {
-  position: LatLngExpression | null;
-  setPosition: (pos: LatLngExpression) => void;
-}) => {
-  useMapEvents({
-    click(e) {
-      setPosition(e.latlng);
-    },
-  });
+const containerStyle = {
+  width: '100%',
+  height: '400px'
+};
 
-  return position ? <Marker position={position} icon={defaultIcon} /> : null;
+const defaultCenter = {
+  lat: 15.4989,
+  lng: 73.8278
 };
 
 export function LocationPicker({
@@ -51,29 +33,46 @@ export function LocationPicker({
   onLocationSelect,
 }: LocationPickerProps) {
   const [markerPosition, setMarkerPosition] =
-    useState<LatLngExpression | null>(null);
+    useState<{ lat: number, lng: number } | null>(null);
 
-  const mapRef = useRef<LeafletMap | null>(null);
-
-  const defaultCenter: LatLngExpression = [15.4989, 73.8278];
+  const handleMapClick = (e: google.maps.MapMouseEvent) => {
+    if (e.latLng) {
+      setMarkerPosition({
+        lat: e.latLng.lat(),
+        lng: e.latLng.lng(),
+      });
+    }
+  };
 
   const handleConfirm = () => {
-    if (markerPosition && "lat" in markerPosition) {
+    if (markerPosition) {
       onLocationSelect(markerPosition.lat, markerPosition.lng);
-      handleClose();
+      onClose();
     }
   };
+  
+  const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
-  const handleClose = () => {
-    if (mapRef.current) {
-      mapRef.current.remove(); 
-      mapRef.current = null;
-    }
-    onClose();
-  };
+  if (!googleMapsApiKey) {
+    return (
+        <Dialog open={true} onOpenChange={(isOpen) => !isOpen && onClose()}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle className="text-destructive">Configuration Error</DialogTitle>
+                <DialogDescription>
+                    The Google Maps API key is missing. Please add it to your environment variables to use this feature.
+                </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+                <Button onClick={onClose}>Close</Button>
+            </DialogFooter>
+        </DialogContent>
+        </Dialog>
+    )
+  }
 
   return (
-    <Dialog open={true} onOpenChange={(isOpen) => !isOpen && handleClose()}>
+    <Dialog open={true} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent forceMount className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Select a Location</DialogTitle>
@@ -82,29 +81,29 @@ export function LocationPicker({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="h-[400px] w-full rounded-md overflow-hidden">
-          <MapContainer
-            center={defaultCenter}
-            zoom={13}
-            scrollWheelZoom
-            style={{ height: "100%", width: "100%" }}
-            whenCreated={(map) => {
-              mapRef.current = map;
-            }}
-          >
-            <TileLayer
-              attribution='&copy; OpenStreetMap contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <LocationMarker
-              position={markerPosition}
-              setPosition={setMarkerPosition}
-            />
-          </MapContainer>
+        <div className="h-[400px] w-full rounded-md overflow-hidden bg-muted">
+            <LoadScript
+                googleMapsApiKey={googleMapsApiKey}
+                loadingElement={<Skeleton className="h-full w-full" />}
+            >
+                <GoogleMap
+                    mapContainerStyle={containerStyle}
+                    center={defaultCenter}
+                    zoom={13}
+                    onClick={handleMapClick}
+                    options={{
+                        fullscreenControl: false,
+                        mapTypeControl: false,
+                        streetViewControl: false,
+                    }}
+                >
+                {markerPosition && <Marker position={markerPosition} />}
+                </GoogleMap>
+            </LoadScript>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={handleClose}>
+          <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
           <Button onClick={handleConfirm} disabled={!markerPosition}>
