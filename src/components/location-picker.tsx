@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useEffect, useRef, useState } from "react";
@@ -73,7 +74,7 @@ export function LocationPicker({
 
   return (
     <Dialog open={true} onOpenChange={(isOpen) => !isOpen && handleClose()}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent forceMount className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Select a Location</DialogTitle>
           <DialogDescription>
