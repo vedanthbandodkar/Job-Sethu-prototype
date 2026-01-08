@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useRef } from "react";
-import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
+import { GoogleMap, useLoadScript, Marker } from "@react-google-maps/api";
 import {
   Dialog,
   DialogContent,
@@ -21,15 +21,12 @@ type LocationPickerProps = {
   onLocationSelect: (lat: number, lng: number) => void;
 };
 
-const containerStyle = {
-  width: '100%',
-  height: '400px'
-};
-
 const defaultCenter = {
   lat: 15.4989,
   lng: 73.8278
 };
+
+const libraries: "places"[] = ["places"];
 
 export function LocationPicker({
   onClose,
@@ -41,7 +38,13 @@ export function LocationPicker({
   const { toast } = useToast();
   
   const mapRef = useRef<google.maps.Map | null>(null);
+  
+  const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: googleMapsApiKey || "",
+    libraries,
+  });
 
   const handleMapClick = (e: google.maps.MapMouseEvent) => {
     if (e.latLng) {
@@ -94,25 +97,41 @@ export function LocationPicker({
     }
   };
   
-  const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  const renderMap = () => {
+    if (loadError || !googleMapsApiKey) {
+      return (
+        <div className="flex items-center justify-center h-full text-destructive text-center p-4">
+          <div>
+            <p className="font-semibold">Configuration Error</p>
+            <p className="text-sm">Could not load Google Maps. Please ensure the API key is correct and valid.</p>
+          </div>
+        </div>
+      );
+    }
 
-  if (!googleMapsApiKey) {
+    if (!isLoaded) {
+      return <Skeleton className="h-full w-full" />;
+    }
+
     return (
-        <Dialog open={true} onOpenChange={(isOpen) => !isOpen && onClose()}>
-        <DialogContent>
-            <DialogHeader>
-                <DialogTitle className="text-destructive">Configuration Error</DialogTitle>
-                <DialogDescription>
-                    The Google Maps API key is missing. Please add it to your environment variables to use this feature.
-                </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-                <Button onClick={onClose}>Close</Button>
-            </DialogFooter>
-        </DialogContent>
-        </Dialog>
-    )
+        <GoogleMap
+            mapContainerStyle={{ width: '100%', height: '100%' }}
+            center={defaultCenter}
+            zoom={13}
+            onClick={handleMapClick}
+            onLoad={(map) => { mapRef.current = map }}
+            onUnmount={() => { mapRef.current = null }}
+            options={{
+                fullscreenControl: false,
+                mapTypeControl: false,
+                streetViewControl: false,
+            }}
+        >
+        {markerPosition && <Marker position={markerPosition} />}
+        </GoogleMap>
+    );
   }
+
 
   return (
     <Dialog open={true} onOpenChange={(isOpen) => !isOpen && onClose()}>
@@ -125,26 +144,7 @@ export function LocationPicker({
         </DialogHeader>
 
         <div className="h-[400px] w-full rounded-md overflow-hidden bg-muted">
-            <LoadScript
-                googleMapsApiKey={googleMapsApiKey}
-                loadingElement={<Skeleton className="h-full w-full" />}
-            >
-                <GoogleMap
-                    mapContainerStyle={containerStyle}
-                    center={defaultCenter}
-                    zoom={13}
-                    onClick={handleMapClick}
-                    onLoad={(map) => { mapRef.current = map }}
-                    onUnmount={() => { mapRef.current = null }}
-                    options={{
-                        fullscreenControl: false,
-                        mapTypeControl: false,
-                        streetViewControl: false,
-                    }}
-                >
-                {markerPosition && <Marker position={markerPosition} />}
-                </GoogleMap>
-            </LoadScript>
+            {renderMap()}
         </div>
 
         <DialogFooter className="sm:justify-between flex-col-reverse sm:flex-row gap-2">
