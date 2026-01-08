@@ -1,10 +1,9 @@
+"use client"
 
-"use client";
-
-import { useState } from 'react';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
-import { LatLngExpression, Icon } from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import { useEffect, useRef, useState } from "react";
+import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import { LatLngExpression, Icon, Map as LeafletMap } from "leaflet";
+import "leaflet/dist/leaflet.css";
 
 import {
   Dialog,
@@ -12,18 +11,17 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter
+  DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from './ui/button';
+import { Button } from "@/components/ui/button";
 
-// Leaflet's default icon path might not work well with Next.js, so we fix it here.
 const defaultIcon = new Icon({
-    iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
-    shadowSize: [41, 41]
+  iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
+  shadowSize: [41, 41],
 });
 
 type LocationPickerProps = {
@@ -31,31 +29,50 @@ type LocationPickerProps = {
   onLocationSelect: (lat: number, lng: number) => void;
 };
 
-const LocationMarker = ({ position, setPosition }: { position: LatLngExpression | null, setPosition: (pos: LatLngExpression) => void }) => {
+const LocationMarker = ({
+  position,
+  setPosition,
+}: {
+  position: LatLngExpression | null;
+  setPosition: (pos: LatLngExpression) => void;
+}) => {
   useMapEvents({
     click(e) {
       setPosition(e.latlng);
     },
   });
 
-  return position === null ? null : (
-    <Marker position={position} icon={defaultIcon}></Marker>
-  );
+  return position ? <Marker position={position} icon={defaultIcon} /> : null;
 };
 
-export function LocationPicker({ onClose, onLocationSelect }: LocationPickerProps) {
-  const [markerPosition, setMarkerPosition] = useState<LatLngExpression | null>(null);
-  const defaultCenter: LatLngExpression = [15.4989, 73.8278]; // Centered on Goa
+export function LocationPicker({
+  onClose,
+  onLocationSelect,
+}: LocationPickerProps) {
+  const [markerPosition, setMarkerPosition] =
+    useState<LatLngExpression | null>(null);
+
+  const mapRef = useRef<LeafletMap | null>(null);
+
+  const defaultCenter: LatLngExpression = [15.4989, 73.8278];
 
   const handleConfirm = () => {
-    if (markerPosition && 'lat' in markerPosition && 'lng' in markerPosition) {
+    if (markerPosition && "lat" in markerPosition) {
       onLocationSelect(markerPosition.lat, markerPosition.lng);
-      onClose();
+      handleClose();
     }
   };
 
+  const handleClose = () => {
+    if (mapRef.current) {
+      mapRef.current.remove(); // ✅ CRITICAL FIX
+      mapRef.current = null;
+    }
+    onClose();
+  };
+
   return (
-    <Dialog open={true} onOpenChange={onClose}>
+    <Dialog open={true} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Select a Location</DialogTitle>
@@ -63,18 +80,35 @@ export function LocationPicker({ onClose, onLocationSelect }: LocationPickerProp
             Click on the map to place a marker for the meeting point.
           </DialogDescription>
         </DialogHeader>
+
         <div className="h-[400px] w-full rounded-md overflow-hidden">
-             <MapContainer center={defaultCenter} zoom={13} scrollWheelZoom={true} style={{ height: '100%', width: '100%' }}>
-                <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                <LocationMarker position={markerPosition} setPosition={setMarkerPosition} />
-            </MapContainer>
+          <MapContainer
+            center={defaultCenter}
+            zoom={13}
+            scrollWheelZoom
+            style={{ height: "100%", width: "100%" }}
+            whenCreated={(map) => {
+              mapRef.current = map;
+            }}
+          >
+            <TileLayer
+              attribution='&copy; OpenStreetMap contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            <LocationMarker
+              position={markerPosition}
+              setPosition={setMarkerPosition}
+            />
+          </MapContainer>
         </div>
+
         <DialogFooter>
-            <Button variant="outline" onClick={onClose}>Cancel</Button>
-            <Button onClick={handleConfirm} disabled={!markerPosition}>Confirm Location</Button>
+          <Button variant="outline" onClick={handleClose}>
+            Cancel
+          </Button>
+          <Button onClick={handleConfirm} disabled={!markerPosition}>
+            Confirm Location
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
