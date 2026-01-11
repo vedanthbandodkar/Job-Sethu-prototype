@@ -8,6 +8,7 @@ export type User = {
   avatarUrl: string;
   skills: string[];
   location:string;
+  about?: string;
 };
 
 // This represents the structure in Firestore, using server Timestamps

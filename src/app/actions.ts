@@ -198,3 +198,33 @@ export async function deleteMessageAction(jobId: string, messageId: string, user
     revalidatePath(`/jobs/${jobId}`);
     return { success: true };
 }
+
+type ProfileFormValues = {
+    name: string;
+    location: string;
+    skills: string;
+    about?: string;
+}
+
+export async function updateUserProfileAction(data: ProfileFormValues, userId: string) {
+    if (!userId) {
+        return { success: false, message: "Authentication required." };
+    }
+
+    try {
+        const userRef = adminFirestore.collection('users').doc(userId);
+        await userRef.update({
+            name: data.name,
+            location: data.location,
+            skills: data.skills.split(',').map(s => s.trim()).filter(Boolean),
+            about: data.about || "",
+        });
+
+        revalidatePath('/profile');
+        revalidatePath(`/profile/${userId}`);
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to update user profile:', error);
+        return { success: false, message: 'An unexpected error occurred.' };
+    }
+}

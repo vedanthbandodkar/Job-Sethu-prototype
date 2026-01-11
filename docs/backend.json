@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "User": {
@@ -9,7 +10,8 @@
         "email": { "type": "string", "format": "email" },
         "avatarUrl": { "type": "string", "format": "uri" },
         "skills": { "type": "array", "items": { "type": "string" } },
-        "location": { "type": "string" }
+        "location": { "type": "string" },
+        "about": { "type": "string" }
       },
       "required": ["name", "email"]
     },
