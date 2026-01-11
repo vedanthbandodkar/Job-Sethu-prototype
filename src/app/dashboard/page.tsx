@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { JobWithDate } from '@/lib/types';
 import { Briefcase, CheckCircle } from 'lucide-react';
 import { useUser, useFirestore } from '@/firebase';
-import { collection, query, where, orderBy, or } from 'firebase/firestore';
+import { collection, query, where, orderBy } from 'firebase/firestore';
 import { useCollection } from 'react-firebase-hooks/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSearchParams } from 'next/navigation';
@@ -17,24 +17,52 @@ export default function DashboardPage() {
   const { user, loading: userLoading } = useUser();
   const searchParams = useSearchParams();
 
-  // A single query to get all jobs relevant to the user.
-  const allUserJobsQuery = user 
-    ? query(
-        collection(db!, 'jobs'), 
-        or(
-          where('posterId', '==', user.uid),
-          where('applicantIds', 'array-contains', user.uid),
-          where('workerId', '==', user.uid)
-        ),
-        orderBy('createdAt', 'desc')
-      ) 
-    : null;
-  
-  const [allJobsSnapshot, allJobsLoading] = useCollection(allUserJobsQuery);
+  // --- Start of New Data Fetching Logic ---
 
-  const allJobs = useMemo(() => 
-    allJobsSnapshot?.docs.map(doc => ({ id: doc.id, ...doc.data(), createdAt: doc.data().createdAt.toDate() })) as JobWithDate[] | undefined
-  , [allJobsSnapshot]);
+  // Query 1: Jobs posted by the user
+  const postedJobsQuery = user && db
+    ? query(collection(db, 'jobs'), where('posterId', '==', user.uid))
+    : null;
+  const [postedJobsSnapshot, postedJobsLoading] = useCollection(postedJobsQuery);
+
+  // Query 2: Jobs the user has applied to
+  const appliedJobsQuery = user && db
+    ? query(collection(db, 'jobs'), where('applicantIds', 'array-contains', user.uid))
+    : null;
+  const [appliedJobsSnapshot, appliedJobsLoading] = useCollection(appliedJobsQuery);
+
+  // Query 3: Jobs the user is assigned to
+  const assignedJobsQuery = user && db
+    ? query(collection(db, 'jobs'), where('workerId', '==', user.uid))
+    : null;
+  const [assignedJobsSnapshot, assignedJobsLoading] = useCollection(assignedJobsQuery);
+  
+  const allJobs = useMemo(() => {
+    if (!postedJobsSnapshot || !appliedJobsSnapshot || !assignedJobsSnapshot) {
+      return undefined;
+    }
+    
+    const jobsMap = new Map<string, JobWithDate>();
+
+    const processSnapshot = (snapshot: typeof postedJobsSnapshot) => {
+      snapshot.docs.forEach(doc => {
+        if (!jobsMap.has(doc.id)) {
+          jobsMap.set(doc.id, {
+            id: doc.id,
+            ...doc.data(),
+            createdAt: doc.data().createdAt.toDate()
+          } as JobWithDate);
+        }
+      });
+    };
+
+    processSnapshot(postedJobsSnapshot);
+    processSnapshot(appliedJobsSnapshot);
+    processSnapshot(assignedJobsSnapshot);
+
+    return Array.from(jobsMap.values()).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }, [postedJobsSnapshot, appliedJobsSnapshot, assignedJobsSnapshot]);
+
 
   const { myPostings, myApplications } = useMemo(() => {
     if (!allJobs || !user) {
@@ -45,9 +73,10 @@ export default function DashboardPage() {
     return { myPostings: postings, myApplications: applications };
   }, [allJobs, user]);
 
+  // --- End of New Data Fetching Logic ---
 
   const defaultTab = searchParams.get('tab') === 'postings' ? 'postings' : 'applications';
-  const loading = userLoading || allJobsLoading;
+  const loading = userLoading || postedJobsLoading || appliedJobsLoading || assignedJobsLoading;
 
   return (
     <div className="container mx-auto py-12">
