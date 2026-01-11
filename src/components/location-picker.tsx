@@ -1,12 +1,8 @@
 
 "use client"
 
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef } from "react";
 import { GoogleMap, useLoadScript, Marker } from "@react-google-maps/api";
-import usePlacesAutocomplete, {
-    getGeocode,
-    getLatLng,
-} from "use-places-autocomplete";
 import {
   Dialog,
   DialogContent,
@@ -17,10 +13,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "./ui/skeleton";
-import { LocateFixed, Loader2, MapPin } from "lucide-react";
+import { LocateFixed, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Input } from "./ui/input";
-import { cn } from "@/lib/utils";
 
 type LocationPickerProps = {
   onClose: () => void;
@@ -52,19 +46,6 @@ export function LocationPicker({
   const [isLocating, setIsLocating] = useState(false);
   const { toast } = useToast();
 
-    const {
-        ready,
-        value,
-        suggestions: { status, data },
-        setValue,
-        clearSuggestions,
-    } = usePlacesAutocomplete({
-        requestOptions: {
-            componentRestrictions: { country: "in" }, // Bias to India
-        },
-        debounce: 300,
-    });
-
   const handleMapClick = (e: google.maps.MapMouseEvent) => {
     if (e.latLng) {
       const newPos = {
@@ -72,31 +53,9 @@ export function LocationPicker({
         lng: e.latLng.lng(),
       };
       setMarkerPosition(newPos);
-      setValue(e.latLng.toString(), false); // Update input field, but don't re-fetch
-      clearSuggestions();
     }
   };
   
-  const handleSelect = async (address: string) => {
-    setValue(address, false);
-    clearSuggestions();
-
-    try {
-      const results = await getGeocode({ address });
-      const { lat, lng } = await getLatLng(results[0]);
-      setMarkerPosition({ lat, lng });
-      mapRef.current?.panTo({ lat, lng });
-      mapRef.current?.setZoom(15);
-    } catch (error) {
-      console.error("Error: ", error);
-      toast({
-        variant: "destructive",
-        title: "Error fetching location",
-        description: "Could not get coordinates for the selected address.",
-      });
-    }
-  };
-
   const handleConfirm = () => {
     if (markerPosition) {
       onLocationSelect(markerPosition.lat, markerPosition.lng);
@@ -118,7 +77,6 @@ export function LocationPicker({
                     mapRef.current.panTo(newPos);
                     mapRef.current.setZoom(15);
                 }
-                setValue(`${newPos.lat}, ${newPos.lng}`, false);
                 setIsLocating(false);
             },
             () => {
@@ -193,33 +151,11 @@ export function LocationPicker({
         <DialogHeader>
           <DialogTitle>Select a Location</DialogTitle>
           <DialogDescription>
-            Search for an address or click on the map to place a marker.
+            Click on the map to place a marker.
           </DialogDescription>
         </DialogHeader>
 
         <div className="relative">
-            <div className="absolute top-2 left-2 z-10 w-[calc(100%-1rem)]">
-                <Input
-                    value={value}
-                    onChange={(e) => setValue(e.target.value)}
-                    disabled={!ready}
-                    placeholder="Type an address to search..."
-                    className="shadow-md"
-                />
-                {status === "OK" && (
-                    <div className="bg-background rounded-md shadow-md mt-1 border absolute w-full">
-                    {data.map(({ place_id, description }) => (
-                        <div
-                            key={place_id}
-                            onClick={() => handleSelect(description)}
-                            className="p-2 cursor-pointer hover:bg-muted"
-                        >
-                            {description}
-                        </div>
-                    ))}
-                    </div>
-                )}
-            </div>
             <div className="h-[400px] w-full rounded-md overflow-hidden bg-muted">
                 {renderContent()}
             </div>
