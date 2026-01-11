@@ -1,7 +1,7 @@
 
 "use client";
 
-import { notFound } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -17,11 +17,13 @@ import { useUser, useFirestore } from '@/firebase';
 import { useDocument, useCollection } from 'react-firebase-hooks/firestore';
 import { doc, collection } from 'firebase/firestore';
 
-export default function JobDetailPage({ params }: { params: { id: string } }) {
+export default function JobDetailPage() {
+  const params = useParams();
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
   const { user, loading: userLoading } = useUser();
   const db = useFirestore();
 
-  const jobRef = db ? doc(db, 'jobs', params.id) : null;
+  const jobRef = db && id ? doc(db, 'jobs', id) : null;
   const [jobSnapshot, jobLoading] = useDocument(jobRef);
   const job = jobSnapshot?.exists() ? { id: jobSnapshot.id, ...jobSnapshot.data(), createdAt: jobSnapshot.data().createdAt.toDate() } as JobWithDate : undefined;
 
