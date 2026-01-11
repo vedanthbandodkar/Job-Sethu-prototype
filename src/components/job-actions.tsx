@@ -24,7 +24,7 @@ export function JobActions({ job }: JobActionsProps) {
 
     const isPoster = job.posterId === currentUserId;
     const isWorker = job.workerId === currentUserId;
-    const hasApplied = currentUserId ? job.applicantIds.includes(currentUserId) : false;
+    const hasApplied = currentUserId && job.applicantIds ? job.applicantIds.includes(currentUserId) : false;
 
     const handleAction = (action: (...args: any[]) => Promise<any>, successTitle: string, successMessage: string, ...args: any[]) => {
         if (!currentUserId) {
