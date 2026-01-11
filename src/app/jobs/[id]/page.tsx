@@ -60,7 +60,7 @@ export default function JobDetailPage() {
 
   const isPoster = job.posterId === user?.uid;
   const isWorker = job.workerId === user?.uid;
-  const hasApplied = user?.uid ? job.applicantIds.includes(user.uid) : false;
+  const hasApplied = user?.uid && job.applicantIds ? job.applicantIds.includes(user.uid) : false;
   const canChat = (isPoster && worker) || isWorker;
 
   return (
