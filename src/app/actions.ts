@@ -22,9 +22,14 @@ export async function createJobAction(data: JobFormValues, userId: string) {
   }
 
   try {
-    const response = await fetch(data.imageUrl);
-    const blob = await response.blob();
-    const imageBuffer = Buffer.from(await blob.arrayBuffer());
+    // Correctly handle the Data URL from the client
+    const matches = data.imageUrl.match(/^data:(.+);base64,(.*)$/);
+    if (!matches || matches.length !== 3) {
+      return { success: false, message: 'Invalid image format.' };
+    }
+    const mimeType = matches[1];
+    const base64Data = matches[2];
+    const imageBuffer = Buffer.from(base64Data, 'base64');
     
     const imageId = uuidv4();
     const filePath = `jobs/${imageId}`;
@@ -32,7 +37,7 @@ export async function createJobAction(data: JobFormValues, userId: string) {
 
     await file.save(imageBuffer, {
       metadata: {
-        contentType: blob.type,
+        contentType: mimeType,
         metadata: {
           firebaseStorageDownloadTokens: imageId,
         },
