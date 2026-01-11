@@ -62,6 +62,11 @@ export default function JobDetailPage() {
   const isWorker = job.workerId === user?.uid;
   const hasApplied = user?.uid && job.applicantIds ? job.applicantIds.includes(user.uid) : false;
   const canChat = (isPoster && worker) || isWorker;
+  
+  const serializableJob = {
+      ...job,
+      createdAt: job.createdAt.toISOString(),
+  };
 
   return (
     <div className="container mx-auto max-w-6xl py-12">
@@ -121,7 +126,7 @@ export default function JobDetailPage() {
             )}
 
             {canChat && (
-                <ChatInterface job={job} poster={poster} worker={worker} />
+                <ChatInterface job={serializableJob} poster={poster} worker={worker} />
             )}
 
         </div>
