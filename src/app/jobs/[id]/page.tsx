@@ -15,6 +15,7 @@ import Image from 'next/image';
 import { useUser, useFirestore } from '@/firebase';
 import { useDocument, useCollection } from 'react-firebase-hooks/firestore';
 import { doc, collection } from 'firebase/firestore';
+import { ApplicantList } from '@/components/applicant-list';
 
 export default function JobDetailPage() {
   const params = useParams();
@@ -38,11 +39,11 @@ export default function JobDetailPage() {
   
   const posterRef = db && posterId ? doc(db, 'users', posterId) : null;
   const [posterSnapshot, posterLoading] = useDocument(posterRef);
-  const poster = posterSnapshot?.exists() ? { id: posterSnapshot.id, ...posterSnapshot.data() } as User : undefined;
+  const posterData = posterSnapshot?.exists() ? { id: posterSnapshot.id, ...posterSnapshot.data() } as User : undefined;
 
   const workerRef = db && workerId ? doc(db, 'users', workerId) : null;
   const [workerSnapshot, workerLoading] = useDocument(workerRef);
-  const worker = workerSnapshot?.exists() ? { id: workerSnapshot.id, ...workerSnapshot.data() } as User : undefined;
+  const workerData = workerSnapshot?.exists() ? { id: workerSnapshot.id, ...workerSnapshot.data() } as User : undefined;
 
   const applicantsCollectionRef = db && applicantIds?.length ? collection(db, 'users') : null;
   // This is not efficient for many applicants. Firestore doesn't support `where in` with more than 30 items in a query.
@@ -66,13 +67,18 @@ export default function JobDetailPage() {
   const isPoster = job.posterId === user?.uid;
   const isWorker = job.workerId === user?.uid;
   const hasApplied = user?.uid && job.applicantIds ? job.applicantIds.includes(user.uid) : false;
-  const canChat = (isPoster && worker) || isWorker;
   
+  // Create serializable plain objects to pass as props
   const serializableJob = {
       ...job,
       createdAt: job.createdAt.toISOString(),
   };
 
+  const serializablePoster = posterData ? { ...posterData } : undefined;
+  const serializableWorker = workerData ? { ...workerData } : undefined;
+
+  const canChat = (isPoster && serializableWorker) || isWorker;
+  
   return (
     <div className="container mx-auto max-w-6xl py-12">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
@@ -131,7 +137,7 @@ export default function JobDetailPage() {
             )}
 
             {canChat && (
-                <ChatInterface job={serializableJob} poster={poster} worker={worker} />
+                <ChatInterface job={serializableJob} poster={serializablePoster} worker={serializableWorker} />
             )}
 
         </div>
@@ -140,25 +146,25 @@ export default function JobDetailPage() {
                 <Card>
                     <CardHeader className="flex-row items-center space-x-4 pb-4">
                         <Avatar className="h-12 w-12">
-                            <AvatarImage src={poster?.avatarUrl} data-ai-hint="person avatar" />
-                            <AvatarFallback>{poster?.name?.[0] ?? 'P'}</AvatarFallback>
+                            <AvatarImage src={serializablePoster?.avatarUrl} data-ai-hint="person avatar" />
+                            <AvatarFallback>{serializablePoster?.name?.[0] ?? 'P'}</AvatarFallback>
                         </Avatar>
                         <div>
                             <p className="text-sm text-muted-foreground">Job Poster</p>
-                            <CardTitle className="font-headline text-lg">{poster?.name ?? "Unknown User"}</CardTitle>
+                            <CardTitle className="font-headline text-lg">{serializablePoster?.name ?? "Unknown User"}</CardTitle>
                         </div>
                     </CardHeader>
                 </Card>
-                {worker && (
+                {serializableWorker && (
                      <Card>
                         <CardHeader className="flex-row items-center space-x-4 pb-4">
                             <Avatar className="h-12 w-12">
-                                <AvatarImage src={worker?.avatarUrl} data-ai-hint="person avatar" />
-                                <AvatarFallback>{worker.name?.[0] ?? 'W'}</AvatarFallback>
+                                <AvatarImage src={serializableWorker?.avatarUrl} data-ai-hint="person avatar" />
+                                <AvatarFallback>{serializableWorker.name?.[0] ?? 'W'}</AvatarFallback>
                             </Avatar>
                             <div>
                                 <p className="text-sm text-muted-foreground">Assigned To</p>
-                                <CardTitle className="font-headline text-lg">{worker.name}</CardTitle>
+                                <CardTitle className="font-headline text-lg">{serializableWorker.name}</CardTitle>
                             </div>
                         </CardHeader>
                     </Card>
