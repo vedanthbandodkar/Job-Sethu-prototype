@@ -178,7 +178,7 @@ export async function sendMessageAction(jobId: string, senderId: string, content
     await adminFirestore.collection('jobs').doc(jobId).collection('messages').add(message);
     
     revalidatePath(`/jobs/${jobId}`);
-    return { success: true, message };
+    return { success: true };
 }
 
 export async function deleteMessageAction(jobId: string, messageId: string, userId: string) {
