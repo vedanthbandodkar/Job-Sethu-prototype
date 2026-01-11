@@ -10,23 +10,44 @@ import { collection, query, where, orderBy, or } from 'firebase/firestore';
 import { useCollection } from 'react-firebase-hooks/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSearchParams } from 'next/navigation';
+import { useMemo } from 'react';
 
 export default function DashboardPage() {
   const db = useFirestore();
   const { user, loading: userLoading } = useUser();
   const searchParams = useSearchParams();
 
-  const myPostingsQuery = user ? query(collection(db!, 'jobs'), where('posterId', '==', user.uid), orderBy('createdAt', 'desc')) : null;
-  const myApplicationsQuery = user ? query(collection(db!, 'jobs'), or(where('applicantIds', 'array-contains', user.uid), where('workerId', '==', user.uid)), orderBy('createdAt', 'desc')) : null;
+  // A single query to get all jobs relevant to the user.
+  const allUserJobsQuery = user 
+    ? query(
+        collection(db!, 'jobs'), 
+        or(
+          where('posterId', '==', user.uid),
+          where('applicantIds', 'array-contains', user.uid),
+          where('workerId', '==', user.uid)
+        ),
+        orderBy('createdAt', 'desc')
+      ) 
+    : null;
   
-  const [postingsSnapshot, postingsLoading] = useCollection(myPostingsQuery);
-  const [applicationsSnapshot, applicationsLoading] = useCollection(myApplicationsQuery);
+  const [allJobsSnapshot, allJobsLoading] = useCollection(allUserJobsQuery);
 
-  const myPostings = postingsSnapshot?.docs.map(doc => ({ id: doc.id, ...doc.data(), createdAt: doc.data().createdAt.toDate() })) as JobWithDate[] | undefined;
-  const myApplications = applicationsSnapshot?.docs.map(doc => ({ id: doc.id, ...doc.data(), createdAt: doc.data().createdAt.toDate() })) as JobWithDate[] | undefined;
+  const allJobs = useMemo(() => 
+    allJobsSnapshot?.docs.map(doc => ({ id: doc.id, ...doc.data(), createdAt: doc.data().createdAt.toDate() })) as JobWithDate[] | undefined
+  , [allJobsSnapshot]);
+
+  const { myPostings, myApplications } = useMemo(() => {
+    if (!allJobs || !user) {
+      return { myPostings: [], myApplications: [] };
+    }
+    const postings = allJobs.filter(job => job.posterId === user.uid);
+    const applications = allJobs.filter(job => job.posterId !== user.uid);
+    return { myPostings: postings, myApplications: applications };
+  }, [allJobs, user]);
+
 
   const defaultTab = searchParams.get('tab') === 'postings' ? 'postings' : 'applications';
-  const loading = userLoading || postingsLoading || applicationsLoading;
+  const loading = userLoading || allJobsLoading;
 
   return (
     <div className="container mx-auto py-12">
