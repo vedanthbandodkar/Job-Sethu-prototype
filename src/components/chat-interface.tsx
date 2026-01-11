@@ -39,20 +39,6 @@ type ChatInterfaceProps = {
     worker?: User;
 };
 
-function ClientTime({ timestamp }: { timestamp: Date }) {
-    const [time, setTime] = useState('');
-  
-    useEffect(() => {
-      setTime(new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'}));
-    }, [timestamp]);
-  
-    if (!time) {
-        return <span className="text-xs opacity-70">...</span>;
-    }
-
-    return <>{time}</>;
-}
-
 
 export function ChatInterface({ job, poster, worker }: ChatInterfaceProps) {
     const [newMessage, setNewMessage] = useState('');
@@ -197,9 +183,6 @@ export function ChatInterface({ job, poster, worker }: ChatInterfaceProps) {
                                    
                                     {renderMessageContent(msg)}
 
-                                    <p className={cn('text-xs mt-1 text-right', msg.senderId === user?.uid ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}>
-                                        <ClientTime timestamp={msg.timestamp} />
-                                    </p>
                                 </div>
                                 {msg.senderId === user?.uid && (
                                     <Avatar className="h-8 w-8">
