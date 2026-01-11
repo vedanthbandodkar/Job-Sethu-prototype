@@ -25,7 +25,13 @@ export default function JobDetailPage() {
 
   const jobRef = db && id ? doc(db, 'jobs', id) : null;
   const [jobSnapshot, jobLoading] = useDocument(jobRef);
-  const job = jobSnapshot?.exists() ? { id: jobSnapshot.id, ...jobSnapshot.data(), createdAt: jobSnapshot.data().createdAt.toDate() } as JobWithDate : undefined;
+  
+  const jobData = jobSnapshot?.exists() ? jobSnapshot.data() : undefined;
+  const job: JobWithDate | undefined = jobData ? { 
+    id: jobSnapshot!.id, 
+    ...jobData, 
+    createdAt: jobData.createdAt.toDate() 
+  } as JobWithDate : undefined;
 
   const posterId = job?.posterId;
   const workerId = job?.workerId;
@@ -158,7 +164,7 @@ export default function JobDetailPage() {
                         </CardHeader>
                     </Card>
                 )}
-                <JobActions job={job} />
+                <JobActions job={serializableJob} />
             </div>
         </div>
       </div>
