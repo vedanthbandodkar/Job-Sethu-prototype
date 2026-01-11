@@ -1,4 +1,6 @@
 
+import { type Timestamp } from 'firebase/firestore';
+
 export type User = {
   id: string;
   name: string;
@@ -8,6 +10,7 @@ export type User = {
   location:string;
 };
 
+// This represents the structure in Firestore, using server Timestamps
 export type Job = {
   id: string;
   title: string;
@@ -19,15 +22,21 @@ export type Job = {
   status: 'open' | 'assigned' | 'completed' | 'canceled' | 'paid';
   posterId: string;
   workerId?: string;
-  applicants: string[];
-  createdAt: Date;
+  applicantIds: string[];
+  createdAt: Timestamp;
   imageUrl?: string;
 };
+
+// This can be used on the client-side, where timestamp is a Date object
+export type JobWithDate = Omit<Job, 'createdAt'> & { createdAt: Date };
+
 
 export type ChatMessage = {
   id: string;
   jobId: string;
   senderId: string;
   content: string;
-  timestamp: Date;
+  timestamp: Timestamp;
 };
+
+export type ChatMessageWithDate = Omit<ChatMessage, 'timestamp'> & { timestamp: Date };

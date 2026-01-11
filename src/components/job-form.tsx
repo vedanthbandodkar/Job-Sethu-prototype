@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { useTransition, useState } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
 import Image from "next/image"
 
 import { Button } from "@/components/ui/button"
@@ -24,6 +24,7 @@ import { Switch } from "@/components/ui/switch"
 import { AlertTriangle, Loader2, Upload } from "lucide-react"
 import { createJobAction } from "@/app/actions"
 import { useToast } from "@/hooks/use-toast"
+import { useUser } from "@/firebase"
 
 const jobFormSchema = z.object({
   title: z.string().min(5, {
@@ -42,7 +43,9 @@ const jobFormSchema = z.object({
     message: "Location is required.",
   }),
   sos: z.boolean().default(false),
-  imageUrl: z.string().optional(),
+  imageUrl: z.string().min(1, {
+    message: "An image is required.",
+  })
 })
 
 type JobFormValues = z.infer<typeof jobFormSchema>
@@ -61,8 +64,8 @@ export function JobForm() {
   const [isPending, startTransition] = useTransition();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const { toast } = useToast();
-  const searchParams = useSearchParams();
   const router = useRouter();
+  const { user } = useUser();
 
   const form = useForm<JobFormValues>({
     resolver: zodResolver(jobFormSchema),
@@ -71,19 +74,21 @@ export function JobForm() {
   })
 
   function onSubmit(data: JobFormValues) {
-    const userId = searchParams.get('userId') || 'user-5'; // Default to mock user if not found
+    if (!user) {
+        toast({ variant: "destructive", title: "You must be logged in to create a job." });
+        return;
+    }
 
     startTransition(async () => {
-        const result = await createJobAction({ ...data, userId });
-        if (result?.success && result.userId) {
+        const result = await createJobAction(data, user.uid);
+        if (result?.success) {
             form.reset();
             setImagePreview(null);
             toast({
                 title: "Job Created!",
                 description: "Your job has been posted successfully.",
             });
-            // Use router.push for a faster, client-side navigation
-            router.push(`/dashboard?tab=postings&userId=${result.userId}`);
+            router.push(`/dashboard?tab=postings`);
         } else {
             toast({
                 variant: "destructive",
@@ -101,7 +106,7 @@ export function JobForm() {
       reader.onloadend = () => {
         const dataUrl = reader.result as string;
         setImagePreview(dataUrl);
-        form.setValue('imageUrl', dataUrl);
+        form.setValue('imageUrl', dataUrl, { shouldValidate: true });
       };
       reader.readAsDataURL(file);
     }
@@ -149,7 +154,7 @@ export function JobForm() {
                         </div>
                     </FormControl>
                     <FormDescription>
-                        Upload a custom image for your job post, or we'll generate one for you.
+                        A professional image helps your job post stand out.
                     </FormDescription>
                     <FormMessage />
                 </FormItem>

@@ -1,13 +1,12 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { AppHeader } from '@/components/app-header';
-import { Toaster } from '@/components/ui/toaster';  
-import { cn } from '@/lib/utils';
+import { Toaster } from '@/components/ui/toaster';
+import { FirebaseProvider } from '@/firebase/provider';
 import { BottomNavBar } from '@/components/bottom-nav';
-import { ThemeProvider } from '@/components/theme-provider';
 
 export const metadata: Metadata = {
-  title: 'Job Sethu',
+  title: 'Hire Ups',
   description: 'Connecting skills with opportunities',
 };
 
@@ -25,19 +24,14 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased" suppressHydrationWarning={true}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
+        <FirebaseProvider>
           <div className="flex min-h-screen flex-col bg-background">
             <AppHeader />
             <main className="flex-1 pb-16">{children}</main>
             <BottomNavBar />
           </div>
           <Toaster />
-        </ThemeProvider>
+        </FirebaseProvider>
       </body>
     </html>
   );

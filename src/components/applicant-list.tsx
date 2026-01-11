@@ -9,6 +9,8 @@ import { Check, Loader2 } from "lucide-react";
 import { useTransition, useState } from "react";
 import { selectApplicantAction } from "@/app/actions";
 import { useRouter } from "next/navigation";
+import { useUser } from "@/firebase";
+import { useToast } from "@/hooks/use-toast";
 
 type ApplicantListProps = {
     applicants: User[];
@@ -19,6 +21,8 @@ export function ApplicantList({ applicants, jobId }: ApplicantListProps) {
     const [isPending, startTransition] = useTransition();
     const [selectedApplicantId, setSelectedApplicantId] = useState<string | null>(null);
     const router = useRouter();
+    const { user } = useUser();
+    const { toast } = useToast();
 
     if (applicants.length === 0) {
         return (
@@ -31,11 +35,21 @@ export function ApplicantList({ applicants, jobId }: ApplicantListProps) {
         )
     }
 
-    const handleSelectApplicant = (userId: string) => {
-        setSelectedApplicantId(userId);
+    const handleSelectApplicant = (applicantId: string) => {
+        if (!user) {
+            toast({ variant: 'destructive', title: "You must be logged in to select an applicant." });
+            return;
+        }
+
+        setSelectedApplicantId(applicantId);
         startTransition(async () => {
-            await selectApplicantAction(jobId, userId);
-            router.refresh();
+            const result = await selectApplicantAction(jobId, applicantId, user.uid);
+            if (result.success) {
+                toast({ title: "Applicant Selected!", description: "You can now start a chat with them." });
+                router.refresh();
+            } else {
+                toast({ variant: 'destructive', title: "Failed to select applicant", description: result.message });
+            }
         });
     }
     
@@ -56,7 +70,7 @@ export function ApplicantList({ applicants, jobId }: ApplicantListProps) {
                                 </Avatar>
                                 <div>
                                     <p className="font-semibold">{applicant.name}</p>
-                                    <Link href={`/profile?userId=${applicant.id}`} className="text-sm text-primary hover:underline">View Profile</Link>
+                                    <Link href={`/profile/${applicant.id}`} className="text-sm text-primary hover:underline">View Profile</Link>
                                 </div>
                             </div>
                             <Button size="sm" onClick={() => handleSelectApplicant(applicant.id)} disabled={isPending}>

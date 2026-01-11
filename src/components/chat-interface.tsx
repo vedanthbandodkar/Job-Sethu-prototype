@@ -2,14 +2,14 @@
 "use client"
 
 import { useEffect, useState, useRef, useTransition } from 'react';
-import type { ChatMessage, User, Job } from '@/lib/types';
+import type { ChatMessageWithDate, User, JobWithDate } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
 import { cn } from '@/lib/utils';
-import { Send, Loader2, Sparkles, Trash2, Bot, MapPin } from 'lucide-react';
-import { sendMessageAction, suggestRepliesAction, deleteMessageAction } from '@/app/actions';
+import { Send, Loader2, Trash2, MapPin } from 'lucide-react';
+import { sendMessageAction, deleteMessageAction } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -24,18 +24,19 @@ import {
 } from "@/components/ui/alert-dialog"
 import dynamic from 'next/dynamic';
 import { Skeleton } from './ui/skeleton';
+import { useUser, useFirestore } from '@/firebase';
+import { useCollection } from 'react-firebase-hooks/firestore';
+import { collection, doc, query, orderBy } from 'firebase/firestore';
 
 const LocationPicker = dynamic(() => import('./location-picker').then(mod => mod.LocationPicker), {
     ssr: false,
     loading: () => <Skeleton className="h-[400px] w-full" />,
 });
 
-type EnrichedMessage = ChatMessage & { sender?: User };
-
 type ChatInterfaceProps = {
-    job: Job;
-    currentUserId: string;
-    messages: EnrichedMessage[];
+    job: JobWithDate;
+    poster?: User;
+    worker?: User;
 };
 
 function ClientTime({ timestamp }: { timestamp: Date }) {
@@ -46,7 +47,6 @@ function ClientTime({ timestamp }: { timestamp: Date }) {
     }, [timestamp]);
   
     if (!time) {
-        // You can return a placeholder or null
         return <span className="text-xs opacity-70">...</span>;
     }
 
@@ -54,19 +54,36 @@ function ClientTime({ timestamp }: { timestamp: Date }) {
 }
 
 
-export function ChatInterface({ job, currentUserId, messages }: ChatInterfaceProps) {
+export function ChatInterface({ job, poster, worker }: ChatInterfaceProps) {
     const [newMessage, setNewMessage] = useState('');
     const [isSending, startSendingTransition] = useTransition();
     const [isDeleting, startDeletingTransition] = useTransition();
-    const [isSuggesting, startSuggestingTransition] = useTransition();
     const [showLocationPicker, setShowLocationPicker] = useState(false);
-
-    const [suggestions, setSuggestions] = useState<string[]>([]);
     
     const scrollAreaRef = useRef<HTMLDivElement>(null);
     const formRef = useRef<HTMLFormElement>(null);
     const { toast } = useToast();
-    
+    const { user, loading: userLoading } = useUser();
+    const db = useFirestore();
+
+    const messagesQuery = db ? query(collection(db, 'jobs', job.id, 'messages'), orderBy('timestamp', 'asc')) : null;
+    const [messagesSnapshot, messagesLoading] = useCollection(messagesQuery);
+
+    const messages = messagesSnapshot?.docs.map(doc => {
+      const data = doc.data();
+      const senderId = data.senderId;
+      let sender;
+      if (senderId === poster?.id) sender = poster;
+      if (senderId === worker?.id) sender = worker;
+
+      return {
+        id: doc.id,
+        ...data,
+        timestamp: data.timestamp?.toDate(),
+        sender,
+      }
+    }) as (ChatMessageWithDate & { sender?: User })[] | undefined;
+
     useEffect(() => {
         if (scrollAreaRef.current) {
             scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
@@ -75,14 +92,16 @@ export function ChatInterface({ job, currentUserId, messages }: ChatInterfacePro
 
     const handleSendMessage = async (content: string) => {
         const trimmedMessage = content.trim();
-        if (!trimmedMessage) return;
+        if (!trimmedMessage || !user) return;
         
         formRef.current?.reset();
         setNewMessage('');
-        setSuggestions([]);
         
         startSendingTransition(async () => {
-            await sendMessageAction(job.id, currentUserId, trimmedMessage);
+            const result = await sendMessageAction(job.id, user.uid, trimmedMessage);
+            if (!result.success) {
+                toast({ variant: 'destructive', title: 'Error sending message', description: result.message });
+            }
         });
     }
 
@@ -91,31 +110,10 @@ export function ChatInterface({ job, currentUserId, messages }: ChatInterfacePro
         handleSendMessage(newMessage);
     }
 
-    const handleGetSuggestions = () => {
-        startSuggestingTransition(async () => {
-            const chatHistory = messages.map(m => ({ senderId: m.senderId, content: m.content }));
-            const result = await suggestRepliesAction({ 
-                jobTitle: job.title, 
-                jobDescription: job.description, 
-                chatHistory, 
-                currentUserId 
-            });
-
-            if (result.success && result.suggestions) {
-                setSuggestions(result.suggestions);
-            } else {
-                toast({
-                    variant: 'destructive',
-                    title: 'Could not get suggestions',
-                    description: result.message
-                })
-            }
-        });
-    }
-
     const handleDeleteMessage = (messageId: string) => {
+        if (!user) return;
         startDeletingTransition(async () => {
-            await deleteMessageAction(messageId);
+            await deleteMessageAction(job.id, messageId, user.uid);
         });
     }
 
@@ -125,8 +123,8 @@ export function ChatInterface({ job, currentUserId, messages }: ChatInterfacePro
         setShowLocationPicker(false);
     }
 
-    const renderMessageContent = (msg: EnrichedMessage) => {
-        const isSender = msg.senderId === currentUserId;
+    const renderMessageContent = (msg: ChatMessageWithDate & { sender?: User }) => {
+        const isSender = msg.senderId === user?.uid;
         if (msg.content.startsWith('LOCATION::')) {
             const [lat, lng] = msg.content.replace('LOCATION::', '').split(',');
             const url = `https://www.google.com/maps?q=${lat},${lng}`;
@@ -148,7 +146,7 @@ export function ChatInterface({ job, currentUserId, messages }: ChatInterfacePro
         return <p className="text-sm">{msg.content}</p>;
     }
     
-    const isPoster = job.posterId === currentUserId;
+    const isPoster = job.posterId === user?.uid;
 
     return (
         <Card>
@@ -159,9 +157,10 @@ export function ChatInterface({ job, currentUserId, messages }: ChatInterfacePro
             <CardContent>
                 <div className="flex flex-col h-[400px] border rounded-lg">
                     <div ref={scrollAreaRef} className="flex-grow p-4 space-y-4 overflow-y-auto bg-muted/20">
-                        {messages.map(msg => (
-                            <div key={msg.id} className={cn('flex items-end gap-2 group', msg.senderId === currentUserId ? 'justify-end' : 'justify-start')}>
-                               {msg.senderId !== currentUserId && (
+                        {messagesLoading && <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>}
+                        {messages && messages.map(msg => (
+                            <div key={msg.id} className={cn('flex items-end gap-2 group', msg.senderId === user?.uid ? 'justify-end' : 'justify-start')}>
+                               {msg.senderId !== user?.uid && (
                                     <Avatar className="h-8 w-8">
                                         <AvatarImage src={msg.sender?.avatarUrl} data-ai-hint="person avatar"/>
                                         <AvatarFallback>{msg.sender?.name?.[0] ?? 'U'}</AvatarFallback>
@@ -169,9 +168,9 @@ export function ChatInterface({ job, currentUserId, messages }: ChatInterfacePro
                                 )}
                                 <div className={cn(
                                     'max-w-xs md:max-w-md p-3 rounded-lg shadow-sm relative',
-                                    msg.senderId === currentUserId ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-card border rounded-bl-none'
+                                    msg.senderId === user?.uid ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-card border rounded-bl-none'
                                 )}>
-                                    {msg.senderId === currentUserId && (
+                                    {msg.senderId === user?.uid && (
                                          <AlertDialog>
                                             <AlertDialogTrigger asChild>
                                                 <Button variant="ghost" size="icon" className="absolute -left-10 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" disabled={isDeleting}>
@@ -198,41 +197,21 @@ export function ChatInterface({ job, currentUserId, messages }: ChatInterfacePro
                                    
                                     {renderMessageContent(msg)}
 
-                                    <p className={cn('text-xs mt-1 text-right', msg.senderId === currentUserId ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}>
+                                    <p className={cn('text-xs mt-1 text-right', msg.senderId === user?.uid ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}>
                                         <ClientTime timestamp={msg.timestamp} />
                                     </p>
                                 </div>
-                                {msg.senderId === currentUserId && (
+                                {msg.senderId === user?.uid && (
                                     <Avatar className="h-8 w-8">
-                                        <AvatarImage src={msg.sender?.avatarUrl} data-ai-hint="person avatar"/>
-                                        <AvatarFallback>{msg.sender?.name?.[0] ?? 'U'}</AvatarFallback>
+                                        <AvatarImage src={user.photoURL || undefined} data-ai-hint="person avatar"/>
+                                        <AvatarFallback>{user.displayName?.[0] ?? 'U'}</AvatarFallback>
                                     </Avatar>
                                 )}
                             </div>
                         ))}
                     </div>
 
-                    {suggestions.length > 0 && (
-                        <div className="p-2 border-t bg-background space-y-2">
-                             <div className="flex items-center gap-2 text-xs text-muted-foreground font-semibold">
-                                <Bot className="h-4 w-4" />
-                                <span>AI Suggestions</span>
-                             </div>
-                             <div className="flex flex-wrap gap-2">
-                                {suggestions.map((s, i) => (
-                                    <Button key={i} size="sm" variant="outline" onClick={() => setNewMessage(s)}>
-                                        {s}
-                                    </Button>
-                                ))}
-                             </div>
-                        </div>
-                    )}
-
                     <form ref={formRef} onSubmit={handleFormSubmit} className="p-2 border-t flex items-center gap-2 bg-background">
-                        <Button type="button" size="icon" variant="ghost" onClick={handleGetSuggestions} disabled={isSuggesting || isSending}>
-                            {isSuggesting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                            <span className="sr-only">Get Suggestions</span>
-                        </Button>
                          {isPoster && (
                             <Button type="button" size="icon" variant="ghost" onClick={() => setShowLocationPicker(true)}>
                                 <MapPin className="h-4 w-4" />

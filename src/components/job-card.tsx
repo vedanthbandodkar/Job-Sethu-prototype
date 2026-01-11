@@ -6,17 +6,17 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import type { Job } from '@/lib/types';
+import type { JobWithDate } from '@/lib/types';
 import { MapPin, IndianRupee, AlertTriangle, ArrowRight, Ban, Loader2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useState, useEffect, useTransition } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { cancelJobAction } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 
 type JobCardProps = {
-  job: Job;
+  job: JobWithDate;
   userId?: string | null;
 };
 
@@ -25,23 +25,36 @@ export function JobCard({ job, userId }: JobCardProps) {
   const [isCancelling, startCancelTransition] = useTransition();
   const pathname = usePathname();
   const { toast } = useToast();
+  const router = useRouter();
 
   useEffect(() => {
     // This hook ensures the time is only calculated on the client, preventing hydration mismatch.
     setTimeAgo(formatDistanceToNow(new Date(job.createdAt), { addSuffix: true }));
   }, [job.createdAt]);
 
-  const jobUrl = userId ? `/jobs/${job.id}?userId=${userId}` : `/jobs/${job.id}`;
+  const jobUrl = `/jobs/${job.id}`;
   
   const isPosterOnDashboard = pathname === '/dashboard' && job.posterId === userId;
 
   const handleCancelJob = () => {
+    if (!userId) {
+        toast({ variant: 'destructive', title: 'You must be logged in to cancel a job.' });
+        return;
+    }
     startCancelTransition(async () => {
-        await cancelJobAction(job.id);
-        toast({
-            title: "Job Canceled",
-            description: "Your job post has been successfully removed.",
-        })
+        const result = await cancelJobAction(job.id, userId);
+        if (result.success) {
+            toast({
+                title: "Job Canceled",
+                description: "Your job post has been successfully removed.",
+            });
+        } else {
+            toast({
+                variant: 'destructive',
+                title: 'Cancellation failed',
+                description: result.message
+            });
+        }
     });
   }
 

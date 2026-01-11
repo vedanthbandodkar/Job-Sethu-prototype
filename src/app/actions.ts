@@ -1,12 +1,11 @@
 
 'use server'
 
-import { generateJobImage } from '@/ai/flows/generate-job-image-flow';
-import { suggestReplies, type SuggestRepliesInput } from '@/ai/flows/suggest-reply-flow';
-import { createJobInDb, applyToJobInDb, markJobCompleteInDb, selectApplicantForJobInDb, createUserInDb, updateUserInDb, cancelJobInDb, createMessageInDb, seedDatabase, deleteMessageFromDb } from '@/lib/data'
 import { revalidatePath } from 'next/cache';
+import { adminFirestore, adminStorage } from '@/firebase/server-init';
+import { FieldValue } from 'firebase-admin/firestore';
+import { v4 as uuidv4 } from 'uuid';
 
-// This type now correctly includes the userId
 type JobFormValues = {
   title: string;
   description: string;
@@ -14,33 +13,50 @@ type JobFormValues = {
   payment: number;
   location: string;
   sos: boolean;
-  userId: string;
-  imageUrl?: string;
+  imageUrl: string; 
 }
 
-export async function createJobAction(data: JobFormValues) {
+export async function createJobAction(data: JobFormValues, userId: string) {
+  if (!userId) {
+    return { success: false, message: 'You must be logged in to create a job.' };
+  }
+
   try {
-    const { userId, ...jobDetails } = data;
+    const response = await fetch(data.imageUrl);
+    const blob = await response.blob();
+    const imageBuffer = Buffer.from(await blob.arrayBuffer());
+    
+    const imageId = uuidv4();
+    const filePath = `jobs/${imageId}`;
+    const file = adminStorage.bucket().file(filePath);
 
-    if (!userId) {
-      throw new Error("User ID is required to create a job.");
-    }
+    await file.save(imageBuffer, {
+      metadata: {
+        contentType: blob.type,
+        metadata: {
+          firebaseStorageDownloadTokens: imageId,
+        },
+      },
+    });
 
-    let finalImageUrl = data.imageUrl;
-    if (!finalImageUrl) {
-        finalImageUrl = await generateJobImage(jobDetails.title);
-    }
+    const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${adminStorage.bucket().name}/o/${encodeURIComponent(filePath)}?alt=media&token=${imageId}`;
     
-    const newJobData = { ...jobDetails, imageUrl: finalImageUrl, posterId: userId };
+    const newJobData = {
+      ...data,
+      skills: data.skills.split(',').map(s => s.trim()).filter(Boolean),
+      posterId: userId,
+      imageUrl: publicUrl,
+      createdAt: FieldValue.serverTimestamp(),
+      status: 'open',
+      applicantIds: [],
+    };
     
-    const result = await createJobInDb(newJobData);
+    const docRef = await adminFirestore.collection('jobs').add(newJobData);
     
-    if (result) {
-        revalidatePath('/');
-        revalidatePath('/dashboard');
-        return { success: true, jobId: result.id, userId: userId };
-    }
-    return { success: false, message: 'Failed to create job.' };
+    revalidatePath('/');
+    revalidatePath('/dashboard');
+    return { success: true, jobId: docRef.id };
+
   } catch (error) {
     console.error('Failed to create job:', error);
     const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
@@ -49,53 +65,86 @@ export async function createJobAction(data: JobFormValues) {
 }
 
 export async function applyForJobAction(jobId: string, userId: string) {
-    await applyToJobInDb(jobId, userId);
+    if (!userId) {
+        return { success: false, message: "Authentication required." };
+    }
+    const jobRef = adminFirestore.collection('jobs').doc(jobId);
+    const jobDoc = await jobRef.get();
+    if (!jobDoc.exists) {
+        return { success: false, message: "Job not found." };
+    }
+    const jobData = jobDoc.data()!;
+    if (jobData.posterId === userId) {
+        return { success: false, message: "You cannot apply to your own job." };
+    }
+    
+    await jobRef.update({
+        applicantIds: FieldValue.arrayUnion(userId)
+    });
+
     revalidatePath(`/jobs/${jobId}`);
     revalidatePath('/dashboard');
+    return { success: true };
 }
 
-export async function markJobCompleteAction(jobId: string) {
-    await markJobCompleteInDb(jobId);
+export async function markJobCompleteAction(jobId: string, userId: string) {
+    if (!userId) {
+        return { success: false, message: "Authentication required." };
+    }
+    const jobRef = adminFirestore.collection('jobs').doc(jobId);
+    const jobDoc = await jobRef.get();
+    if (!jobDoc.exists || jobDoc.data()?.workerId !== userId) {
+        return { success: false, message: "Unauthorized or job not found." };
+    }
+    
+    await jobRef.update({ status: 'completed' });
+
     revalidatePath(`/jobs/${jobId}`);
     revalidatePath('/dashboard');
+    return { success: true };
 }
 
-export async function selectApplicantAction(jobId: string, applicantId: string) {
-    await selectApplicantForJobInDb(jobId, applicantId);
+export async function selectApplicantAction(jobId: string, applicantId: string, posterId: string) {
+    if (!posterId) {
+        return { success: false, message: "Authentication required." };
+    }
+    const jobRef = adminFirestore.collection('jobs').doc(jobId);
+    const jobDoc = await jobRef.get();
+    if (!jobDoc.exists || jobDoc.data()?.posterId !== posterId) {
+        return { success: false, message: "Unauthorized or job not found." };
+    }
+
+    await jobRef.update({
+        workerId: applicantId,
+        status: 'assigned'
+    });
+    
     revalidatePath(`/jobs/${jobId}`);
     revalidatePath('/dashboard');
-}
-
-type SignupFormValues = {
-  name: string;
-  email: string;
-}
-
-export async function signupAction(data: SignupFormValues) {
-  try {
-    const newUser = await createUserInDb({ name: data.name, email: data.email });
-    return { success: true, userId: newUser.id };
-  } catch (error) {
-    console.error('Failed to create user:', error);
-    return { success: false, message: 'An unexpected error occurred. Please try again.' };
-  }
+    return { success: true };
 }
 
 type OnboardingFormValues = {
-    userId: string;
     name: string;
     location: string;
     skills: string;
 }
 
-export async function completeOnboardingAction(data: OnboardingFormValues) {
+export async function completeOnboardingAction(data: OnboardingFormValues, userId: string, email: string | null, photoURL: string | null) {
+    if (!userId) {
+        return { success: false, message: "Authentication required." };
+    }
+
     try {
-        await updateUserInDb({
-            userId: data.userId,
+        const userRef = adminFirestore.collection('users').doc(userId);
+        await userRef.set({
             name: data.name,
+            email: email,
+            avatarUrl: photoURL || `https://i.pravatar.cc/150?u=${email}`,
             location: data.location,
             skills: data.skills.split(',').map(s => s.trim()).filter(Boolean),
-        });
+        }, { merge: true });
+
         revalidatePath('/dashboard');
         revalidatePath('/profile');
         return { success: true };
@@ -105,36 +154,68 @@ export async function completeOnboardingAction(data: OnboardingFormValues) {
     }
 }
 
-export async function cancelJobAction(jobId: string) {
-    await cancelJobInDb(jobId);
+export async function cancelJobAction(jobId: string, userId: string) {
+    if (!userId) {
+        return { success: false, message: "Authentication required." };
+    }
+    const jobRef = adminFirestore.collection('jobs').doc(jobId);
+    const jobDoc = await jobRef.get();
+    if (!jobDoc.exists || jobDoc.data()?.posterId !== userId) {
+        return { success: false, message: "Unauthorized or job not found." };
+    }
+    
+    await jobRef.update({ status: 'canceled' });
+
     revalidatePath('/dashboard');
     revalidatePath('/');
     revalidatePath(`/jobs/${jobId}`);
+    return { success: true };
 }
 
 export async function sendMessageAction(jobId: string, senderId: string, content: string) {
-    const newMessage = await createMessageInDb({ jobId, senderId, content });
-    revalidatePath(`/jobs/${jobId}`);
-    return newMessage;
-}
-
-export async function deleteMessageAction(messageId: string) {
-    await deleteMessageFromDb(messageId);
-    revalidatePath(`/jobs/*`); // Revalidate all job detail pages
-}
-
-export async function seedDatabaseAction() {
-    await seedDatabase();
-    revalidatePath('/');
-    revalidatePath('/dashboard');
-}
-
-export async function suggestRepliesAction(input: SuggestRepliesInput) {
-    try {
-        const result = await suggestReplies(input);
-        return { success: true, suggestions: result.suggestions };
-    } catch (error) {
-        console.error('Failed to get suggestions:', error);
-        return { success: false, message: 'Could not fetch suggestions.' };
+    if (!senderId) {
+        return { success: false, message: "Authentication required." };
     }
+    
+    const jobRef = adminFirestore.collection('jobs').doc(jobId);
+    const jobDoc = await jobRef.get();
+    if (!jobDoc.exists) return { success: false, message: "Job not found." };
+    
+    const jobData = jobDoc.data()!;
+    const isPoster = jobData.posterId === senderId;
+    const isWorker = jobData.workerId === senderId;
+
+    if (!isPoster && !isWorker) {
+        return { success: false, message: "You are not authorized to chat for this job." };
+    }
+
+    const message = {
+        jobId,
+        senderId,
+        content,
+        timestamp: FieldValue.serverTimestamp()
+    };
+    
+    await adminFirestore.collection('jobs').doc(jobId).collection('messages').add(message);
+    
+    revalidatePath(`/jobs/${jobId}`);
+    return { success: true, message };
+}
+
+export async function deleteMessageAction(jobId: string, messageId: string, userId: string) {
+    if (!userId) {
+        return { success: false, message: "Authentication required." };
+    }
+    
+    const messageRef = adminFirestore.collection('jobs').doc(jobId).collection('messages').doc(messageId);
+    const messageDoc = await messageRef.get();
+
+    if (!messageDoc.exists || messageDoc.data()?.senderId !== userId) {
+        return { success: false, message: "Unauthorized or message not found." };
+    }
+
+    await messageRef.delete();
+    
+    revalidatePath(`/jobs/${jobId}`);
+    return { success: true };
 }

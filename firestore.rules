@@ -1,0 +1,58 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // Users can only read their own profile, and create it.
+    // Anyone can read a user's public profile data.
+    match /users/{userId} {
+      allow read;
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isSignedIn() && isOwner(userId);
+    }
+    
+    // Jobs can be read by anyone.
+    // A job can only be created or updated by the user who posted it.
+    // A job can be 'applied to' by any signed in user, but not the poster.
+    // A job can only be deleted (canceled) by the poster.
+    match /jobs/{jobId} {
+      allow read;
+      allow create: if isSignedIn() && request.resource.data.posterId == request.auth.uid;
+      
+      // Allow updates for different scenarios
+      allow update: if isSignedIn() && (
+        // Poster can update most details, or cancel the job
+        (resource.data.posterId == request.auth.uid && (
+           request.resource.data.status == 'canceled' || 
+           request.resource.data.workerId != resource.data.workerId // assigning worker
+        )) ||
+        // Assigned worker can mark job as complete
+        (resource.data.workerId == request.auth.uid && request.resource.data.status == 'completed') ||
+        // Any signed-in user can apply (add their ID to applicants)
+        (
+          request.auth.uid != resource.data.posterId &&
+          request.resource.data.applicantIds == resource.data.applicantIds.concat([request.auth.uid])
+        )
+      );
+    }
+    
+    // Messages can be read by the job poster or the assigned worker.
+    // Messages can only be created by the poster or assigned worker.
+    // Messages can only be deleted by the person who sent them.
+    match /jobs/{jobId}/messages/{messageId} {
+      allow read, create: if isSignedIn() && 
+                          (get(/databases/$(database)/documents/jobs/$(jobId)).data.posterId == request.auth.uid || 
+                           get(/databases/$(database)/documents/jobs/$(jobId)).data.workerId == request.auth.uid);
+      allow delete: if isSignedIn() && resource.data.senderId == request.auth.uid;
+    }
+  }
+}

@@ -1,19 +1,43 @@
+"use client";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getUserById } from "@/lib/data";
-import { Pencil, MapPin } from "lucide-react";
+import { Pencil, MapPin, Loader2 } from "lucide-react";
+import { useUser, useFirestore } from "@/firebase";
+import { useDocument } from "react-firebase-hooks/firestore";
+import { doc } from 'firebase/firestore';
+import type { User } from '@/lib/types';
+import { useRouter } from "next/navigation";
 
-export const dynamic = 'force-dynamic';
+export default function ProfilePage() {
+    const { user: authUser, loading: authLoading } = useUser();
+    const db = useFirestore();
+    const router = useRouter();
 
-export default async function ProfilePage({ searchParams }: { searchParams?: { userId?: string } }) {
-    // Use the passed userId or default to the main mock user
-    const userId = searchParams?.userId || 'user-5';
-    const user = await getUserById(userId);
+    const userRef = db && authUser ? doc(db, 'users', authUser.uid) : null;
+    const [userSnapshot, userLoading] = useDocument(userRef);
+    const user = userSnapshot?.exists() ? { id: userSnapshot.id, ...userSnapshot.data() } as User : undefined;
+
+    const loading = authLoading || userLoading;
+
+    if (loading) {
+        return <div className="flex h-screen items-center justify-center"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
+    }
+
+    if (!authUser) {
+        router.replace('/login');
+        return null;
+    }
 
     if (!user) {
-        return <p className="p-8 text-center">User not found.</p>;
+        return (
+            <div className="container mx-auto max-w-4xl py-12 text-center">
+                <p>Profile not found. Let's create it.</p>
+                <Button onClick={() => router.push('/onboarding')} className="mt-4">Complete Profile</Button>
+            </div>
+        );
     }
 
     return (

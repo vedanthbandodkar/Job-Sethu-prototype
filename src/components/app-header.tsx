@@ -6,27 +6,14 @@ import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { UserNav } from '@/components/user-nav';
 import { Briefcase } from 'lucide-react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from './theme-toggle';
+import { useUser } from '@/firebase';
 
 export function AppHeader() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const userId = searchParams.get('userId');
-
-  const constructUrl = (baseHref: string) => {
-    if (!userId) return baseHref;
-    const params = new URLSearchParams();
-    params.set('userId', userId);
-
-    // If navigating to dashboard, preserve the 'tab' param if it exists
-    if (baseHref === '/dashboard' && searchParams.has('tab')) {
-      params.set('tab', searchParams.get('tab')!);
-    }
-    
-    return `${baseHref}?${params.toString()}`;
-  };
+  const { user, loading } = useUser();
 
   const navItems = [
     { href: "/", label: "Home" },
@@ -38,18 +25,16 @@ export function AppHeader() {
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 max-w-screen-2xl items-center justify-between">
         <div className="flex items-center gap-6">
-            <Link href={constructUrl("/")} className="flex items-center space-x-2">
+            <Link href="/" className="flex items-center space-x-2">
                 <Briefcase className="h-6 w-6 text-primary" />
-                <span className="font-headline text-lg font-bold">Job Sethu</span>
+                <span className="font-headline text-lg font-bold">Hire Ups</span>
             </Link>
             <nav className="hidden items-center gap-1 md:flex">
             {navItems.map((item) => {
                 const isActive = pathname === item.href;
-                const finalHref = constructUrl(item.href);
-
                 return (
                     <Button key={item.label} variant="ghost" asChild className={cn("font-medium text-muted-foreground transition-colors hover:text-foreground", isActive && "text-foreground")}>
-                        <Link href={finalHref}>
+                        <Link href={item.href}>
                             {item.label}
                         </Link>
                     </Button>
@@ -59,9 +44,11 @@ export function AppHeader() {
         </div>
         
         <div className="flex items-center space-x-2 sm:space-x-4">
-            <Button asChild className="hidden md:inline-flex">
-                <Link href={constructUrl('/jobs/new')}>Post a Job</Link>
-            </Button>
+            {user && (
+              <Button asChild className="hidden md:inline-flex">
+                  <Link href='/jobs/new'>Post a Job</Link>
+              </Button>
+            )}
             <ThemeToggle />
             <UserNav />
         </div>

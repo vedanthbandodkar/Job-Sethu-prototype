@@ -1,48 +1,64 @@
 
-import { getJobById, getUserById, getMessagesForJob } from '@/lib/data';
+"use client";
+
 import { notFound } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { MapPin, IndianRupee, AlertTriangle, Calendar } from 'lucide-react';
+import { MapPin, IndianRupee, AlertTriangle, Calendar, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { JobActions } from '@/components/job-actions';
 import { ChatInterface } from '@/components/chat-interface';
 import { ApplicantList } from '@/components/applicant-list';
-import type { User as UserType, ChatMessage } from '@/lib/types';
+import type { User, JobWithDate } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Image from 'next/image';
+import { useUser, useFirestore } from '@/firebase';
+import { useDocument, useCollection } from 'react-firebase-hooks/firestore';
+import { doc, collection } from 'firebase/firestore';
 
-export const dynamic = 'force-dynamic';
+export default function JobDetailPage({ params }: { params: { id: string } }) {
+  const { user, loading: userLoading } = useUser();
+  const db = useFirestore();
 
-export default async function JobDetailPage({ params, searchParams }: { params: { id: string }, searchParams?: { userId?: string } }) {
-  const job = await getJobById(params.id);
+  const jobRef = db ? doc(db, 'jobs', params.id) : null;
+  const [jobSnapshot, jobLoading] = useDocument(jobRef);
+  const job = jobSnapshot?.exists() ? { id: jobSnapshot.id, ...jobSnapshot.data(), createdAt: jobSnapshot.data().createdAt.toDate() } as JobWithDate : undefined;
+
+  const posterId = job?.posterId;
+  const workerId = job?.workerId;
+  const applicantIds = job?.applicantIds;
+  
+  const posterRef = db && posterId ? doc(db, 'users', posterId) : null;
+  const [posterSnapshot, posterLoading] = useDocument(posterRef);
+  const poster = posterSnapshot?.exists() ? { id: posterSnapshot.id, ...posterSnapshot.data() } as User : undefined;
+
+  const workerRef = db && workerId ? doc(db, 'users', workerId) : null;
+  const [workerSnapshot, workerLoading] = useDocument(workerRef);
+  const worker = workerSnapshot?.exists() ? { id: workerSnapshot.id, ...workerSnapshot.data() } as User : undefined;
+
+  const applicantsCollectionRef = db && applicantIds?.length ? collection(db, 'users') : null;
+  // This is not efficient for many applicants. Firestore doesn't support `where in` with more than 30 items in a query.
+  // A real app would structure data differently for this. For now, we fetch one by one.
+  // This is just a placeholder for the logic. We will fetch applicants via separate hooks.
+  const [applicantsSnapshots, applicantsLoading] = useCollection(applicantsCollectionRef);
+  const applicants = applicantsSnapshots?.docs
+      .map(doc => ({ id: doc.id, ...doc.data() }) as User)
+      .filter(u => applicantIds?.includes(u.id)) || [];
+
+  const loading = userLoading || jobLoading || posterLoading || workerLoading || applicantsLoading;
+
+  if (loading) {
+    return <div className="flex h-screen items-center justify-center"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
+  }
+  
   if (!job) {
     notFound();
   }
 
-  // Use passed userId or default to a mock user
-  const currentUserId = searchParams?.userId || 'user-5';
-
-  const [poster, worker, applicants, rawMessages] = await Promise.all([
-    getUserById(job.posterId),
-    job.workerId ? getUserById(job.workerId) : null,
-    Promise.all(job.applicants.map(id => getUserById(id))).then(users => users.filter((u): u is UserType => u !== undefined)),
-    getMessagesForJob(job.id)
-  ]);
-  
-  const allUsersInvolved = [poster, worker, ...applicants].filter((u): u is UserType => u !== undefined);
-  
-  const messages = await Promise.all(
-    rawMessages.map(async (msg) => {
-      const sender = allUsersInvolved.find(u => u.id === msg.senderId) ?? await getUserById(msg.senderId);
-      return { ...msg, sender };
-    })
-  );
-
-  const isPoster = job.posterId === currentUserId;
-  const isWorker = job.workerId === currentUserId;
-  const hasApplied = job.applicants.includes(currentUserId);
+  const isPoster = job.posterId === user?.uid;
+  const isWorker = job.workerId === user?.uid;
+  const hasApplied = user?.uid ? job.applicantIds.includes(user.uid) : false;
   const canChat = (isPoster && worker) || isWorker;
 
   return (
@@ -73,7 +89,7 @@ export default async function JobDetailPage({ params, searchParams }: { params: 
                             <CardTitle className="font-headline text-3xl md:text-4xl">{job.title}</CardTitle>
                             <CardDescription className="mt-2 text-base flex flex-wrap items-center gap-x-4 gap-y-2 text-muted-foreground">
                                 <span className="flex items-center"><MapPin className="mr-1.5 h-4 w-4" /> {job.location}</span>
-                                <span className="flex items-center"><Calendar className="mr-1.5 h-4 w-4" /> Posted on {format(new Date(job.createdAt as Date), "PPP")}</span>
+                                <span className="flex items-center"><Calendar className="mr-1.5 h-4 w-4" /> Posted on {format(new Date(job.createdAt), "PPP")}</span>
                             </CardDescription>
                         </div>
                         <Badge variant={job.status === 'open' ? 'default' : job.status === 'assigned' ? 'secondary' : 'outline' } className="capitalize text-sm">{job.status}</Badge>
@@ -103,7 +119,7 @@ export default async function JobDetailPage({ params, searchParams }: { params: 
             )}
 
             {canChat && (
-                <ChatInterface job={job} currentUserId={currentUserId} messages={messages} />
+                <ChatInterface job={job} poster={poster} worker={worker} />
             )}
 
         </div>
@@ -135,7 +151,7 @@ export default async function JobDetailPage({ params, searchParams }: { params: 
                         </CardHeader>
                     </Card>
                 )}
-                <JobActions job={job} currentUserId={currentUserId} />
+                <JobActions job={job} />
             </div>
         </div>
       </div>

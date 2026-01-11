@@ -1,0 +1,66 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A person who has signed up for the app.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "avatarUrl": { "type": "string", "format": "uri" },
+        "skills": { "type": "array", "items": { "type": "string" } },
+        "location": { "type": "string" }
+      },
+      "required": ["name", "email"]
+    },
+    "Job": {
+      "title": "Job",
+      "description": "A job posting.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "skills": { "type": "array", "items": { "type": "string" } },
+        "payment": { "type": "number" },
+        "sos": { "type": "boolean" },
+        "location": { "type": "string" },
+        "status": { "type": "string", "enum": ["open", "assigned", "completed", "canceled", "paid"] },
+        "posterId": { "type": "string" },
+        "workerId": { "type": "string" },
+        "applicantIds": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "imageUrl": { "type": "string", "format": "uri" }
+      },
+      "required": ["title", "description", "skills", "payment", "location", "status", "posterId", "createdAt"]
+    },
+    "ChatMessage": {
+      "title": "Chat Message",
+      "description": "A message in a job chat.",
+      "type": "object",
+      "properties": {
+        "jobId": { "type": "string" },
+        "senderId": { "type": "string" },
+        "content": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["jobId", "senderId", "content", "timestamp"]
+    }
+  },
+  "auth": {
+    "providers": ["google.com", "password"]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profile documents."
+    },
+    "/jobs/{jobId}": {
+      "schema": { "$ref": "#/entities/Job" },
+      "description": "Job posting documents."
+    },
+    "/jobs/{jobId}/messages/{messageId}": {
+      "schema": { "$ref": "#/entities/ChatMessage" },
+      "description": "Chat messages for a specific job."
+    }
+  }
+}

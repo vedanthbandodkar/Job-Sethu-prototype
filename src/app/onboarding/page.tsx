@@ -15,11 +15,13 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useSearchParams, useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { useEffect, useTransition } from "react"
 import { completeOnboardingAction } from "@/app/actions"
 import { useToast } from "@/hooks/use-toast"
 import { Loader2 } from "lucide-react"
+import { useUser } from "@/firebase"
+import { Skeleton } from "@/components/ui/skeleton"
 
 const onboardingSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -31,10 +33,9 @@ type OnboardingValues = z.infer<typeof onboardingSchema>
 
 export default function OnboardingPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const { toast } = useToast()
   const [isPending, startTransition] = useTransition()
-  const userId = searchParams.get('userId')
+  const { user, loading } = useUser();
 
   const form = useForm<OnboardingValues>({
     resolver: zodResolver(onboardingSchema),
@@ -44,37 +45,35 @@ export default function OnboardingPage() {
       skills: "",
     },
   })
-
+  
   useEffect(() => {
-    if (!userId) {
-      toast({
-        variant: "destructive",
-        title: "Invalid Access",
-        description: "You must sign up before accessing the onboarding page.",
-      })
-      router.replace('/signup')
+    if (!loading && !user) {
+      router.replace('/login')
     }
-  }, [userId, router, toast])
+    if (user) {
+      form.setValue('name', user.displayName || '');
+    }
+  }, [user, loading, router, form])
 
   function onSubmit(data: OnboardingValues) {
-    if (!userId) {
+    if (!user) {
         toast({
             variant: "destructive",
             title: "Error",
-            description: "No user ID found. Please sign up again.",
+            description: "No user found. Please sign in again.",
         })
-        router.push('/signup');
+        router.push('/login');
         return;
     }
 
     startTransition(async () => {
-        const result = await completeOnboardingAction({ ...data, userId });
+        const result = await completeOnboardingAction(data, user.uid, user.email, user.photoURL);
         if (result.success) {
             toast({
                 title: "Profile Complete!",
                 description: "Welcome! Redirecting to your dashboard.",
             })
-            router.push(`/dashboard?userId=${userId}`);
+            router.push(`/dashboard`);
         } else {
             toast({
                 variant: "destructive",
@@ -85,10 +84,30 @@ export default function OnboardingPage() {
     })
   }
   
-  if (!userId) {
+  if (loading || !user) {
     return (
         <div className="flex min-h-[calc(100vh-theme(spacing.14))] items-center justify-center p-4">
-            <p>Invalid onboarding session. Redirecting...</p>
+            <Card className="w-full max-w-lg">
+                <CardHeader>
+                    <Skeleton className="h-8 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                </CardHeader>
+                <CardContent className="space-y-8">
+                    <div className="space-y-2">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-10 w-full" />
+                    </div>
+                    <div className="space-y-2">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-10 w-full" />
+                    </div>
+                    <div className="space-y-2">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-10 w-full" />
+                    </div>
+                    <Skeleton className="h-12 w-full" />
+                </CardContent>
+            </Card>
         </div>
     );
   }
@@ -98,7 +117,7 @@ export default function OnboardingPage() {
     <div className="flex min-h-[calc(100vh-theme(spacing.14))] items-center justify-center p-4">
       <Card className="w-full max-w-lg">
         <CardHeader>
-          <CardTitle className="font-headline text-2xl">Welcome to Job Sethu!</CardTitle>
+          <CardTitle className="font-headline text-2xl">Welcome to Hire Ups!</CardTitle>
           <CardDescription>Let's set up your profile so you can get started.</CardDescription>
         </CardHeader>
         <CardContent>

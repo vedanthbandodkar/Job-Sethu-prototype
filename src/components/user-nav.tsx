@@ -13,52 +13,31 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
-import { Check, CreditCard, LogOut, Settings, User as UserIcon } from 'lucide-react';
-import { getUsers, getUserById } from '@/lib/data';
-import { usePathname, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import type { User } from '@/lib/types';
+import { CreditCard, LogOut, Settings, User as UserIcon } from 'lucide-react';
+import { useUser, useAuth } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
+import { signOut } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
 
 export function UserNav() {
-  const [isClient, setIsClient] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-  const [allUsers, setAllUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { user, loading } = useUser();
+  const auth = useAuth();
+  const router = useRouter();
+  const { toast } = useToast();
 
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const userId = searchParams.get('userId') || 'user-5';
+  const handleLogout = async () => {
+    if (!auth) return;
+    try {
+        await signOut(auth);
+        toast({ title: "Logged out successfully." });
+        router.push('/login');
+    } catch (error: any) {
+        toast({ variant: 'destructive', title: "Logout failed", description: error.message });
+    }
+  }
 
-  useEffect(() => {
-    setIsClient(true);
-    
-    let isMounted = true;
-    const fetchUserData = async () => {
-      setLoading(true);
-      try {
-        const [userData, allUsersData] = await Promise.all([
-          getUserById(userId),
-          getUsers()
-        ]);
-        if (isMounted) {
-          setUser(userData || null);
-          setAllUsers(allUsersData);
-        }
-      } catch (error) {
-        console.error("Failed to fetch user data:", error);
-        if (isMounted) setUser(null);
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-
-    fetchUserData();
-
-    return () => { isMounted = false; };
-  }, [userId]);
-
-  if (!isClient || loading) {
+  if (loading) {
     return <Skeleton className="h-9 w-9 rounded-full" />;
   }
 
@@ -70,33 +49,27 @@ export function UserNav() {
     );
   }
 
-  const constructUrl = (baseHref: string, newUserId: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('userId', newUserId);
-    return `${baseHref}?${params.toString()}`;
-  };
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-9 w-9">
-            <AvatarImage src={user.avatarUrl} alt={user.name ?? ""} data-ai-hint="person avatar" />
-            <AvatarFallback>{user.name?.charAt(0) ?? 'U'}</AvatarFallback>
+            <AvatarImage src={user.photoURL || undefined} alt={user.displayName || ""} data-ai-hint="person avatar" />
+            <AvatarFallback>{user.displayName?.charAt(0) ?? 'U'}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.name}</p>
+            <p className="text-sm font-medium leading-none">{user.displayName}</p>
             <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem asChild>
-            <Link href={constructUrl('/profile', user.id)}>
+            <Link href='/profile'>
               <UserIcon />
               <span>Profile</span>
             </Link>
@@ -111,27 +84,9 @@ export function UserNav() {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <DropdownMenuLabel>Switch profile</DropdownMenuLabel>
-          {allUsers.map(profile => (
-            <DropdownMenuItem key={profile.id} asChild>
-              <Link href={constructUrl(pathname, profile.id)}>
-                <Avatar className="mr-2 h-5 w-5">
-                  <AvatarImage src={profile.avatarUrl} alt={profile.name ?? ""} />
-                  <AvatarFallback>{profile.name?.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <span className="truncate">{profile.name}</span>
-                {profile.id === user.id && <Check className="ml-auto h-4 w-4" />}
-              </Link>
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href="/login">
-            <LogOut />
-            <span>Log out</span>
-          </Link>
+        <DropdownMenuItem onClick={handleLogout}>
+          <LogOut />
+          <span>Log out</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

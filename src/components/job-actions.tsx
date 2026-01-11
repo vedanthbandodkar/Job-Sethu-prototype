@@ -1,7 +1,7 @@
 
 "use client"
 
-import type { Job } from "@/lib/types";
+import type { JobWithDate } from "@/lib/types";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Check, Send, CheckCheck, Loader2, IndianRupee, Ban } from "lucide-react";
@@ -9,51 +9,51 @@ import { useTransition } from "react";
 import { applyForJobAction, markJobCompleteAction, cancelJobAction } from "@/app/actions";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import { useUser } from "@/firebase";
 
 type JobActionsProps = {
-    job: Job;
-    currentUserId: string;
+    job: JobWithDate;
 }
 
-export function JobActions({ job, currentUserId }: JobActionsProps) {
+export function JobActions({ job }: JobActionsProps) {
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
     const { toast } = useToast();
+    const { user } = useUser();
+    const currentUserId = user?.uid;
 
     const isPoster = job.posterId === currentUserId;
     const isWorker = job.workerId === currentUserId;
-    const hasApplied = job.applicants.includes(currentUserId);
+    const hasApplied = currentUserId ? job.applicantIds.includes(currentUserId) : false;
 
-    const handleApply = () => {
+    const handleAction = (action: (...args: any[]) => Promise<any>, successTitle: string, successMessage: string, ...args: any[]) => {
+        if (!currentUserId) {
+            toast({ variant: 'destructive', title: "You must be logged in." });
+            router.push('/login');
+            return;
+        }
+
         startTransition(async () => {
-            await applyForJobAction(job.id, currentUserId);
-            toast({
-                title: "Successfully Applied!",
-                description: "The job poster has been notified. You can see this job in your dashboard.",
-            });
+            const result = await action(...args, currentUserId);
+            if (result.success) {
+                toast({
+                    title: successTitle,
+                    description: successMessage,
+                });
+                router.refresh();
+            } else {
+                toast({
+                    variant: 'destructive',
+                    title: "Action Failed",
+                    description: result.message || "An unexpected error occurred."
+                })
+            }
         });
     };
 
-    const handleMarkComplete = () => {
-        startTransition(async () => {
-            await markJobCompleteAction(job.id);
-            toast({
-                title: "Job Completed!",
-                description: "You've marked this job as complete.",
-            });
-        });
-    };
-
-    const handleCancelJob = () => {
-        startTransition(async () => {
-            await cancelJobAction(job.id);
-             toast({
-                title: "Job Canceled",
-                description: "This job post has been removed.",
-            })
-            router.push(`/dashboard?userId=${currentUserId}&tab=postings`);
-        });
-    }
+    const handleApply = () => handleAction(applyForJobAction, "Successfully Applied!", "The job poster has been notified.", job.id);
+    const handleMarkComplete = () => handleAction(markJobCompleteAction, "Job Completed!", "You've marked this job as complete.", job.id);
+    const handleCancelJob = () => handleAction(cancelJobAction, "Job Canceled", "This job post has been removed.", job.id);
 
     const handlePayment = () => {
         toast({
@@ -63,6 +63,14 @@ export function JobActions({ job, currentUserId }: JobActionsProps) {
     }
 
     const getActionForUser = () => {
+        if (!currentUserId) {
+             return (
+                <Button onClick={() => router.push('/login')} className="w-full" size="lg">
+                    <Send className="mr-2"/> Login to Apply
+                </Button>
+            )
+        }
+        
         if (isPoster) {
             switch (job.status) {
                 case 'open':

@@ -8,6 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/firebase';
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { useState, useTransition } from 'react';
+import { Loader2 } from 'lucide-react';
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
@@ -23,15 +27,51 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const auth = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isPending, startTransition] = useTransition();
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!auth) return;
+    startTransition(async () => {
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            toast({
+                title: 'Login Successful!',
+                description: 'Redirecting you to your dashboard.',
+            });
+            router.push('/dashboard');
+        } catch (error: any) {
+            toast({
+                variant: 'destructive',
+                title: 'Login Failed',
+                description: error.message,
+            });
+        }
+    });
+  };
 
   const handleGoogleLogin = () => {
-    // In a real app, this is where you'd call Firebase.
-    // For this prototype, we'll simulate a successful login.
-    toast({
-      title: 'Login Successful!',
-      description: 'Redirecting you to your dashboard.',
+    if (!auth) return;
+    startTransition(async () => {
+        try {
+            const provider = new GoogleAuthProvider();
+            await signInWithPopup(auth, provider);
+            toast({
+                title: 'Login Successful!',
+                description: 'Redirecting you to your dashboard.',
+            });
+            router.push('/dashboard');
+        } catch (error: any) {
+            toast({
+                variant: 'destructive',
+                title: 'Google Login Failed',
+                description: error.message,
+            });
+        }
     });
-    router.push('/dashboard');
   };
   
   return (
@@ -41,19 +81,23 @@ export default function LoginPage() {
         <CardDescription>Enter your email below to login to your account.</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" placeholder="m@example.com" required />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="password">Password</Label>
-          <Input id="password" type="password" required />
-        </div>
-        <Button type="submit" className="w-full">
-          Login
-        </Button>
+        <form onSubmit={handleLogin} className="grid gap-4">
+            <div className="grid gap-2">
+            <Label htmlFor="email">Email</Label>
+            <Input id="email" type="email" placeholder="m@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
+            </div>
+            <div className="grid gap-2">
+            <Label htmlFor="password">Password</Label>
+            <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+            </div>
+            <Button type="submit" className="w-full" disabled={isPending}>
+                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Login
+            </Button>
+        </form>
         <Separator className="my-2" />
-        <Button variant="outline" className="w-full" onClick={handleGoogleLogin}>
+        <Button variant="outline" className="w-full" onClick={handleGoogleLogin} disabled={isPending}>
+          {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           <GoogleIcon className="mr-2 h-4 w-4" />
           Login with Google
         </Button>
