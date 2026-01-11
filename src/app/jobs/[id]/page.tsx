@@ -9,7 +9,6 @@ import { MapPin, IndianRupee, AlertTriangle, Calendar, Loader2 } from 'lucide-re
 import { format } from 'date-fns';
 import { JobActions } from '@/components/job-actions';
 import { ChatInterface } from '@/components/chat-interface';
-import { ApplicantList } from '@/components/applicant-list';
 import type { User, JobWithDate } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Image from 'next/image';
