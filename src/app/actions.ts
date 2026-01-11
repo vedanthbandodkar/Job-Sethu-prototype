@@ -25,7 +25,7 @@ export async function createJobAction(data: JobFormValues, userId: string) {
       skills: data.skills.split(',').map(s => s.trim()).filter(Boolean),
       posterId: userId,
       imageUrl: `https://picsum.photos/seed/${Math.random()}/600/400`,
-      createdAt: FieldValue.serverTimestamp(),
+      createdAt: new Date(),
       status: 'open',
       applicantIds: [],
     };
