@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
@@ -7,6 +8,7 @@ import { Firestore, getFirestore } from "firebase/firestore";
 import { firebaseConfig } from "./config";
 import { ThemeProvider } from "@/components/theme-provider";
 import { usePathname, useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 
 interface FirebaseContextValue {
   app: FirebaseApp | null;
@@ -53,23 +55,28 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = onAuthStateChanged(authInstance, (user) => {
       setUser(user);
       setLoading(false);
-      
-      const isAuthPage = pathname === '/login' || pathname === '/signup';
-      if(user && isAuthPage) {
-        router.replace('/dashboard');
-      }
-      if(!user && !isAuthPage) {
-        router.replace('/login');
-      }
-
     });
 
     return () => unsubscribe();
-  }, [router, pathname]);
+  }, []);
+
+  useEffect(() => {
+    if (loading) return; // Don't do anything until Firebase auth state is loaded
+
+    const protectedRoutes = !['/login', '/signup'].includes(pathname);
+
+    if (!user && protectedRoutes) {
+        router.replace('/login');
+    } else if (user && !protectedRoutes) {
+        router.replace('/dashboard');
+    }
+
+  }, [user, loading, pathname, router]);
 
   const value = { app, auth, db, user, loading };
   
   const isAuthPage = pathname === '/login' || pathname === '/signup';
+  const showLoadingSpinner = loading && !isAuthPage;
 
   return (
     <FirebaseContext.Provider value={value}>
@@ -79,9 +86,9 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
           enableSystem
           disableTransitionOnChange
         >
-        {loading && !isAuthPage ? (
+        {showLoadingSpinner ? (
             <div className="flex min-h-screen items-center justify-center">
-                <p>Loading...</p>
+                <Loader2 className="h-8 w-8 animate-spin" />
             </div>
         ) : children}
        </ThemeProvider>
