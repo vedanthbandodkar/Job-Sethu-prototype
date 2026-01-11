@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useEffect, useState, useRef, useTransition } from 'react';
+import { useEffect, useState, useRef, useTransition, useMemo } from 'react';
 import type { ChatMessageWithDate, User, JobWithDate } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
@@ -52,10 +52,10 @@ export function ChatInterface({ job, poster, worker }: ChatInterfaceProps) {
     const { user, loading: userLoading } = useUser();
     const db = useFirestore();
 
-    const messagesQuery = db ? query(collection(db, 'jobs', job.id, 'messages'), orderBy('timestamp', 'asc')) : null;
+    const messagesQuery = useMemo(() => (db ? query(collection(db, 'jobs', job.id, 'messages'), orderBy('timestamp', 'asc')) : null), [db, job.id]);
     const [messagesSnapshot, messagesLoading] = useCollection(messagesQuery);
 
-    const messages = messagesSnapshot?.docs.map(doc => {
+    const messages = useMemo(() => messagesSnapshot?.docs.map(doc => {
       const data = doc.data();
       const senderId = data.senderId;
       let sender;
@@ -68,7 +68,7 @@ export function ChatInterface({ job, poster, worker }: ChatInterfaceProps) {
         timestamp: data.timestamp?.toDate(),
         sender,
       }
-    }) as (ChatMessageWithDate & { sender?: User })[] | undefined;
+    }) as (ChatMessageWithDate & { sender?: User })[] | undefined, [messagesSnapshot, poster, worker]);
 
     useEffect(() => {
         if (scrollAreaRef.current) {

@@ -16,6 +16,7 @@ import { useUser, useFirestore } from '@/firebase';
 import { useDocument, useCollection } from 'react-firebase-hooks/firestore';
 import { doc, collection } from 'firebase/firestore';
 import { ApplicantList } from '@/components/applicant-list';
+import { useMemo } from 'react';
 
 export default function JobDetailPage() {
   const params = useParams();
@@ -23,36 +24,33 @@ export default function JobDetailPage() {
   const { user, loading: userLoading } = useUser();
   const db = useFirestore();
 
-  const jobRef = db && id ? doc(db, 'jobs', id) : null;
+  const jobRef = useMemo(() => (db && id ? doc(db, 'jobs', id) : null), [db, id]);
   const [jobSnapshot, jobLoading] = useDocument(jobRef);
   
-  const jobData = jobSnapshot?.exists() ? jobSnapshot.data() : undefined;
-  const job: JobWithDate | undefined = jobData ? { 
-    id: jobSnapshot!.id, 
-    ...jobData, 
-    createdAt: jobData.createdAt.toDate() 
-  } as JobWithDate : undefined;
+  const job: JobWithDate | undefined = useMemo(() => {
+    if (!jobSnapshot?.exists()) return undefined;
+    const data = jobSnapshot.data();
+    return {
+      id: jobSnapshot.id,
+      ...data,
+      createdAt: data.createdAt.toDate(),
+    } as JobWithDate;
+  }, [jobSnapshot]);
 
-  const posterId = job?.posterId;
-  const workerId = job?.workerId;
-  const applicantIds = job?.applicantIds;
-  
-  const posterRef = db && posterId ? doc(db, 'users', posterId) : null;
+  const posterRef = useMemo(() => (db && job?.posterId ? doc(db, 'users', job.posterId) : null), [db, job?.posterId]);
   const [posterSnapshot, posterLoading] = useDocument(posterRef);
-  const posterData = posterSnapshot?.exists() ? { id: posterSnapshot.id, ...posterSnapshot.data() } as User : undefined;
+  const poster = useMemo(() => (posterSnapshot?.exists() ? { id: posterSnapshot.id, ...posterSnapshot.data() } as User : undefined), [posterSnapshot]);
 
-  const workerRef = db && workerId ? doc(db, 'users', workerId) : null;
+  const workerRef = useMemo(() => (db && job?.workerId ? doc(db, 'users', job.workerId) : null), [db, job?.workerId]);
   const [workerSnapshot, workerLoading] = useDocument(workerRef);
-  const workerData = workerSnapshot?.exists() ? { id: workerSnapshot.id, ...workerSnapshot.data() } as User : undefined;
+  const worker = useMemo(() => (workerSnapshot?.exists() ? { id: workerSnapshot.id, ...workerSnapshot.data() } as User : undefined), [workerSnapshot]);
 
-  const applicantsCollectionRef = db && applicantIds?.length ? collection(db, 'users') : null;
-  // This is not efficient for many applicants. Firestore doesn't support `where in` with more than 30 items in a query.
-  // A real app would structure data differently for this. For now, we fetch one by one.
-  // This is just a placeholder for the logic. We will fetch applicants via separate hooks.
-  const [applicantsSnapshots, applicantsLoading] = useCollection(applicantsCollectionRef);
-  const applicants = applicantsSnapshots?.docs
+  const [applicantsSnapshots, applicantsLoading] = useCollection(db && job?.applicantIds?.length ? collection(db, 'users') : null);
+  const applicants = useMemo(() => 
+    applicantsSnapshots?.docs
       .map(doc => ({ id: doc.id, ...doc.data() }) as User)
-      .filter(u => applicantIds?.includes(u.id)) || [];
+      .filter(u => job?.applicantIds?.includes(u.id)) || []
+  , [applicantsSnapshots, job?.applicantIds]);
 
   const loading = userLoading || jobLoading || posterLoading || workerLoading || applicantsLoading;
 
@@ -74,8 +72,8 @@ export default function JobDetailPage() {
       createdAt: job.createdAt.toISOString(),
   };
 
-  const serializablePoster = posterData ? { ...posterData } : undefined;
-  const serializableWorker = workerData ? { ...workerData } : undefined;
+  const serializablePoster = poster ? { ...poster } : undefined;
+  const serializableWorker = worker ? { ...worker } : undefined;
 
   const canChat = (isPoster && serializableWorker) || isWorker;
   

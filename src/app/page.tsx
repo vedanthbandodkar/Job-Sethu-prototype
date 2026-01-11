@@ -16,10 +16,22 @@ export default function Home() {
   const db = useFirestore();
   const [searchQuery, setSearchQuery] = useState('');
 
+<<<<<<< HEAD
   const jobsRef = db ? collection(db, 'jobs') : null;
   let q = jobsRef ? query(jobsRef, where("status", "==", "open"), orderBy("createdAt", "desc")) : null;
 
   const [jobsSnapshot, loading, error] = useCollection(q);
+=======
+  // Base query
+  const jobsQuery = useMemo(() => {
+    if (!db) return null;
+    return query(collection(db, 'jobs'), where("status", "==", "open"), orderBy("createdAt", "desc"));
+  }, [db]);
+  
+  // Note: Firestore does not support full-text search natively. 
+  // This query only gets open jobs. A real search implementation would use a third-party service like Algolia.
+  const [jobsSnapshot, loading, error] = useCollection(jobsQuery);
+>>>>>>> a178267 (Try fixing this error: `Console Error: Maximum update depth exceeded. Th)
 
   const jobs = useMemo(() => jobsSnapshot?.docs.map(doc => ({ 
       id: doc.id, 

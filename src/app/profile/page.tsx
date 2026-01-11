@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, useTransition, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -39,9 +39,9 @@ export default function ProfilePage() {
     const [isPending, startTransition] = useTransition();
     const [isEditMode, setIsEditMode] = useState(false);
 
-    const userRef = db && authUser ? doc(db, 'users', authUser.uid) : null;
+    const userRef = useMemo(() => (db && authUser ? doc(db, 'users', authUser.uid) : null), [db, authUser]);
     const [userSnapshot, userLoading] = useDocument(userRef);
-    const user = userSnapshot?.exists() ? { id: userSnapshot.id, ...userSnapshot.data() } as UserType : undefined;
+    const user = useMemo(() => (userSnapshot?.exists() ? { id: userSnapshot.id, ...userSnapshot.data() } as UserType : undefined), [userSnapshot]);
 
     const form = useForm<ProfileFormValues>({
         resolver: zodResolver(profileFormSchema),

@@ -20,21 +20,27 @@ export default function DashboardPage() {
   // --- Start of New Data Fetching Logic ---
 
   // Query 1: Jobs posted by the user
-  const postedJobsQuery = user && db
-    ? query(collection(db, 'jobs'), where('posterId', '==', user.uid))
-    : null;
+  const postedJobsQuery = useMemo(() => (
+    user && db
+      ? query(collection(db, 'jobs'), where('posterId', '==', user.uid))
+      : null
+  ), [db, user]);
   const [postedJobsSnapshot, postedJobsLoading] = useCollection(postedJobsQuery);
 
   // Query 2: Jobs the user has applied to
-  const appliedJobsQuery = user && db
-    ? query(collection(db, 'jobs'), where('applicantIds', 'array-contains', user.uid))
-    : null;
+  const appliedJobsQuery = useMemo(() => (
+    user && db
+      ? query(collection(db, 'jobs'), where('applicantIds', 'array-contains', user.uid))
+      : null
+  ), [db, user]);
   const [appliedJobsSnapshot, appliedJobsLoading] = useCollection(appliedJobsQuery);
 
   // Query 3: Jobs the user is assigned to
-  const assignedJobsQuery = user && db
-    ? query(collection(db, 'jobs'), where('workerId', '==', user.uid))
-    : null;
+  const assignedJobsQuery = useMemo(() => (
+    user && db
+      ? query(collection(db, 'jobs'), where('workerId', '==', user.uid))
+      : null
+  ), [db, user]);
   const [assignedJobsSnapshot, assignedJobsLoading] = useCollection(assignedJobsQuery);
   
   const allJobs = useMemo(() => {
