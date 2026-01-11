@@ -4,12 +4,12 @@ import { JobCard } from '@/components/job-card';
 import type { JobWithDate } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Loader2 } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useUser, useFirestore } from '@/firebase';
 import { useCollection } from 'react-firebase-hooks/firestore';
 import { collection, query, where, orderBy } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 export default function Home() {
   const { user } = useUser();
@@ -21,18 +21,33 @@ export default function Home() {
 
   const [jobsSnapshot, loading, error] = useCollection(q);
 
-  const jobs = jobsSnapshot?.docs.map(doc => ({ 
+  const jobs = useMemo(() => jobsSnapshot?.docs.map(doc => ({ 
       id: doc.id, 
       ...doc.data(),
       createdAt: doc.data().createdAt.toDate(),
-  })) as JobWithDate[] | undefined;
+  })) as JobWithDate[] | undefined, [jobsSnapshot]);
+
+  const filteredJobs = useMemo(() => {
+    if (!jobs) return [];
+    if (!searchQuery) return jobs;
+
+    const lowercasedQuery = searchQuery.toLowerCase();
+    return jobs.filter(job => 
+        job.title.toLowerCase().includes(lowercasedQuery) ||
+        job.description.toLowerCase().includes(lowercasedQuery) ||
+        job.skills.some(skill => skill.toLowerCase().includes(lowercasedQuery))
+    );
+  }, [jobs, searchQuery]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget as HTMLFormElement);
     const q = formData.get('q') as string;
     setSearchQuery(q);
+<<<<<<< HEAD
     alert("Full-text search is not implemented in this prototype. Showing all open jobs.");
+=======
+>>>>>>> 709c275 (make the search functionality work)
   }
   
   return (
@@ -46,11 +61,11 @@ export default function Home() {
             <Input 
               type="text" 
               name="q"
-              placeholder="Search is not implemented in this prototype..." 
+              placeholder="Search by title, skill, or keyword..." 
               className="flex-grow text-base" 
-              disabled
+              defaultValue={searchQuery}
             />
-            <Button type="submit" size="lg" disabled>
+            <Button type="submit" size="lg">
                 <Search className="mr-2 h-5 w-5" /> Search
             </Button>
         </form>
@@ -68,10 +83,14 @@ export default function Home() {
                 {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-[380px] w-full rounded-lg" />)}
              </div>
         )}
+<<<<<<< HEAD
 
         {!loading && jobs && jobs.length > 0 ? (
+=======
+        {!loading && filteredJobs && filteredJobs.length > 0 ? (
+>>>>>>> 709c275 (make the search functionality work)
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {jobs.map((job: JobWithDate) => (
+            {filteredJobs.map((job: JobWithDate) => (
               <JobCard key={job.id} job={job} userId={user?.uid} />
             ))}
           </div>
@@ -79,9 +98,14 @@ export default function Home() {
           !loading && (
             <div className="text-center py-16 border-2 border-dashed rounded-lg mt-6">
               <h2 className="font-headline text-2xl font-semibold">No jobs found.</h2>
+<<<<<<< HEAD
               <p className="mt-2 text-muted-foreground">Check back later for new opportunities.</p>
             </div>
           )
+=======
+              <p className="mt-2 text-muted-foreground">{searchQuery ? 'Try a different search term.' : 'Check back later for new opportunities.'}</p>
+          </div>
+>>>>>>> 709c275 (make the search functionality work)
         )}
 
         {error && <p className="text-destructive text-center">Error loading jobs: {error.message}</p>}
