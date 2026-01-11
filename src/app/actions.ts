@@ -2,9 +2,8 @@
 'use server'
 
 import { revalidatePath } from 'next/cache';
-import { adminFirestore, adminStorage } from '@/firebase/server-init';
+import { adminFirestore } from '@/firebase/server-init';
 import { FieldValue } from 'firebase-admin/firestore';
-import { v4 as uuidv4 } from 'uuid';
 
 type JobFormValues = {
   title: string;
@@ -13,7 +12,6 @@ type JobFormValues = {
   payment: number;
   location: string;
   sos: boolean;
-  imageUrl: string; 
 }
 
 export async function createJobAction(data: JobFormValues, userId: string) {
@@ -22,35 +20,11 @@ export async function createJobAction(data: JobFormValues, userId: string) {
   }
 
   try {
-    // Correctly handle the Data URL from the client
-    const matches = data.imageUrl.match(/^data:(.+);base64,(.*)$/);
-    if (!matches || matches.length !== 3) {
-      return { success: false, message: 'Invalid image format.' };
-    }
-    const mimeType = matches[1];
-    const base64Data = matches[2];
-    const imageBuffer = Buffer.from(base64Data, 'base64');
-    
-    const imageId = uuidv4();
-    const filePath = `jobs/${imageId}`;
-    const file = adminStorage.bucket().file(filePath);
-
-    await file.save(imageBuffer, {
-      metadata: {
-        contentType: mimeType,
-        metadata: {
-          firebaseStorageDownloadTokens: imageId,
-        },
-      },
-    });
-
-    const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${adminStorage.bucket().name}/o/${encodeURIComponent(filePath)}?alt=media&token=${imageId}`;
-    
     const newJobData = {
       ...data,
       skills: data.skills.split(',').map(s => s.trim()).filter(Boolean),
       posterId: userId,
-      imageUrl: publicUrl,
+      imageUrl: `https://picsum.photos/seed/${Math.random()}/600/400`,
       createdAt: FieldValue.serverTimestamp(),
       status: 'open',
       applicantIds: [],

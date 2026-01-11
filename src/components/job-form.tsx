@@ -4,9 +4,8 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { useTransition, useState } from "react"
+import { useTransition } from "react"
 import { useRouter } from "next/navigation"
-import Image from "next/image"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -21,7 +20,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
-import { AlertTriangle, Loader2, Upload } from "lucide-react"
+import { AlertTriangle, Loader2 } from "lucide-react"
 import { createJobAction } from "@/app/actions"
 import { useToast } from "@/hooks/use-toast"
 import { useUser } from "@/firebase"
@@ -43,9 +42,6 @@ const jobFormSchema = z.object({
     message: "Location is required.",
   }),
   sos: z.boolean().default(false),
-  imageUrl: z.string().min(1, {
-    message: "An image is required.",
-  })
 })
 
 type JobFormValues = z.infer<typeof jobFormSchema>
@@ -57,12 +53,10 @@ const defaultValues: Partial<JobFormValues> = {
   location: "",
   payment: undefined,
   sos: false,
-  imageUrl: "",
 }
 
 export function JobForm() {
   const [isPending, startTransition] = useTransition();
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const { toast } = useToast();
   const router = useRouter();
   const { user } = useUser();
@@ -83,7 +77,6 @@ export function JobForm() {
         const result = await createJobAction(data, user.uid);
         if (result?.success) {
             form.reset();
-            setImagePreview(null);
             toast({
                 title: "Job Created!",
                 description: "Your job has been posted successfully.",
@@ -98,19 +91,6 @@ export function JobForm() {
         }
     });
   }
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const dataUrl = reader.result as string;
-        setImagePreview(dataUrl);
-        form.setValue('imageUrl', dataUrl, { shouldValidate: true });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
   return (
     <Form {...form}>
@@ -127,38 +107,6 @@ export function JobForm() {
               <FormMessage />
             </FormItem>
           )}
-        />
-        <FormField
-            control={form.control}
-            name="imageUrl"
-            render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Job Image</FormLabel>
-                    <FormControl>
-                        <div className="flex items-center gap-4">
-                            <label className="flex-grow cursor-pointer rounded-md border border-dashed flex flex-col items-center justify-center p-4 text-center text-muted-foreground hover:bg-muted/50 transition-colors">
-                                <Upload className="h-8 w-8 mb-2" />
-                                <span>Click to upload an image</span>
-                                <Input 
-                                    type="file" 
-                                    className="hidden" 
-                                    accept="image/*"
-                                    onChange={handleImageChange}
-                                />
-                            </label>
-                            {imagePreview && (
-                                <div className="w-32 h-32 relative rounded-md overflow-hidden shrink-0">
-                                    <Image src={imagePreview} alt="Image preview" fill className="object-cover" />
-                                </div>
-                            )}
-                        </div>
-                    </FormControl>
-                    <FormDescription>
-                        A professional image helps your job post stand out.
-                    </FormDescription>
-                    <FormMessage />
-                </FormItem>
-            )}
         />
         <FormField
           control={form.control}
