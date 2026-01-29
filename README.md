@@ -7,3 +7,5 @@ added new functionalities and brainstorming for more
 
 starting with new festure additions 
 starting something new in firebase studio
+
+need a lot of work
