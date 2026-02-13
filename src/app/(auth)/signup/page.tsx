@@ -3,11 +3,11 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useTransition } from 'react';
+import { useTransition, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -33,6 +33,10 @@ const signupSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters."),
   email: z.string().email("Please enter a valid email address."),
   password: z.string().min(6, "Password must be at least 6 characters."),
+  confirmPassword: z.string()
+}).refine(data => data.password === data.confirmPassword, {
+    message: "Passwords do not match.",
+    path: ["confirmPassword"],
 });
 
 type SignupFormValues = z.infer<typeof signupSchema>;
@@ -42,6 +46,7 @@ export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
+  const [showPassword, setShowPassword] = useState(false);
   const auth = useAuth();
 
   const form = useForm<SignupFormValues>({
@@ -50,6 +55,7 @@ export default function SignupPage() {
       fullName: "",
       email: "",
       password: "",
+      confirmPassword: "",
     },
   });
   
@@ -136,8 +142,45 @@ export default function SignupPage() {
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel>Password</FormLabel>
+                         <FormControl>
+                            <div className="relative">
+                                <Input type={showPassword ? "text" : "password"} placeholder="••••••••" {...field} />
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground"
+                                    onClick={() => setShowPassword(prev => !prev)}
+                                >
+                                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    <span className="sr-only">{showPassword ? "Hide password" : "Show password"}</span>
+                                </Button>
+                            </div>
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Confirm Password</FormLabel>
                         <FormControl>
-                            <Input type="password" {...field} />
+                           <div className="relative">
+                                <Input type={showPassword ? "text" : "password"} placeholder="••••••••" {...field} />
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground"
+                                    onClick={() => setShowPassword(prev => !prev)}
+                                >
+                                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    <span className="sr-only">{showPassword ? "Hide password" : "Show password"}</span>
+                                </Button>
+                            </div>
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -165,3 +208,5 @@ export default function SignupPage() {
     </Card>
   );
 }
+
+    
