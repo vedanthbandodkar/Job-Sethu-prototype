@@ -1,7 +1,16 @@
-export default function AuthLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex min-h-[calc(100vh-theme(spacing.14))] items-center justify-center bg-background p-4">
-      {children}
-    </div>
-  );
+// src/app/(auth)/layout.tsx
+
+import React from 'react';
+
+/**
+ * A basic layout component for the authentication pages.
+ * It simply renders its children and is required by Next.js for
+ * some route groups to function correctly.
+ */
+export default function AuthLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <>{children}</>;
 }
