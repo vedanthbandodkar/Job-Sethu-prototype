@@ -100,6 +100,8 @@ export default function ProfilePage() {
             }
         });
     }
+    
+    const isWorker = user.userType === 'worker';
 
     return (
         <div className="container mx-auto max-w-4xl py-12">
@@ -131,7 +133,7 @@ export default function ProfilePage() {
                                         <CardTitle className="font-headline text-4xl">{user.name ?? "Unnamed User"}</CardTitle>
                                     )}
 
-                                    {user.userType === 'worker' && (
+                                    {isWorker && (
                                         isEditMode ? (
                                             <FormField
                                                 control={form.control}
@@ -151,7 +153,7 @@ export default function ProfilePage() {
                                         ) : (
                                             <CardDescription className="mt-2 text-lg flex items-center justify-center md:justify-start">
                                                 <MapPin className="mr-2 h-5 w-5"/>
-                                                {user.location || <span className="italic text-muted-foreground">No location set</span>}
+                                                {user.location ? user.location : <span className="italic text-muted-foreground">No location set</span>}
                                             </CardDescription>
                                         )
                                     )}
@@ -203,7 +205,7 @@ export default function ProfilePage() {
                                     )}
                                 </div>
                                 
-                                {user.userType === 'worker' && (
+                                {isWorker && (
                                     <div>
                                         <h3 className="font-headline text-xl font-semibold mb-3">Skills</h3>
                                         {isEditMode ? (
@@ -220,15 +222,17 @@ export default function ProfilePage() {
                                                 )}
                                             />
                                         ) : (
-                                            user.skills && user.skills.length > 0 ? (
-                                                <div className="flex flex-wrap gap-2">
-                                                    {user.skills.map(skill => (
-                                                        <Badge key={skill} className="text-base px-4 py-1">{skill}</Badge>
-                                                    ))}
-                                                </div>
-                                            ) : (
-                                                <p className="text-muted-foreground italic">No skills added yet. Click the edit button to add some.</p>
-                                            )
+                                            <>
+                                                {(user.skills && user.skills.length > 0) ? (
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {user.skills.map(skill => (
+                                                            <Badge key={skill} className="text-base px-4 py-1">{skill}</Badge>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-muted-foreground italic">No skills added yet. Click the edit button to add some.</p>
+                                                )}
+                                            </>
                                         )}
                                     </div>
                                 )}
