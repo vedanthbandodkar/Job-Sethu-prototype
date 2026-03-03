@@ -14,7 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Pencil, MapPin, Loader2, Save, XCircle } from "lucide-react";
+import { Pencil, MapPin, Loader2, Save, XCircle, Star } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -80,18 +80,9 @@ export default function ProfilePage() {
     
     const onSubmit = (data: ProfileFormValues) => {
         if (!user) return;
-        
-        const submissionData = {
-            name: data.name,
-            about: data.about,
-            ...(user.userType === 'worker' && {
-                location: data.location,
-                skills: data.skills,
-            }),
-        };
 
         startTransition(async () => {
-            const result = await updateUserProfileAction(submissionData, user.id);
+            const result = await updateUserProfileAction(data, user.id);
             if (result.success) {
                 toast({ title: "Profile Updated!", description: "Your changes have been saved." });
                 setIsEditMode(false);
@@ -100,8 +91,6 @@ export default function ProfilePage() {
             }
         });
     }
-    
-    const isWorker = user.userType === 'worker';
 
     return (
         <div className="container mx-auto max-w-4xl py-12">
@@ -133,29 +122,27 @@ export default function ProfilePage() {
                                         <CardTitle className="font-headline text-4xl">{user.name ?? "Unnamed User"}</CardTitle>
                                     )}
 
-                                    {isWorker && (
-                                        isEditMode ? (
-                                            <FormField
-                                                control={form.control}
-                                                name="location"
-                                                render={({ field }) => (
-                                                    <FormItem className="mt-2">
-                                                        <FormControl>
-                                                            <div className="flex items-center justify-center md:justify-start">
-                                                                <MapPin className="mr-2 h-5 w-5 text-muted-foreground"/>
-                                                                <Input {...field} className="text-lg border-0 p-0 h-auto shadow-none focus-visible:ring-0 focus-visible:ring-offset-0" placeholder="No location set" />
-                                                            </div>
-                                                        </FormControl>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
-                                        ) : (
-                                            <CardDescription className="mt-2 text-lg flex items-center justify-center md:justify-start">
-                                                <MapPin className="mr-2 h-5 w-5"/>
-                                                {user.location ? user.location : <span className="italic text-muted-foreground">No location set</span>}
-                                            </CardDescription>
-                                        )
+                                    {isEditMode ? (
+                                        <FormField
+                                            control={form.control}
+                                            name="location"
+                                            render={({ field }) => (
+                                                <FormItem className="mt-2">
+                                                    <FormControl>
+                                                        <div className="flex items-center justify-center md:justify-start">
+                                                            <MapPin className="mr-2 h-5 w-5 text-muted-foreground"/>
+                                                            <Input {...field} className="text-lg border-0 p-0 h-auto shadow-none focus-visible:ring-0 focus-visible:ring-offset-0" placeholder="No location set" />
+                                                        </div>
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    ) : (
+                                        <CardDescription className="mt-2 text-lg flex items-center justify-center md:justify-start">
+                                            <MapPin className="mr-2 h-5 w-5"/>
+                                            {user.location ? user.location : <span className="italic text-muted-foreground">No location set</span>}
+                                        </CardDescription>
                                     )}
                                 </div>
                             </div>
@@ -205,37 +192,49 @@ export default function ProfilePage() {
                                     )}
                                 </div>
                                 
-                                {isWorker && (
-                                    <div>
-                                        <h3 className="font-headline text-xl font-semibold mb-3">Skills</h3>
-                                        {isEditMode ? (
-                                            <FormField
-                                                control={form.control}
-                                                name="skills"
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormControl>
-                                                            <Input {...field} placeholder="Enter skills, separated by commas" />
-                                                        </FormControl>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
-                                        ) : (
-                                            <>
-                                                {(user.skills && user.skills.length > 0) ? (
-                                                    <div className="flex flex-wrap gap-2">
-                                                        {user.skills.map(skill => (
-                                                            <Badge key={skill} className="text-base px-4 py-1">{skill}</Badge>
-                                                        ))}
-                                                    </div>
-                                                ) : (
-                                                    <p className="text-muted-foreground italic">No skills added yet. Click the edit button to add some.</p>
-                                                )}
-                                            </>
-                                        )}
+                                <div>
+                                    <h3 className="font-headline text-xl font-semibold mb-3">Skills</h3>
+                                    {isEditMode ? (
+                                        <FormField
+                                            control={form.control}
+                                            name="skills"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormControl>
+                                                        <Input {...field} placeholder="Enter skills, separated by commas" />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    ) : (
+                                        <>
+                                            {(user.skills && user.skills.length > 0) ? (
+                                                <div className="flex flex-wrap gap-2">
+                                                    {user.skills.map(skill => (
+                                                        <Badge key={skill} className="text-base px-4 py-1">{skill}</Badge>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <p className="text-muted-foreground italic">No skills added yet. Click the edit button to add some.</p>
+                                            )}
+                                        </>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <h3 className="font-headline text-xl font-semibold mb-3">Rating</h3>
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex items-center">
+                                            <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
+                                            <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
+                                            <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
+                                            <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
+                                            <Star className="h-5 w-5 text-muted-foreground fill-muted" />
+                                        </div>
+                                        <span className="text-muted-foreground">(4.0 from 12 reviews)</span>
                                     </div>
-                                )}
+                                </div>
                             </div>
                         </CardContent>
                     </Card>
