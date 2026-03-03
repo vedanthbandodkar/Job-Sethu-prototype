@@ -11,7 +11,7 @@ const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY
   : undefined;
 
 // The storage bucket must always be provided.
-const BUCKET_NAME = 'hire-ups-app.appspot.com';
+const BUCKET_NAME = 'job-sethu.appspot.com';
 
 if (!getApps().length) {
   if (serviceAccount) {

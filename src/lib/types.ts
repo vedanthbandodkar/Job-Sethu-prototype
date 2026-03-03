@@ -9,6 +9,7 @@ export type User = {
   skills: string[];
   location:string;
   about?: string;
+  userType: 'worker' | 'poster';
 };
 
 // This represents the structure in Firestore, using server Timestamps
@@ -26,6 +27,7 @@ export type Job = {
   applicantIds: string[];
   createdAt: Timestamp;
   imageUrl?: string;
+  imageHint?: string;
 };
 
 // This can be used on the client-side, where timestamp is a Date object

@@ -75,17 +75,15 @@ export default function SignupPage() {
     });
   }
 
-  const handleGoogleSignUp = () => {
+  const handleGoogleSignUp = async () => {
     if (!auth) return;
-    startTransition(async () => {
-        const provider = new GoogleAuthProvider();
-        try {
-            await signInWithPopup(auth, provider);
-            handleSuccess();
-        } catch (error) {
-            handleError(error);
-        }
-    });
+    const provider = new GoogleAuthProvider();
+    try {
+        await signInWithPopup(auth, provider);
+        handleSuccess();
+    } catch (error) {
+        handleError(error);
+    }
   };
 
   const onSubmit = (data: SignupFormValues) => {
@@ -208,5 +206,3 @@ export default function SignupPage() {
     </Card>
   );
 }
-
-    

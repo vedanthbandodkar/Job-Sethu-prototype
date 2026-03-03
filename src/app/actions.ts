@@ -4,6 +4,7 @@
 import { revalidatePath } from 'next/cache';
 import { adminFirestore } from '@/firebase/server-init';
 import { FieldValue } from 'firebase-admin/firestore';
+import placeholderImages from '@/lib/placeholder-images.json';
 
 type JobFormValues = {
   title: string;
@@ -14,17 +15,42 @@ type JobFormValues = {
   sos: boolean;
 }
 
+function getImageForTitle(title: string): { imageUrl: string, imageHint: string } {
+    const defaultImage = {
+        imageUrl: `https://placehold.co/600x400/27272a/e5e5e5?text=Job`,
+        imageHint: 'job'
+    };
+
+    const lowerCaseTitle = title.toLowerCase();
+
+    for (const item of placeholderImages.mappings) {
+        // Use a regular expression to match whole words
+        const keywordRegex = new RegExp(`\\b${item.keyword}\\b`);
+        if (keywordRegex.test(lowerCaseTitle)) {
+            return {
+                imageUrl: item.imageUrl,
+                imageHint: item.keyword
+            };
+        }
+    }
+
+    return defaultImage;
+}
+
 export async function createJobAction(data: JobFormValues, userId: string) {
   if (!userId) {
     return { success: false, message: 'You must be logged in to create a job.' };
   }
 
   try {
+    const { imageUrl, imageHint } = getImageForTitle(data.title);
+    
     const newJobData = {
       ...data,
       skills: data.skills.split(',').map(s => s.trim()).filter(Boolean),
       posterId: userId,
-      imageUrl: `https://picsum.photos/seed/${Math.random()}/600/400`,
+      imageUrl: imageUrl,
+      imageHint: imageHint,
       createdAt: new Date(),
       status: 'open',
       applicantIds: [],
@@ -105,8 +131,9 @@ export async function selectApplicantAction(jobId: string, applicantId: string, 
 
 type OnboardingFormValues = {
     name: string;
-    location: string;
-    skills: string;
+    location?: string;
+    skills?: string;
+    userType: 'worker' | 'poster';
 }
 
 export async function completeOnboardingAction(data: OnboardingFormValues, userId: string, email: string | null, photoURL: string | null) {
@@ -116,13 +143,27 @@ export async function completeOnboardingAction(data: OnboardingFormValues, userI
 
     try {
         const userRef = adminFirestore.collection('users').doc(userId);
-        await userRef.set({
+        
+        const userData: {
+            name: string;
+            email: string | null;
+            avatarUrl: string;
+            userType: 'worker' | 'poster';
+            location?: string;
+            skills?: string[];
+        } = {
             name: data.name,
             email: email,
-            avatarUrl: photoURL || `https://i.pravatar.cc/150?u=${email}`,
-            location: data.location,
-            skills: data.skills.split(',').map(s => s.trim()).filter(Boolean),
-        }, { merge: true });
+            avatarUrl: photoURL || '',
+            userType: data.userType,
+        };
+
+        if (data.userType === 'worker') {
+            userData.location = data.location || '';
+            userData.skills = (data.skills || '').split(',').map(s => s.trim()).filter(Boolean);
+        }
+
+        await userRef.set(userData, { merge: true });
 
         revalidatePath('/dashboard');
         revalidatePath('/profile');

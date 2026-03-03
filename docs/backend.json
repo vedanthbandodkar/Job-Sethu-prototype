@@ -11,9 +11,10 @@
         "avatarUrl": { "type": "string", "format": "uri" },
         "skills": { "type": "array", "items": { "type": "string" } },
         "location": { "type": "string" },
-        "about": { "type": "string" }
+        "about": { "type": "string" },
+        "userType": { "type": "string", "enum": ["worker", "poster"], "description": "The role of the user in the platform." }
       },
-      "required": ["name", "email"]
+      "required": ["name", "email", "userType"]
     },
     "Job": {
       "title": "Job",
@@ -31,7 +32,8 @@
         "workerId": { "type": "string" },
         "applicantIds": { "type": "array", "items": { "type": "string" } },
         "createdAt": { "type": "string", "format": "date-time" },
-        "imageUrl": { "type": "string", "format": "uri" }
+        "imageUrl": { "type": "string", "format": "uri" },
+        "imageHint": { "type": "string" }
       },
       "required": ["title", "description", "skills", "payment", "location", "status", "posterId", "createdAt"]
     },

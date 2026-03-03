@@ -1,0 +1,44 @@
+{
+  "mappings": [
+    {
+      "keyword": "website",
+      "imageUrl": "https://placehold.co/600x400/27272a/e5e5e5?text=Website"
+    },
+    {
+      "keyword": "plumbing",
+      "imageUrl": "https://placehold.co/600x400/27272a/e5e5e5?text=Plumbing"
+    },
+    {
+      "keyword": "design",
+      "imageUrl": "https://placehold.co/600x400/27272a/e5e5e5?text=Design"
+    },
+    {
+      "keyword": "developer",
+      "imageUrl": "https://placehold.co/600x400/27272a/e5e5e5?text=Developer"
+    },
+    {
+      "keyword": "cleaning",
+      "imageUrl": "https://placehold.co/600x400/27272a/e5e5e5?text=Cleaning"
+    },
+    {
+      "keyword": "repair",
+      "imageUrl": "https://placehold.co/600x400/27272a/e5e5e5?text=Repair"
+    },
+    {
+      "keyword": "garden",
+      "imageUrl": "https://placehold.co/600x400/27272a/e5e5e5?text=Garden"
+    },
+    {
+      "keyword": "delivery",
+      "imageUrl": "https://placehold.co/600x400/27272a/e5e5e5?text=Delivery"
+    },
+    {
+      "keyword": "tutor",
+      "imageUrl": "https://placehold.co/600x400/27272a/e5e5e5?text=Tutor"
+    },
+    {
+      "keyword": "painting",
+      "imageUrl": "https://placehold.co/600x400/27272a/e5e5e5?text=Painting"
+    }
+  ]
+}
