@@ -142,7 +142,7 @@ export default function ProfilePage() {
                                                         <FormControl>
                                                             <div className="flex items-center">
                                                                 <MapPin className="mr-2 h-5 w-5 text-muted-foreground"/>
-                                                                <Input {...field} className="text-lg border-0 p-0 h-auto shadow-none focus-visible:ring-0 focus-visible:ring-offset-0" />
+                                                                <Input {...field} className="text-lg border-0 p-0 h-auto shadow-none focus-visible:ring-0 focus-visible:ring-offset-0" placeholder="No location set" />
                                                             </div>
                                                         </FormControl>
                                                         <FormMessage />
@@ -150,12 +150,10 @@ export default function ProfilePage() {
                                                 )}
                                             />
                                         ) : (
-                                            user.location && (
-                                                <CardDescription className="mt-2 text-lg flex items-center justify-center md:justify-start">
-                                                    <MapPin className="mr-2 h-5 w-5"/>
-                                                    {user.location}
-                                                </CardDescription>
-                                            )
+                                            <CardDescription className="mt-2 text-lg flex items-center justify-center md:justify-start">
+                                                <MapPin className="mr-2 h-5 w-5"/>
+                                                {user.location || <span className="italic text-muted-foreground">No location set</span>}
+                                            </CardDescription>
                                         )
                                     )}
                                 </div>
@@ -222,12 +220,14 @@ export default function ProfilePage() {
                                             )}
                                         />
                                     ) : (
-                                        user.skills && user.skills.length > 0 && (
+                                        user.skills && user.skills.length > 0 ? (
                                             <div className="flex flex-wrap gap-2">
                                                 {user.skills.map(skill => (
                                                     <Badge key={skill} className="text-base px-4 py-1">{skill}</Badge>
                                                 ))}
                                             </div>
+                                        ) : (
+                                            <p className="text-muted-foreground italic">No skills added yet. Click the edit button to add some.</p>
                                         )
                                      )}
                                 </div>
