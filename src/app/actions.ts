@@ -25,7 +25,7 @@ function getImageForTitle(title: string): { imageUrl: string, imageHint: string 
 
     for (const item of placeholderImages.mappings) {
         // Use a regular expression to match whole words
-        const keywordRegex = new RegExp(`\\b${item.keyword}\\b`);
+        const keywordRegex = new RegExp(`\\b${item.keyword}\\b`, 'i');
         if (keywordRegex.test(lowerCaseTitle)) {
             return {
                 imageUrl: item.imageUrl,
@@ -242,8 +242,8 @@ export async function deleteMessageAction(jobId: string, messageId: string, user
 
 type ProfileFormValues = {
     name: string;
-    location: string;
-    skills: string;
+    location?: string;
+    skills?: string;
     about?: string;
 }
 
@@ -254,12 +254,20 @@ export async function updateUserProfileAction(data: ProfileFormValues, userId: s
 
     try {
         const userRef = adminFirestore.collection('users').doc(userId);
-        await userRef.update({
+        
+        const updatePayload: { [key: string]: any } = {
             name: data.name,
-            location: data.location,
-            skills: data.skills.split(',').map(s => s.trim()).filter(Boolean),
             about: data.about || "",
-        });
+        };
+
+        if (data.location !== undefined) {
+            updatePayload.location = data.location;
+        }
+        if (data.skills !== undefined) {
+            updatePayload.skills = data.skills.split(',').map(s => s.trim()).filter(Boolean);
+        }
+
+        await userRef.update(updatePayload);
 
         revalidatePath('/profile');
         revalidatePath(`/profile/${userId}`);

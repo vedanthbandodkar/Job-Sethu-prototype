@@ -24,8 +24,8 @@ import { updateUserProfileAction } from "@/app/actions";
 
 const profileFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
-  location: z.string().min(3, "Please enter a valid location."),
-  skills: z.string().min(1, "Please list at least one skill."),
+  location: z.string().optional(),
+  skills: z.string().optional(),
   about: z.string().optional(),
 });
 
@@ -50,13 +50,13 @@ export default function ProfilePage() {
     useEffect(() => {
         if (user) {
             form.reset({
-                name: user.name,
-                location: user.location,
-                skills: user.skills.join(', '),
+                name: user.name || '',
+                location: user.location || '',
+                skills: user.skills?.join(', ') || '',
                 about: user.about || '',
             });
         }
-    }, [user, form]);
+    }, [user, form, isEditMode]);
     
     const loading = authLoading || userLoading;
 
@@ -80,8 +80,19 @@ export default function ProfilePage() {
     
     const onSubmit = (data: ProfileFormValues) => {
         if (!user) return;
+        
+        // Don't submit fields that don't apply to the user type
+        const submissionData = {
+            name: data.name,
+            about: data.about,
+            ...(user.userType === 'worker' && {
+                location: data.location,
+                skills: data.skills,
+            }),
+        };
+
         startTransition(async () => {
-            const result = await updateUserProfileAction(data, user.id);
+            const result = await updateUserProfileAction(submissionData, user.id);
             if (result.success) {
                 toast({ title: "Profile Updated!", description: "Your changes have been saved." });
                 setIsEditMode(false);
@@ -121,27 +132,31 @@ export default function ProfilePage() {
                                         <CardTitle className="font-headline text-4xl">{user.name ?? "Unnamed User"}</CardTitle>
                                     )}
 
-                                    {isEditMode ? (
-                                         <FormField
-                                            control={form.control}
-                                            name="location"
-                                            render={({ field }) => (
-                                                <FormItem className="mt-2">
-                                                    <FormControl>
-                                                        <div className="flex items-center">
-                                                            <MapPin className="mr-2 h-5 w-5 text-muted-foreground"/>
-                                                            <Input {...field} className="text-lg border-0 p-0 h-auto shadow-none focus-visible:ring-0 focus-visible:ring-offset-0" />
-                                                        </div>
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                    ) : (
-                                        <CardDescription className="mt-2 text-lg flex items-center justify-center md:justify-start">
-                                            <MapPin className="mr-2 h-5 w-5"/>
-                                            {user.location}
-                                        </CardDescription>
+                                    {user.userType === 'worker' && (
+                                        isEditMode ? (
+                                            <FormField
+                                                control={form.control}
+                                                name="location"
+                                                render={({ field }) => (
+                                                    <FormItem className="mt-2">
+                                                        <FormControl>
+                                                            <div className="flex items-center">
+                                                                <MapPin className="mr-2 h-5 w-5 text-muted-foreground"/>
+                                                                <Input {...field} className="text-lg border-0 p-0 h-auto shadow-none focus-visible:ring-0 focus-visible:ring-offset-0" />
+                                                            </div>
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        ) : (
+                                            user.location && (
+                                                <CardDescription className="mt-2 text-lg flex items-center justify-center md:justify-start">
+                                                    <MapPin className="mr-2 h-5 w-5"/>
+                                                    {user.location}
+                                                </CardDescription>
+                                            )
+                                        )
                                     )}
                                 </div>
                             </div>
@@ -190,6 +205,7 @@ export default function ProfilePage() {
                                         </p>
                                     )}
                                 </div>
+                                {user.userType === 'worker' && (
                                 <div>
                                     <h3 className="font-headline text-xl font-semibold mb-3">Skills</h3>
                                      {isEditMode ? (
@@ -206,13 +222,16 @@ export default function ProfilePage() {
                                             )}
                                         />
                                     ) : (
-                                        <div className="flex flex-wrap gap-2">
-                                            {user.skills.map(skill => (
-                                                <Badge key={skill} className="text-base px-4 py-1">{skill}</Badge>
-                                            ))}
-                                        </div>
+                                        user.skills && user.skills.length > 0 && (
+                                            <div className="flex flex-wrap gap-2">
+                                                {user.skills.map(skill => (
+                                                    <Badge key={skill} className="text-base px-4 py-1">{skill}</Badge>
+                                                ))}
+                                            </div>
+                                        )
                                      )}
                                 </div>
+                                )}
                             </div>
                         </CardContent>
                     </Card>
